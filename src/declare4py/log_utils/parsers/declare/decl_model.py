@@ -192,6 +192,8 @@ class DeclareParsedModel(DeclareModelCustomDict):
     events: dict[str, DeclareModelEvent] = {}
     template_constraints = {}
     templates: [DeclareTemplateModalDict] = []
+    encoder: DeclareParsedModelEncoder
+    encoded_model: DeclareParsedModelEncoder
 
     def __init__(self):
         super().__init__()
@@ -199,6 +201,7 @@ class DeclareParsedModel(DeclareModelCustomDict):
         self.attributes_list = {}
         self.template_constraints = {}
         self.templates = []
+        self.encoded_model = None
         self.update_props()
 
     def add_event(self, name: str, event_type: str) -> None:
@@ -315,7 +318,14 @@ class DeclareParsedModel(DeclareModelCustomDict):
         self.key_value["templates"] = self.templates
 
     def encode(self) -> DeclareParsedModel:
-        return DeclareParsedModelEncoder().encode(self)
+        if self.encoded_model is None:
+            self.encoded_model = DeclareParsedModelEncoder()
+        return self.encoded_model.encode(self)
+
+    def decode_value(self, name: str) -> str:
+        if self.encoded_model is None:
+            self.encoded_model = DeclareParsedModelEncoder()
+        return self.encoded_model.decode_value(name)
 
 
 class DeclareParsedModelEncoder:
@@ -335,16 +345,11 @@ class DeclareParsedModelEncoder:
                     event_obj.event_type = self.encode_event_type(event_obj[prop])
                 if prop == "attributes":
                     event_obj.attributes = self.encode_attributes_list(event_obj["attributes"])
-                    print(event_obj.attributes)
-        self.encode_attributes_list(dpm.attributes_list)
-        print(self.model.attributes_list)
+        # self.encode_attributes_list(dpm.attributes_list)
 
         # self.model.templates = copy.deepcopy(dpm_orig.templates)
         self.model.templates = []
-        # for tmpl in self.model.templates:
         for tmpl in dpm_orig.templates:
-            # self.model.templates
-            # if "activities" in tmpl:
             template = DeclareTemplateModalDict()
             self.model.templates.append(template)
             template.template_name = tmpl["template_name"]
@@ -377,8 +382,8 @@ class DeclareParsedModelEncoder:
     def encode_attributes_list(self, attr_list: dict):
         d = {}
         for attr_name, attr_obj in attr_list.items():
-            self.model.attributes_list[self.encode_event_name(attr_name)] = attr_obj
             e_attr_name = self.encode_value(attr_name)
+            self.model.attributes_list[e_attr_name] = attr_obj
             d[e_attr_name] = {}
             if attr_obj['value_type'] is DeclareModelAttributeType.ENUMERATION:
                 attr_obj['value'] = self.encode_enum_list(attr_obj["value"])
@@ -476,17 +481,51 @@ class DeclareParsedModelEncoder:
         return ", ".join(ss)
 
     def encode_str_list(self, lst: [str]) -> [str]:
-        ss = [self.encode_value(se) for se in lst]
+        ss = []
+        for se in lst:
+            if "ENCODEDSTRINGENCODEDSTRING" not in se:
+                ss.append(self.encode_value(se))
+            else:
+                ss.append(se)
         return ss
 
     def encode_value(self, s) -> str:
         if s not in self.encoded_dict:
-            # v = base64.b64encode(s.encode())
+            v = base64.b64encode(s.encode())
             # v = v.decode("utf-8")
-            # v = v.decode("utf-8")
-            v = hashlib.md5(s.encode()).hexdigest()
-            self.encoded_dict[s] = v
+            # doesn't work because sm times has starts from a digit and clingo fails
+            # v = hashlib.md5(s.encode()).hexdigest()
+            # self.encoded_dict[s] = v
+            b64_str = v.decode("utf-8")
+            b64_str = b64_str.replace("=", "EEEQUALSIGNNN")
+            if b64_str[0].isupper():
+                b = b64_str[0]
+                b = f"lowerlower{b}lowerlower"
+                b64_str = b + b64_str[1:]
+            # maybe sometimes maybe by bug we encode the string multiple times, we would like to decode
+            # till last encoded str
+            b64_str = b64_str + "ENCODEDSTRINGENCODEDSTRING"
+            self.encoded_dict[s] = b64_str
         return self.encoded_dict[s]
+
+    def decode_value(self, s: str) -> str:
+        if not isinstance(s, str):
+            return s
+        vals: [str] = list(self.encoded_dict.values())  # ["..", ".."]
+        s = s.strip()
+        if s in vals:
+            idx = vals.index(s)
+            if idx <= -1:
+                return s
+            s = s.replace("EEEQUALSIGNNN", "=")
+            s = s.replace("ENCODEDSTRINGENCODEDSTRING", "=")
+            if s.startswith("lowerlower"):
+                s = s.replace("lowerlower", "")
+            n_val = base64.b64decode(s)
+            s = n_val.decode("utf-8")
+            if s.__contains__("ENCODEDSTRINGENCODEDSTRING"):
+                return self.decode_value(s)
+        return s
 
 
 class DeclModel(LTLModel):

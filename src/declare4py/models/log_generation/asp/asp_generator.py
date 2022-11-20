@@ -117,19 +117,18 @@ class AspGenerator(LogGenerator):
                  custom_probabilities: typing.Optional[typing.List[float]] = None
                  ):
         super().__init__(num_traces, min_event, max_event, log, decl_model)
-        # self.template_path = template_path
-        # self.encoding_path = encoding_path
         self.clingo_output = []
         self.asp_custom_structure: AspCustomLogModel | None = None
         d = Distributor()
         self.traces_length: collections.Counter | None = d.distribution(min_event, max_event, num_traces,
                                                                         distributor_type, custom_probabilities)
-        self.alp_encoding = ALPEncoding().value
+        self.alp_encoding = ALPEncoding().get_alp_encoding()
         self.alp_template = ALPTemplate().value
 
     def get_lp(self) -> str:
         lp_model = ALPInterpreter().from_decl_model(self.decl_model)
         lp = lp_model.to_str()
+        self.alp_encoding = ALPEncoding().get_alp_encoding(lp_model.fact_names)
         return lp
 
     def run(self):
@@ -169,15 +168,18 @@ class AspGenerator(LogGenerator):
         self.log_analyzer.log.extensions["concept"]["name"] = lg.XESExtension.Concept.name
         self.log_analyzer.log.extensions["concept"]["prefix"] = lg.XESExtension.Concept.prefix
         self.log_analyzer.log.extensions["concept"]["uri"] = lg.XESExtension.Concept.uri
-
+        decl_encoded_model = self.decl_model.parsed_model
         for trace in self.asp_custom_structure.traces:
             trace_gen = lg.Trace()
             trace_gen.attributes["concept:name"] = trace.name
             for asp_event in trace.events:
                 event = lg.Event()
-                event["concept:name"] = asp_event.name
+                event["concept:name"] = decl_encoded_model.decode_value(asp_event.name)
                 for res_name, res_value in asp_event.resource.items():
-                    event[res_name] = res_value
+                    # event[res_name] = decl_encoded_model.decode_value(res_value)
+                    res_name_decoded = decl_encoded_model.decode_value(res_name)
+                    res_value_decoded = decl_encoded_model.decode_value(res_value)
+                    event[res_name_decoded] = str(res_value_decoded).strip()
                 event["time:timestamp"] = datetime.now().timestamp()  # + timedelta(hours=c).datetime
                 trace_gen.append(event)
             self.log_analyzer.log.append(trace_gen)
