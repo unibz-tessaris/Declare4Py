@@ -22,7 +22,7 @@ dp = DeclareParser()
 d = dp.parse_from_string(decl)
 # print(d)
 # print(d.parsed_model.templates)
-print(d.parsed_model)
+# print(d.parsed_model)
 print(d.parsed_model.encode())
 print(d.parsed_model)
 
