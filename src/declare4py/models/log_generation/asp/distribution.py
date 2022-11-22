@@ -45,9 +45,9 @@ class Distributor:
             min_num_events_or_mu: int,
             max_num_events_or_sigma: int,
             num_traces: int,
-            dist_type: Literal["uniform", "normal", "custom"] = "uniform",
+            dist_type: Literal["uniform", "guassian", "custom"] = "uniform",
             custom_probabilities: Optional[List[float]] = None):
-        if dist_type == "normal":
+        if dist_type == "guassian":
             return self.normal_distribution(min_num_events_or_mu, max_num_events_or_sigma, num_traces)
         elif dist_type == "uniform":
             return self.uniform_distribution(min_num_events_or_mu, max_num_events_or_sigma, num_traces)

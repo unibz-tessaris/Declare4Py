@@ -111,19 +111,26 @@ class AspCustomLogModel:
 class AspGenerator(LogGenerator):
 
     def __init__(self, num_traces: int, min_event: int, max_event: int,
-                 decl_model: DeclModel,  # template_path: str, encoding_path: str,
-                 log: LogAnalyzer = None,
-                 distributor_type: typing.Literal["uniform", "normal", "custom"] = "uniform",
-                 custom_probabilities: typing.Optional[typing.List[float]] = None
+                 decl_model: DeclModel,
+                 distributor_type: typing.Literal["uniform", "guassian", "custom"] = "uniform",
+                 custom_probabilities: typing.Optional[typing.List[float]] = None,
+                 loc: float = None, scale: float = None
                  ):
-        super().__init__(num_traces, min_event, max_event, log, decl_model)
+        super().__init__(num_traces, min_event, max_event, decl_model)
         self.clingo_output = []
         self.asp_custom_structure: AspCustomLogModel | None = None
         d = Distributor()
-        self.traces_length: collections.Counter | None = d.distribution(min_event, max_event, num_traces,
+        if distributor_type == "guassian":
+            assert loc > 1
+            assert scale >= 0
+            self.traces_length: collections.Counter | None = d.distribution(loc, scale, num_traces,
+                                                                            distributor_type, custom_probabilities)
+        else:
+           self.traces_length: collections.Counter | None = d.distribution(min_event, max_event, num_traces,
                                                                         distributor_type, custom_probabilities)
         self.alp_encoding = ALPEncoding().get_alp_encoding()
         self.alp_template = ALPTemplate().value
+
 
     def get_lp(self) -> str:
         lp_model = ALPInterpreter().from_decl_model(self.decl_model)
