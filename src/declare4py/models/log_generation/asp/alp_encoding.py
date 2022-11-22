@@ -26,7 +26,8 @@ sat(I,T) :- cur_state(I,S,T), template(I,Name), accepting(Name,S).
 
 #show trace/2.
 #show assigned_value/3.
-%#show sat/2."""
+%#show sat/2.
+"""
 
     def get_alp_encoding(self, facts_name: [str] = ["activity"]):
         """

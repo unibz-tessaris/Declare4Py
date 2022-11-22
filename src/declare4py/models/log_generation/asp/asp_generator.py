@@ -143,9 +143,9 @@ class AspGenerator(LogGenerator):
     def __generate_asp_trace(self, lp: str, num_events: int, num_traces: int,
                              seed: int, freq: float = 0.9):
         ctl = clingo.Control([f"-c t={num_events}", f"{num_traces}", f"--seed={seed}", f"--rand-freq={freq}"])
+        ctl.add(lp)
         ctl.add(self.alp_encoding)
         ctl.add(self.alp_template)
-        ctl.add(lp)
         ctl.ground([("base", [])], context=self)
         ctl.solve(on_model=self.__handle_clingo_result)
 
