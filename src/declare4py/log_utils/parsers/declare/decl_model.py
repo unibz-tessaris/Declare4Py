@@ -118,7 +118,8 @@ class DeclareTemplateModalDict(DeclareModelCustomDict):
 
     def get_active_condition(self):
         if len(self.condition) > 0:
-            return self.condition[0]
+            c = self.condition[0]
+            return c if len(c) > 0 else None
         return None
 
     def get_target_condition(self):
@@ -128,11 +129,16 @@ class DeclareTemplateModalDict(DeclareModelCustomDict):
             is_matched = re.search(time_int, cond_at_1_idx, re.IGNORECASE)
             if is_matched:
                 return None
-            return self.condition[1]
+            c = self.condition[1]
+            return c if len(c) > 0 else None
+            # return self.condition[1]
+        return None
 
     def get_time_condition(self):
         if self.contains_interval_condition():
-            return self.condition[2]
+            c = self.condition[2]
+            return c if len(c) > 0 else None
+            # return self.condition[2]
         return None
 
     def contains_interval_condition(self) -> bool:
@@ -149,6 +155,22 @@ class DeclareTemplateModalDict(DeclareModelCustomDict):
         #     time_int = r"^[\d.]+,?([\d.]+)?[,]?(s|m|d|h)$"
         #     return re.search(time, parts, re.IGNORECASE)
         # return False
+
+    def set_conditions(self, cond_str: str):
+        """
+        set the cond_str
+        Parameters
+        ----------
+        cond_str: substring after Teample[x,y] from line "Teample[x,y] |...|...|..". thus, cond_str= |...|...|..
+
+        Returns
+        -------
+
+        """
+        self.condition_line = cond_str
+        conditions = cond_str.strip("|")
+        conds_list = conditions.split("|")
+        self.condition = [cl.strip() for cl in conds_list]
 
     def update_props(self):
         """
@@ -170,6 +192,8 @@ class DeclareParsedModel(DeclareModelCustomDict):
     events: dict[str, DeclareModelEvent] = {}
     template_constraints = {}
     templates: [DeclareTemplateModalDict] = []
+    encoder: DeclareParsedModelEncoder
+    encoded_model: DeclareParsedModelEncoder
 
     def __init__(self):
         super().__init__()
@@ -177,6 +201,7 @@ class DeclareParsedModel(DeclareModelCustomDict):
         self.attributes_list = {}
         self.template_constraints = {}
         self.templates = []
+        self.encoded_model = None
         self.update_props()
 
     def add_event(self, name: str, event_type: str) -> None:
@@ -293,152 +318,156 @@ class DeclareParsedModel(DeclareModelCustomDict):
         self.key_value["templates"] = self.templates
 
     def encode(self) -> DeclareParsedModel:
-        return DeclareParsedModelEncoder().encode(self)
+        if self.encoded_model is None:
+            self.encoded_model = DeclareParsedModelEncoder()
+        return self.encoded_model.encode(self)
+
+    def decode_value(self, name: str) -> str:
+        if self.encoded_model is None:
+            self.encoded_model = DeclareParsedModelEncoder()
+        return self.encoded_model.decode_value(name)
 
 
 class DeclareParsedModelEncoder:
     encoded_dict = {}
     model: DeclareParsedModel
 
-    def encode(self, dpm: DeclareParsedModel) -> DeclareParsedModel:
-        # dpm: DeclareParsedModel = json.loads(dpm.to_json())  # TODO: check this. to void to get messed with reference/pointers
-        dpm = copy.deepcopy(dpm)  # TODO: check this. to void to get messed with reference/pointers
+    def encode(self, dpm_orig: DeclareParsedModel) -> DeclareParsedModel:
+        self.encoded_dict = {}
+        dpm = copy.deepcopy(dpm_orig)  # TODO: check this. to void to get messed with reference/pointers
         self.model = DeclareParsedModel()
         for event_name, event_obj in dpm.events.items():
             self.model.events[self.encode_event_name(event_name)] = event_obj
             for prop in event_obj:
                 if prop == "name":
-                    event_obj[prop] = self.encode_event_name(event_name)
+                    event_obj.name = self.encode_event_name(event_name)
                 if prop == "event_type":
-                    event_obj[prop] = self.encode_event_type(event_obj[prop])
+                    event_obj.event_type = self.encode_event_type(event_obj[prop])
+                if prop == "attributes":
+                    event_obj.attributes = self.encode_attributes_list(event_obj["attributes"])
+        # self.encode_attributes_list(dpm.attributes_list)
 
-        for attr_name, attr_obj in dpm.attributes_list.items():
-            self.model.attributes_list[self.encode_event_name(attr_name)] = attr_obj
-            if attr_obj["value_type"] is DeclareModelAttributeType.ENUMERATION:
-                attr_obj["value"] = self.encode_enum_list(attr_obj["value"])
-            if "events_attached" in attr_obj:
-                attr_obj["events_attached"] = self.encode_str_list(attr_obj["events_attached"])
-
-        for tmpl in dpm.templates:
-            self.model.templates = tmpl
-            if "activities" in tmpl:
-                tmpl["activities"] = self.encode_str_list(tmpl["activities"])
-            # compiler = re.compile(r"\"([\w,. ?]+)\"")
-            compiler = re.compile(r"\"([\w,. ?]+)\"", re.MULTILINE)
+        # self.model.templates = copy.deepcopy(dpm_orig.templates)
+        self.model.templates = []
+        for tmpl in dpm_orig.templates:
+            template = DeclareTemplateModalDict()
+            self.model.templates.append(template)
+            template.template_name = tmpl["template_name"]
+            template.template = tmpl["template"]
+            template.activities = self.encode_str_list(tmpl["activities"])
             a, t, tm = tmpl.get_conditions()
+            encoded_conditions = []
             if a is not None:
-                # c = DeclareParserUtility().parse_data_cond(a)
-                c = self.parse_data_cond("A.grade > 10 and A.name in (x, y)  or A.grade < 3 and A.name in (z, v) ")
-                print(c)
-                out = compiler.findall(c)
-                out.sort(key=lambda s: len(s))
-
-                print(out)
-                # print(len(out.groups()))
-                # for groupNum in range(1, len(out.groups()) + 1):
-                #     print(a, out.group(groupNum))
-                    # groupNum = groupNum + 1
-                # for matchNum, matched in enumerate(out, start=1):
-                #     print(matchNum, matched)
-
-            # TODO: template part conditions
+                # c = self.parsed_condition("A.grade > 10 and A.name in (x, y)  or A.grade < 3 and A.name in (z, v)
+                # or A.name not in (4, 2, 6)")
+                # c = self.parsed_condition("A.grade > 10 and A.name in (x, y) or A.name in (z, v) T.type > 78 or "
+                # "t.nae is memo and (T.InfectionSuspected is true) AND"
+                #                           " (T.SIRSCriteria2OrMore is true) AND (T.DiagnosticECG is true) ")
+                encoded_conditions.append(self.parsed_condition(a))
+            else:
+                encoded_conditions.append("")
+            if t is not None:
+                encoded_conditions.append(self.parsed_condition(t))
+            else:
+                encoded_conditions.append("")
+            if tm is not None:
+                encoded_conditions.append(tm)
+            template.condition = encoded_conditions
+            template.condition_line = "| " + " | ".join(encoded_conditions)
+            a = ", ".join(template.activities)
+            template.template_line = f"{template.template_name}[{a}] {template.condition_line}"
 
         return self.model
-        # pass
 
-    def parse_data_cond(self, cond: str) -> str:
-        try:
-            cond = cond.strip()
-            if cond == "":
-                return cond
-            py_cond, fill_enum_set = ("", False)
-            conds = cond.split(" ")
-            new_cond = []
-            previous_char = ""
-            counter = 0
-            # while len(conds) > counter:
-            #     c = conds[counter]
-            #     if re.match(r'^[AaTt]\.', c):
-            #         attr_name = c[2:]  # c = "A.grade"
-            #         attr_name = self.encode_value(attr_name)
-            #         nm = c[:2] + f"{attr_name}"
-            #         conds.append(nm)
-            #     elif c in ["and", "in", "or", "same", "different"] and previous_char is not "is":  # in case:
-            #         previous_char = c
-            #         continue
-            #     # elif  c == "is":
-            #
-            #
-            #     previous_char = c
-            #         # con
+    def encode_attributes_list(self, attr_list: dict):
+        d = {}
+        for attr_name, attr_obj in attr_list.items():
+            e_attr_name = self.encode_value(attr_name)
+            self.model.attributes_list[e_attr_name] = attr_obj
+            d[e_attr_name] = {}
+            if attr_obj['value_type'] is DeclareModelAttributeType.ENUMERATION:
+                attr_obj['value'] = self.encode_enum_list(attr_obj["value"])
+            if 'events_attached' in attr_obj:
+                attr_obj['events_attached'] = self.encode_str_list(attr_obj['events_attached'])
+            d[e_attr_name] = attr_obj
+        return d
 
-            while cond:
-                if cond.startswith("(") or cond.startswith(")"):
-                    py_cond = py_cond + " " + cond[0]
-                    cond = cond[1:].lstrip()
-                    fill_enum_set = py_cond.endswith(" in (")
-                else:
-                    if not fill_enum_set:
-                        s = re.split(r'[\s()]+', cond)
-                        next_word = re.split(r'[\s()]+', cond)[0]
-                        cond = cond[len(next_word):].lstrip()
-                        if re.match(r'^[AaTt]\.', next_word):  # matches activation condition's A or target's T
-                            py_cond = py_cond + " " + '"' + next_word[2:] + '" in ' + next_word[0] \
-                                      + " and " + next_word[0] + '["' + next_word[2:] + '"]'
-                        elif next_word.lower() == "is":
-                            if cond.lower().startswith("not"):
-                                cond = cond[3:].lstrip()
-                                py_cond = py_cond + " !="
-                            else:
-                                py_cond = py_cond + " =="
-                            tmp = []
-                            while cond and not (cond.startswith(')') or cond.lower().startswith('and')
-                                                or cond.lower().startswith('or')):
-                                w = re.split(r'[\s()]+', cond)[0]
-                                cond = cond[len(w):].lstrip()
-                                tmp.append(w)
-                            attr = " ".join(tmp)
-                            py_cond += ' "' + attr + '"'
-                        elif next_word == "=":
-                            py_cond = py_cond + " =="
-                        elif next_word.lower() == "and" or next_word.lower() == "or":
-                            py_cond = py_cond + " " + next_word.lower()
-                        elif next_word.lower() == "same":
-                            tmp = []
-                            while cond and not (cond.startswith(')') or cond.lower().startswith('and')
-                                                or cond.lower().startswith('or')):
-                                w = re.split(r'[\s()]+', cond)[0]
-                                cond = cond[len(w):].lstrip()
-                                tmp.append(w)
-                            attr = " ".join(tmp)
-                            py_cond = py_cond + " " + attr + " in A and " + attr + " in T " \
-                                      + 'and A["' + attr + '"] == T["' + attr + '"]'
-                        elif next_word.lower() == "different":
-                            tmp = []
-                            while cond and not (cond.startswith(')') or cond.lower().startswith('and')
-                                                or cond.lower().startswith('or')):
-                                w = re.split(r'[\s()]+', cond)[0]
-                                cond = cond[len(w):].lstrip()
-                                tmp.append(w)
-                            attr = " ".join(tmp)
-                            py_cond = py_cond + " " + attr + " in A and " + attr + " in T " \
-                                      + 'and A["' + attr + '"] != T["' + attr + '"]'
-                        elif next_word.lower() == "true":
-                            py_cond = py_cond + " True"
-                        elif next_word.lower() == "false":
-                            py_cond = py_cond + " False"
-                        else:
-                            py_cond = py_cond + " " + next_word
-                    else:
-                        end_idx = cond.find(')')
-                        enum_set = re.split(r',\s+', cond[:end_idx])
-                        enum_set = [x.strip() for x in enum_set]
-                        py_cond = py_cond + ' "' + '", "'.join(enum_set) + '"'
-                        cond = cond[end_idx:].lstrip()
+    def parsed_condition(self, string: str):
+        string = re.sub(r'\)', ' ) ', string)
+        string = re.sub(r'\(', ' ( ', string)
+        string = string.strip()
+        string = re.sub(' +', ' ', string)
+        string = re.sub('is not', 'is_not', string)
+        string = re.sub('not in', 'not_in', string)
+        string = re.sub(' *> *', '>', string)
+        string = re.sub(' *< *', '<', string)
+        string = re.sub(' *= *', '=', string)
+        string = re.sub(' *<= *', '<=', string)
+        string = re.sub(' *>= *', '>=', string)
+        form_list = string.split(" ")
+        for i in range(len(form_list) - 1, -1, -1):
+            el = form_list[i]
+            if el == 'in' or el == 'not_in':
+                end_index = form_list[i:].index(')')
+                start_index = i - 1
+                end_index = end_index + i + 1
+                form_list[start_index:end_index] = [' '.join(form_list[start_index:end_index])]
+            elif el == 'is' or el == 'is_not':
+                start_index = i - 1
+                end_index = i + 2
+                form_list[start_index:end_index] = [' '.join(form_list[start_index:end_index])]
+        keywords = {'and', 'or', '(', ')', 'is', 'same', 'different'}
+        idx = 0
+        for cond_chunk in form_list:
+            idx = idx + 1
+            if cond_chunk.lower() in keywords:
+                continue
+            elif cond_chunk.lower() == "not_in":
+                form_list[idx - 1] = "not in"
+            elif re.match(r'^[AaTt]\.', cond_chunk):  # A.grade>10
+                found = re.findall(r"([AaTt]\.([\w:,]+))", cond_chunk, flags=re.UNICODE | re.MULTILINE)  # finds from A.grade>10 => A.grade and grade
+                if found:  # [('A.grade', 'grade'), ('A.mark', 'mark')]
+                    for f in found:
+                        act_tar_cond, attr = f
+                        ct = act_tar_cond.split(".")[0]  # condition_type: A or T
+                        attr_encoded = self.encode_value(attr)
+                        form_list[idx - 1] = cond_chunk.replace(ct + "." + attr, ct + "." + attr_encoded)
+                cond_chunk = form_list[idx - 1]
+                cond_chunk_split = cond_chunk.lower().split(" ")  # A.name in ( z, v )
+                if "is" in cond_chunk_split:
+                    cond_chunk = cond_chunk.replace("  ", "").strip()
+                    val = cond_chunk.split(" is ")  # case: T.InfectionSuspected is xyz
+                    val0 = val[0]  # "T.InfectionSuspected"
+                    val1 = self.encode_value(val[1])  # "xyz"
+                    cond_chunk = val0 + " is " + val1
+                    form_list[idx - 1] = cond_chunk
+                elif "not_in" in cond_chunk_split:
+                    cond_chunk = cond_chunk.replace("  ", "").strip()
+                    val = cond_chunk.split(" not_in ")  # case: A.name not in ( z, v )
+                    val1 = val[1].replace("(", "").replace(")", "").strip()  # "z, v"
+                    val1 = [v.strip() for v in val1.split(",")]  # ["z", "v"]
+                    items = []
+                    for v in val1:
+                        items.append(self.encode_value(v))
+                    val1 = "(" + ", ".join(items) + ")"
+                    cond_chunk = val[0] + " not in " + val1
+                    form_list[idx - 1] = cond_chunk
+                elif "in" in cond_chunk_split:
+                    cond_chunk = cond_chunk.replace("  ", "").strip()
+                    val = cond_chunk.split(" in ")  # case: A.name in ( z, v )
+                    val1 = val[1].replace("(", "").replace(")", "").strip()  # "z, v"
+                    val1 = [v.strip() for v in val1.split(",")]  # ["z", "v"]
+                    items = []
+                    for v in val1:
+                        items.append(self.encode_value(v))
+                    val1 = "(" + ", ".join(items) + ")"
+                    cond_chunk = val[0] + " in " + val1
+                    form_list[idx - 1] = cond_chunk
+            else:
+                raise ValueError(f"Unable to encode the {cond_chunk} condition. This is not supported to encode yet")
+                # if matched
 
-            return py_cond.strip()
-        except Exception:
-            raise SyntaxError
+        return " ".join(form_list)
 
     def encode_event_name(self, s) -> str:
         return self.encode_value(s)
@@ -449,20 +478,54 @@ class DeclareParsedModelEncoder:
     def encode_enum_list(self, s) -> str:
         ss = s.split(",")
         ss = [self.encode_value(se) for se in ss]
-        return ",".join(ss)
+        return ", ".join(ss)
 
     def encode_str_list(self, lst: [str]) -> [str]:
-        ss = [self.encode_value(se) for se in lst]
+        ss = []
+        for se in lst:
+            if "ENCODEDSTRINGENCODEDSTRING" not in se:
+                ss.append(self.encode_value(se))
+            else:
+                ss.append(se)
         return ss
 
     def encode_value(self, s) -> str:
         if s not in self.encoded_dict:
-            # v = base64.b64encode(s.encode())
+            v = base64.b64encode(s.encode())
             # v = v.decode("utf-8")
-            # v = v.decode("utf-8")
-            v = hashlib.md5(s.encode()).hexdigest()
-            self.encoded_dict[s] = v
+            # doesn't work because sm times has starts from a digit and clingo fails
+            # v = hashlib.md5(s.encode()).hexdigest()
+            # self.encoded_dict[s] = v
+            b64_str = v.decode("utf-8")
+            b64_str = b64_str.replace("=", "EEEQUALSIGNNN")
+            if b64_str[0].isupper():
+                b = b64_str[0]
+                b = f"lowerlower{b}lowerlower"
+                b64_str = b + b64_str[1:]
+            # maybe sometimes maybe by bug we encode the string multiple times, we would like to decode
+            # till last encoded str
+            b64_str = b64_str + "ENCODEDSTRINGENCODEDSTRING"
+            self.encoded_dict[s] = b64_str
         return self.encoded_dict[s]
+
+    def decode_value(self, s: str) -> str:
+        if not isinstance(s, str):
+            return s
+        vals: [str] = list(self.encoded_dict.values())  # ["..", ".."]
+        s = s.strip()
+        if s in vals:
+            idx = vals.index(s)
+            if idx <= -1:
+                return s
+            s = s.replace("EEEQUALSIGNNN", "=")
+            s = s.replace("ENCODEDSTRINGENCODEDSTRING", "=")
+            if s.startswith("lowerlower"):
+                s = s.replace("lowerlower", "")
+            n_val = base64.b64decode(s)
+            s = n_val.decode("utf-8")
+            if s.__contains__("ENCODEDSTRINGENCODEDSTRING"):
+                return self.decode_value(s)
+        return s
 
 
 class DeclModel(LTLModel):
