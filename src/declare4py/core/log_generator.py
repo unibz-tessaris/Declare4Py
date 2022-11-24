@@ -21,8 +21,8 @@ class LogGenerator(PMTask):
     def __init__(self, num_traces: int, min_event: int, max_event: int, ltl_model: LTLModel):
         super().__init__(None, ltl_model)
         self.log_length: int = num_traces
-        self.max_events: int = min_event
-        self.min_events: int = max_event
+        self.max_events: int = max_event
+        self.min_events: int = min_event
 
     @abstractmethod
     def run(self):

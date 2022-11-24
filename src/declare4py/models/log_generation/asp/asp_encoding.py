@@ -1,6 +1,6 @@
 
 
-class ALPEncoding(str):
+class ASPEncoding(str):
     value: str = """time(1..t). %t = lunghezza traccia
 
 cur_state(I,S,0) :- initial(Name,S),template(I,Name).

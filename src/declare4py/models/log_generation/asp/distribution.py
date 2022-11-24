@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 from typing import *
 import numpy as np
@@ -37,17 +39,16 @@ class Distributor:
         prefixes = range(min_num, max_num + 1)
         trace_lens = np.random.choice(prefixes, traces_num, p=probabilities)
         c = collections.Counter(trace_lens)
-
         return c
 
     def distribution(
             self,
-            min_num_events_or_mu: int,
-            max_num_events_or_sigma: int,
-            num_traces: int,
-            dist_type: Literal["uniform", "guassian", "custom"] = "uniform",
+            min_num_events_or_mu: int | float,
+            max_num_events_or_sigma: int | float,
+            num_traces: int | float,
+            dist_type: Literal["uniform", "gaussian", "custom"] = "uniform",
             custom_probabilities: Optional[List[float]] = None):
-        if dist_type == "guassian":
+        if dist_type == "gaussian":
             return self.normal_distribution(min_num_events_or_mu, max_num_events_or_sigma, num_traces)
         elif dist_type == "uniform":
             return self.uniform_distribution(min_num_events_or_mu, max_num_events_or_sigma, num_traces)

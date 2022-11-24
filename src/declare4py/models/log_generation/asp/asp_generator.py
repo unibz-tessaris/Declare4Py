@@ -6,17 +6,18 @@ import typing
 from random import randrange
 
 import clingo
+import logging
 from clingo import SymbolType
 
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
 
 from src.declare4py.core.log_generator import LogGenerator
-from src.declare4py.log_utils.interpreter.alp.alp_interpreter import ALPInterpreter
 from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel
 from src.declare4py.log_utils.log_analyzer import LogAnalyzer
-from src.declare4py.models.log_generation.asp.alp_encoding import ALPEncoding
-from src.declare4py.models.log_generation.asp.alp_template import ALPTemplate
+from src.declare4py.log_utils.translators.asp.asp_translator import ASPInterpreter
+from src.declare4py.models.log_generation.asp.asp_encoding import ASPEncoding
+from src.declare4py.models.log_generation.asp.asp_template import ASPTemplate
 from src.declare4py.models.log_generation.asp.distribution import Distributor
 from datetime import datetime
 
@@ -110,36 +111,69 @@ class AspCustomLogModel:
 
 class AspGenerator(LogGenerator):
 
-    def __init__(self, num_traces: int, min_event: int, max_event: int,
-                 decl_model: DeclModel,
-                 distributor_type: typing.Literal["uniform", "guassian", "custom"] = "uniform",
+    def __init__(self, decl_model: DeclModel, num_traces: int, min_event: int, max_event: int,
+                 distributor_type: typing.Literal["uniform", "gaussian", "custom"] = "uniform",
                  custom_probabilities: typing.Optional[typing.List[float]] = None,
-                 loc: float = None, scale: float = None
-                 ):
+                 loc: float = None, scale: float = None, encode_decl_model: bool = True):
+        """
+        ASPGenerator generates the log from declare model which translate declare model
+        into ASP, and then it passes to the clingo, which generates the traces
+
+        Parameters
+        ----------
+        decl_model: DeclModel
+        num_traces: int
+        min_event: int
+        max_event: int
+        distributor_type: "uniform" | "gaussian" | "custom"
+        custom_probabilities: list of floats which represents the probabilities and the total sum of values must be 1
+        loc: mu:float in case gaussian distribution is used, You must provide mu and sigma
+        scale sigma:float in case gaussian distribution is used, You must provide mu and sigma
+        """
         super().__init__(num_traces, min_event, max_event, decl_model)
+        self.py_logger = logging.getLogger("ASP generator")
         self.clingo_output = []
         self.asp_custom_structure: AspCustomLogModel | None = None
+        self.asp_encoding = ASPEncoding().get_alp_encoding()
+        self.asp_template = ASPTemplate().value
+        self.distributor_type = distributor_type
+        self.custom_probabilities = custom_probabilities
+        self.scale = scale
+        self.loc = loc
+        self.traces_length = {}
+        self.encode_decl_model = encode_decl_model
+        self.compute_distribution()
+
+    def compute_distribution(self):
+        self.py_logger.info("Start computing distribution")
         d = Distributor()
-        if distributor_type == "guassian":
-            assert loc > 1
-            assert scale >= 0
-            self.traces_length: collections.Counter | None = d.distribution(loc, scale, num_traces,
-                                                                            distributor_type, custom_probabilities)
+        if self.distributor_type == "gaussian":
+            self.py_logger.info(f"Computing gaussian distribution with mu={self.loc} and sigma={self.scale}")
+            assert self.loc > 1  # Mu atleast should be 2
+            assert self.scale >= 0  # standard deviation must be a positive value
+            result: collections.Counter | None = d.distribution(
+                self.loc, self.scale, self.log_length, self.distributor_type, self.custom_probabilities)
+            self.py_logger.info(f"Gaussian distribution result {result}")
+            if result is None or len(result) == 0:
+                raise ValueError("Unable to found the number of traces with events to produce in log.")
+            for k, v in result.items():
+                if self.min_events <= k <= self.max_events:  # TODO: ask whether the boundaries should be included
+                    self.traces_length[k] = v
+            self.py_logger.info(f"Gaussian distribution after refinement {self.traces_length}")
         else:
-           self.traces_length: collections.Counter | None = d.distribution(min_event, max_event, num_traces,
-                                                                        distributor_type, custom_probabilities)
-        self.alp_encoding = ALPEncoding().get_alp_encoding()
-        self.alp_template = ALPTemplate().value
+            self.traces_length: collections.Counter | None = d.distribution(
+                self.min_events, self.max_events, self.log_length, self.distributor_type, self.custom_probabilities)
+        self.py_logger.info(f"Distribution result {self.traces_length}")
 
-
-    def get_lp(self) -> str:
-        lp_model = ALPInterpreter().from_decl_model(self.decl_model)
+    def generate_asp_from_decl_model(self, encode: bool = True) -> str:
+        lp_model = ASPInterpreter().from_decl_model(self.decl_model, encode)
         lp = lp_model.to_str()
-        self.alp_encoding = ALPEncoding().get_alp_encoding(lp_model.fact_names)
+        self.asp_encoding = ASPEncoding().get_alp_encoding(lp_model.fact_names)
         return lp
 
     def run(self):
-        lp = self.get_lp()
+        lp = self.generate_asp_from_decl_model(self.encode_decl_model)
+        print(lp)
         self.clingo_output = []
         for events, traces in self.traces_length.items():
             random_seed = randrange(0, 2 ** 32 - 1)
@@ -147,12 +181,12 @@ class AspGenerator(LogGenerator):
         self.__format_to_custom_asp_structure()
         self.__pm4py_log()
 
-    def __generate_asp_trace(self, lp: str, num_events: int, num_traces: int,
+    def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int,
                              seed: int, freq: float = 0.9):
-        ctl = clingo.Control([f"-c t={num_events}", f"{num_traces}", f"--seed={seed}", f"--rand-freq={freq}"])
-        ctl.add(lp)
-        ctl.add(self.alp_encoding)
-        ctl.add(self.alp_template)
+        ctl = clingo.Control([f"-c t={int(num_events)}", f"{int(num_traces)}", f"--seed={seed}", f"--rand-freq={freq}"])
+        ctl.add(asp)
+        ctl.add(self.asp_encoding)
+        ctl.add(self.asp_template)
         ctl.ground([("base", [])], context=self)
         ctl.solve(on_model=self.__handle_clingo_result)
 
@@ -183,7 +217,6 @@ class AspGenerator(LogGenerator):
                 event = lg.Event()
                 event["concept:name"] = decl_encoded_model.decode_value(asp_event.name)
                 for res_name, res_value in asp_event.resource.items():
-                    # event[res_name] = decl_encoded_model.decode_value(res_value)
                     res_name_decoded = decl_encoded_model.decode_value(res_name)
                     res_value_decoded = decl_encoded_model.decode_value(res_value)
                     event[res_name_decoded] = str(res_value_decoded).strip()
