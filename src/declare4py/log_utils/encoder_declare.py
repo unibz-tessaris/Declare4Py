@@ -1,5 +1,7 @@
-from _future_ import annotations
-
+try:
+    from future import annotations
+except:
+    pass
 import re
 
 from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel

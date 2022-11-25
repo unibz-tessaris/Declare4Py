@@ -1,5 +1,7 @@
-from boolean import boolean
-
+try:
+    from future import annotations
+except:
+    pass
 from src.declare4py.log_utils.log_analyzer import LogAnalyzer
 from src.declare4py.log_utils.parsers.declare.declare_parsers import DeclareParser
 from src.declare4py.models.log_generation.asp.asp_generator import AspGenerator

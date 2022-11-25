@@ -1,4 +1,7 @@
-from abc import abstractmethod
+try:
+    from future import annotations
+except:
+    pass
 
 from src.declare4py.core.pm_task import PMTask
 
@@ -29,8 +32,4 @@ class Discovery(PMTask):
         self.support: str = None
         self.max_declare_cardinality: int = None
         super().__init__(log, ltl_model)
-
-    @abstractmethod
-    def run(self):
-        pass
 

@@ -1,5 +1,7 @@
-from _future_ import annotations
-
+try:
+    from future import annotations
+except:
+    pass
 from abc import ABC
 
 from src.declare4py.api_functions import check_trace_conformance
@@ -21,9 +23,9 @@ Parameters
 
 class BasicMPDeclareConformanceChecking(ConformanceChecking, ABC):
 
-    def __init__(self, consider_vacuity):
-        self.conformance_checking_results = None
-        super().__init__(consider_vacuity)
+    def __init__(self, consider_vacuity, log, ltl_model):
+        self.basic_conformance_checking_results: BasicConformanceCheckingResults = None
+        super().__init__(consider_vacuity, log, ltl_model)
 
     def run(self, consider_vacuity: bool) -> BasicConformanceCheckingResults:
         """
@@ -45,12 +47,12 @@ class BasicMPDeclareConformanceChecking(ConformanceChecking, ABC):
         print("Computing conformance checking ...")
         if self.log is None:
             raise RuntimeError("You must load the log before checking the model.")
-        if self.model is None:
+        if self.ltl_model is None:
             raise RuntimeError("You must load the DECLARE model before checking the model.")
 
-        self.conformance_checking_results = ConformanceCheckingResults({})
+        self.basic_conformance_checking_results = BasicConformanceCheckingResults({})
         for i, trace in enumerate(self.log):
-            trc_res = check_trace_conformance(trace, self.model, consider_vacuity)
-            self.conformance_checking_results[(i, trace.attributes["concept:name"])] = trc_res
+            trc_res = check_trace_conformance(trace, self.ltl_model, consider_vacuity)
+            self.basic_conformance_checking_results[(i, trace.attributes["concept:name"])] = trc_res
 
-        return self.conformance_checking_results
+        return self.basic_conformance_checking_results

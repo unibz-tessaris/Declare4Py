@@ -1,5 +1,7 @@
-from _future_ import annotations
-
+try:
+    from future import annotations
+except:
+    pass
 from src.declare4py.checker_result import CheckerResult
 from src.declare4py.log_utils.log_analyzer import LogAnalyzer
 

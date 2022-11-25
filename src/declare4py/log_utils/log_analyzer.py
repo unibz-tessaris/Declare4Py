@@ -1,5 +1,5 @@
 try:
-    from _future_ import annotations
+    from future import annotations
 except:
     pass
 

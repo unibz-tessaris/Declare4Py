@@ -1,12 +1,13 @@
-from _future_ import annotations
-
+try:
+    from future import annotations
+except:
+    pass
 from .log_utils.ltl_model import LTLModel
 
-from .mp_constants import Template
 from src.declare4py.existence import *
 from src.declare4py.choice import *
-from .old_structure.negative_relation import *
-from .old_structure.relation import *
+from src.declare4py.negative_relation import *
+from src.declare4py.relation import *
 
 
 def check_trace_conformance(trace: int, model: LTLModel, consider_vacuity: bool):

@@ -1,5 +1,7 @@
-from abc import abstractmethod
-
+try:
+    from future import annotations
+except:
+    pass
 from src.declare4py.core.pm_task import PMTask
 from src.declare4py.log_utils.log_analyzer import LogAnalyzer
 from src.declare4py.log_utils.ltl_model import LTLModel
@@ -23,8 +25,3 @@ class LogGenerator(PMTask):
         self.log_length: int = num_traces
         self.max_events: int = min_event
         self.min_events: int = max_event
-
-    @abstractmethod
-    def run(self):
-        pass
-

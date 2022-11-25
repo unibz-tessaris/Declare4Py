@@ -1,5 +1,7 @@
-from abc import abstractmethod
-
+try:
+    from future import annotations
+except:
+    pass
 from src.declare4py.core.pm_task import PMTask
 
 """
@@ -22,7 +24,3 @@ class ConformanceChecking(PMTask):
     def __init__(self, log, ltl_model):
         self.consider_vacuity: bool
         super().__init__(log, ltl_model)
-
-    @abstractmethod
-    def run(self):
-        pass

@@ -1,5 +1,7 @@
-from _future_ import annotations
-
+try:
+    from future import annotations
+except:
+    pass
 from datetime import timedelta
 
 from src.declare4py.checker_result import CheckerResult

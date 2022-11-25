@@ -1,4 +1,7 @@
-
+try:
+    from future import annotations
+except:
+    pass
 
 from src.declare4py.log_utils.ltl_model import LTLModel
 

@@ -1,3 +1,7 @@
+try:
+    from future import annotations
+except:
+    pass
 from abc import abstractmethod
 
 from src.declare4py.core.pm_task import PMTask
