@@ -1,0 +1,80 @@
+// Graph
+digraph {
+	0 [label="(...)"]
+	1 [label="A.attr=x"]
+	2 [label=AND]
+	3 [label="A.attr2 in (x,y,z)"]
+	4 [label=OR]
+	5 [label="(...)"]
+	6 [label="A.attr>3"]
+	5 -> 6
+	8 [label=AND]
+	9 [label="(...)"]
+	10 [label="A.attr3>5"]
+	11 [label=AND]
+	12 [label="A.attr<4"]
+	9 -> 10
+	9 -> 11
+	9 -> 12
+	14 [label=AND]
+	15 [label="(...)"]
+	16 [label="A.attr3 in (x,y,z)"]
+	17 [label=AND]
+	18 [label="(...)"]
+	19 [label="A.attr5>5"]
+	18 -> 19
+	15 -> 16
+	15 -> 17
+	15 -> 18
+	22 [label=OR]
+	23 [label="(...)"]
+	24 [label="A.attr6>1"]
+	25 [label=AND]
+	26 [label="A.attr6<3"]
+	23 -> 24
+	23 -> 25
+	23 -> 26
+	29 [label=OR]
+	30 [label="(...)"]
+	31 [label="A.at=x"]
+	30 -> 31
+	33 [label=OR]
+	34 [label="(...)"]
+	35 [label="A.ar=true"]
+	34 -> 35
+	37 [label=AND]
+	38 [label="(...)"]
+	39 [label="A.attr7=false"]
+	38 -> 39
+	41 [label=AND]
+	42 [label="(...)"]
+	43 [label="(...)"]
+	44 [label="A.a1=true"]
+	43 -> 44
+	46 [label=OR]
+	47 [label="(...)"]
+	48 [label="A.a2=false"]
+	47 -> 48
+	42 -> 43
+	42 -> 46
+	42 -> 47
+	0 -> 1
+	0 -> 2
+	0 -> 3
+	0 -> 4
+	0 -> 5
+	0 -> 8
+	0 -> 9
+	0 -> 14
+	0 -> 15
+	0 -> 22
+	0 -> 23
+	0 -> 29
+	0 -> 30
+	0 -> 33
+	0 -> 34
+	0 -> 37
+	0 -> 38
+	0 -> 41
+	0 -> 42
+}
