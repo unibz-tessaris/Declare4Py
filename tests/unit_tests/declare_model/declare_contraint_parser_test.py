@@ -63,6 +63,12 @@ class DeclareConstraintParserTest(unittest.TestCase):
         dct = DeclareConditionTokenizer()
         dct.parse_to_tree(conditions)
 
+    def test_8_decl_complex_constraint_condition(self):
+        conditions = "A.points > 8 or A.grade > 13 or (A.name in (x,y,z) or A.session_one is true)"
+        # conditions = "A.points > 8 and A.grade > 13 or (A.name in (x,y,z) or A.session_one is true)"
+        dct = DeclareConditionTokenizer()
+        dct.parse_to_tree(conditions)
+
 
 if __name__ == '__main__':
     unittest.main()
