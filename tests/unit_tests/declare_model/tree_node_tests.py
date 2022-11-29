@@ -79,6 +79,72 @@ class TreeNodeTests(unittest.TestCase):
         self.assertEqual(0, child2.size_sub_nodes())
         self.assertEqual(0, child3.size_sub_nodes())
 
+    def test_4_node_children_height_1(self):
+        cn = ConditionNode(None, "parent")
+        child1 = ConditionNode(cn, "child1")
+        child1_1 = ConditionNode(child1, "child1_1")
+        child1_1_1 = ConditionNode(child1_1, "child1_1_1")
+        child1_2 = ConditionNode(child1, "child1_2")
+        child2 = ConditionNode(cn, "child2")
+        child3 = ConditionNode(cn, "child3")
+
+    def test_4_node_children_height_2(self):
+        cn = ConditionNode(None, "parent")
+        child1 = ConditionNode(cn, "child1")
+        child1_1 = ConditionNode(child1, "child1_1")
+        child1_1_1 = ConditionNode(child1_1, "child1_1")
+        child1_1_1_1 = ConditionNode(child1_1_1, "child1_1")
+        child1_2 = ConditionNode(child1, "child1_2")
+        child2 = ConditionNode(cn, "child2")
+        child3 = ConditionNode(cn, "child3")
+        self.assertEqual(4, cn.get_height())
+
+    def test_4_node_children_height_3(self):
+        cn = ConditionNode(None, "parent")
+        child1 = ConditionNode(cn, "child1")
+        child1_1 = ConditionNode(child1, "child1_1")
+        child1_1_1 = ConditionNode(child1_1, "child1_1")
+        child1_1_1_1 = ConditionNode(child1_1_1, "child1_1_1")
+        child1_2 = ConditionNode(child1, "child1_2")
+        child2 = ConditionNode(cn, "child2")
+        child2_1 = ConditionNode(child2, "child2")
+        child3 = ConditionNode(cn, "child3")
+        self.assertEqual(4, cn.get_height())
+
+    def test_5_node_children_inverse_height_1(self):
+        cn = ConditionNode(None, "parent")
+        child1 = ConditionNode(cn, "child1")
+        child1_1 = ConditionNode(child1, "child1_1")
+        child1_1_1 = ConditionNode(child1_1, "child1_1_1")
+        child1_2 = ConditionNode(child1, "child1_2")
+        child2 = ConditionNode(cn, "child2")
+        child3 = ConditionNode(cn, "child3")
+        self.assertEqual(3, cn.get_height())
+        self.assertEqual(0, cn.get_inverse_height())
+        self.assertEqual(1, child3.get_inverse_height())
+        self.assertEqual(1, child2.get_inverse_height())
+        self.assertEqual(1, child3.get_inverse_height())
+        self.assertEqual(3, child1_1_1.get_inverse_height())
+
+    def test_5_node_children_inverse_height_2(self):
+        cn = ConditionNode(None, "parent")
+        child1 = ConditionNode(cn, "child1")
+        child1_1 = ConditionNode(child1, "child1_1")
+        child1_1_1 = ConditionNode(child1_1, "child1_1_1")
+        child1_1_1_1 = ConditionNode(child1_1_1, "child1_1_1_1")
+        child1_2 = ConditionNode(child1, "child1_2")
+        child2 = ConditionNode(cn, "child2")
+        child2_1 = ConditionNode(child2, "child2_1")
+        child3 = ConditionNode(cn, "child3")
+        # cn.show_node()
+        self.assertEqual(0, cn.get_inverse_height())
+        self.assertEqual(1, child3.get_inverse_height())
+        self.assertEqual(1, child2.get_inverse_height())
+        self.assertEqual(2, child1_2.get_inverse_height())
+        self.assertEqual(1, child3.get_inverse_height())
+        self.assertEqual(3, child1_1_1.get_inverse_height())
+        self.assertEqual(4, child1_1_1_1.get_inverse_height())
+
 
 
 
