@@ -2,19 +2,47 @@
 digraph {
 	0 [label="0:UNKNOWN VALUE"]
 	1 [label="1:A.points>8"]
+	1 [label="1:A.points>8"]
+	2 [label="2:OR"]
 	2 [label="2:OR"]
 	3 [label="3:A.grade>13"]
+	3 [label="3:A.grade>13"]
+	4 [label="4:OR"]
 	4 [label="4:OR"]
 	5 [label="5:(...)"]
 	6 [label="6:A.name in (x,y,z)"]
+	6 [label="6:A.name in (x,y,z)"]
+	7 [label="7:OR"]
 	7 [label="7:OR"]
 	8 [label="8:A.session_one=true"]
+	8 [label="8:A.session_one=true"]
+	5 -> 6
 	5 -> 6
 	5 -> 7
+	5 -> 7
+	5 -> 8
+	5 -> 8
+	5 [label="5:(...)"]
+	6 [label="6:A.name in (x,y,z)"]
+	6 [label="6:A.name in (x,y,z)"]
+	7 [label="7:OR"]
+	7 [label="7:OR"]
+	8 [label="8:A.session_one=true"]
+	8 [label="8:A.session_one=true"]
+	5 -> 6
+	5 -> 6
+	5 -> 7
+	5 -> 7
+	5 -> 8
 	5 -> 8
 	0 -> 1
+	0 -> 1
+	0 -> 2
 	0 -> 2
 	0 -> 3
+	0 -> 3
 	0 -> 4
+	0 -> 4
+	0 -> 5
 	0 -> 5
 }

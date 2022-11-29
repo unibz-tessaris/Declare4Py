@@ -6,6 +6,8 @@ import typing
 import warnings
 from enum import Enum
 from typing import Literal
+import uuid
+
 
 try:
     import graphviz
@@ -70,11 +72,82 @@ class DECLARE_LOGIC_OP(str, Enum):
 
 
 class ConditionNode:
-    def __init__(self, parent: ConditionNode, value: str, children: [ConditionNode] | None = None, token_index: int = 0):
+    def __init__(self, parent: ConditionNode | None, value: str, children: [ConditionNode] | None = None, token_index: int = 0):
         self.children = [] if children is None else children
         self.parent = parent
         self.value = value
         self.token_index = token_index
+        self.uid = str(uuid.uuid4())
+        self.__update_parent()
+        self.__update_children_parent()
+
+    def __update_parent(self):
+        """
+         If this not is not a root, then we add this node as child to parent.
+        """
+        if self.parent is not None:
+            if self not in self.parent.children:
+                self.parent.children.append(self)
+
+    def __update_children_parent(self):
+        """
+         Update children parents
+        """
+        if self.children is not None and len(self.children) > 0:
+            for child in self.children:
+                child.parent = self
+
+    def shift_bottom(self, value: str, idx: int = 0) -> ConditionNode:
+        """
+        Create a new node and add it as a child and children of current node are removed from current node and added
+        to new node. The new node becomes of child of current node.
+
+        In other way, children of current node are disconnected and becomes children of new node and removed from old
+        node. The new node is a child of current node.
+
+        Parameters
+        ----------
+        value: value of new node injecting
+        idx: index
+
+        Returns
+        -------
+        ConditionNode new Node
+        """
+        current_node_children = self.children
+        cn = ConditionNode(self, value, current_node_children, idx)
+        self.children = [cn]
+        return cn
+
+    def shift_bottom_children(self, value: str, children_to_shift: [ConditionNode], idx: int = 0) -> ConditionNode:
+        """
+        Create a new node and children_to_shift becomes children of new node and removed from there parent
+
+
+                      a                ===>                                             a
+                b            c         ===> we want to shift d and e              b             c
+            d  e  f       g    h                                              i      f        g   h
+                                                                            d   e
+        See the nodes: d and e are moved to one bottom level and parent is i and i is parent b now.
+
+        Parameters
+        ----------
+        value: value of new node injecting
+        children_to_shift: [ConditionNode]
+        idx: index
+
+        Returns
+        -------
+        ConditionNode new Node
+        """
+        # parents_of_children_to_shift = []
+        for cts in children_to_shift:
+            if cts.parent is not None:
+                c = cts.parent.children
+                c.remove(cts)
+        cn = ConditionNode(self, value, children_to_shift, idx)
+        self.children.append(cn)
+        return cn
 
     def node_type(self) -> str:
         if self.value == "(" or self.value == ")":
@@ -107,13 +180,28 @@ class ConditionNode:
         idx = 1 + self.get_bottom_up_height(c.parent, idx)
         return idx
 
-    def sub_vertices(self, ct: ConditionNode | None = None):
+    def size_sub_nodes(self, ct: ConditionNode | None = None):
+        """
+        Returns the size of this node.
+
+        if this node has 3 children the total size would be 3 if children doesn't have there children
+
+        if this node has 2 children: [node1], [node2] and [node1] has 2 children, [node2] none then size of this node is 4
+
+        Parameters
+        ----------
+        ct: condition node
+
+        Returns
+        -------
+
+        """
         if ct is None:
             ct = self
         v = 0
         if len(ct.children) > 0:
             for idx, child in enumerate(ct.children):
-                v = v + child.vertices(child)
+                v = v + child.size_sub_nodes(child)
         return v + len(ct.children)
 
     def show_node(self):
@@ -124,12 +212,11 @@ class ConditionNode:
     def generate_view_advance(self, dot: graphviz.Digraph, node_list: [ConditionNode], edge_counter: int = 0):
         if node_list is None or len(node_list) == 0:
             return
-
         for node in node_list:
-            if isinstance(node, list):
-                self.generate_view_advance(dot, node, edge_counter + 1)
-            else:
-                edge_name = f"{node.token_index}"
+            # if isinstance(node, list):
+            #     self.generate_view_advance(dot, node, edge_counter + 1)
+            # else:
+                edge_name = f"{node.uid}"
                 # edge_name = f"{edge_counter}"
                 value = f"{node.token_index}:{node.value}"
                 if value is None:
@@ -137,7 +224,7 @@ class ConditionNode:
                 dot.node(edge_name, value)
                 parent = node.parent
                 if parent is not None:
-                    p_edge_name = str(node.parent.token_index)
+                    p_edge_name = str(node.parent.uid)
                     # p_edge_name = f"{edge_counter}_{node.parent.token_index}"
                     dot.edge(p_edge_name, edge_name)
                 if len(node.children) > 0:
@@ -152,7 +239,6 @@ class ConditionNode:
                 if isinstance(child, list):
                     self._generate_view_list(dot, child, lvl, edge_name)
                 else:
-                    print("child", idx, child)
                     child.generate_view_advance(dot, child, lvl, edge_name)
 
     def to_str(self, cn: ConditionNode):
@@ -199,7 +285,7 @@ class ConditionNode:
                     n.parent = cn
                     cn.children.append(n)
             else:
-                cn2 = child.clone_branch(reindex, idx + i)
+                cn2 = child.clone_branch(reindex, idx + i + 1)
                 cn2.parent = cn
                 cn.children.append(cn2)
         return cn
@@ -323,13 +409,14 @@ class DeclareConditionTokenizer:
         # OR_root = ORLogicalOperatorNode()
         OR_root = ConditionNode(None, "")
         # self.__parse_to_or_tree(OR_root, my_tree)
-        self.__generate_or_tree_bfs(OR_root, my_tree)
+        # self.__generate_or_tree_bfs(OR_root, my_tree)
         print(tokenized_list)
         # print(my_tree)
         print("OR_root")
         print(OR_root)
-        my_tree.show()
-        OR_root.show_node()
+        # my_tree.show()
+        my_tree.show_node()
+        # OR_root.show_node()
 
     def __generate_or_tree_bfs(self, or_tree: ConditionNode, ptree: ParenthesisConditionResolverTree, idx: int = 0):
         if ptree is None or len(ptree.children) == 0:
@@ -341,26 +428,30 @@ class DeclareConditionTokenizer:
                     raise SyntaxError("Impossible to start a condition with OR or and ")
                 idx = idx + 1
                 OR_sub_tree = ConditionNode(or_tree, f"cond_{idx}", left_side, idx)
-                or_tree.children.append(OR_sub_tree)
-                for n in left_side:
-                    n.parent = OR_sub_tree
+                # or_tree.children.append(OR_sub_tree)
+                # for n in left_side:
+                #     n.parent = OR_sub_tree
                 left_side = []
             else:
                 idx = idx + 1
                 cn = ConditionNode(or_tree, pNode.value, None, idx)
-                left_side.append(cn)
                 if pNode.value == "(":
-                    new_sub_tree = pNode.clone_branch(reindex=True, idx=idx)
-                    idx = len(new_sub_tree.children)
-                    cn.children = new_sub_tree.children
-                    # for n in pNode.children:
-                    #     cn.children.append()
+                    cn = pNode.clone_branch(reindex=True, idx=idx)
+                    cn.parent = or_tree
+                    idx = idx + pNode.size_sub_nodes()
+                left_side.append(cn)
+
         if len(left_side) > 0:
             idx = idx + 1
             OR_sub_tree = ConditionNode(or_tree, f"cond_{idx}", left_side, idx)
-            or_tree.children.append(OR_sub_tree)
-            for n in left_side:
-                n.parent = OR_sub_tree
+            # or_tree.children.append(OR_sub_tree)
+            # for n in left_side:
+            #     n.parent = OR_sub_tree
+        if len(or_tree.children) > 0:
+            for t in or_tree.children:  # or children are cond_n
+                for n in t.children:
+                    idx = idx + 1
+                    n.children = self.__generate_or_tree_bfs(t, n, idx)
         return or_tree.children
 
     def __parse_to_or_tree(self, or_tree: ConditionNode, ptree: ParenthesisConditionResolverTree, idx: int = 0, parent_idx: int = 0):
