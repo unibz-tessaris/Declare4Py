@@ -78,23 +78,20 @@ class ConditionNode:
         self.value = value
         self.token_index = token_index
         self.uid = str(uuid.uuid4())
-        self.__update_parent()
+        self.__add_node_to_parent_children()
         self.__update_children_parent()
 
-    def __update_parent(self):
+    def __add_node_to_parent_children(self):
         """
-         If this not is not a root, then we add this node as child to parent.
+         Add this new node to parent children if not exists
         """
-        if self.parent is not None:
-            print("self.parent.children", self.parent.children)
-            for i, pc in self.parent.children:
-                print("pc", pc)
-                if pc != self and pc.value == self.value:
-                    self.parent.children.append(self)
+        if self.parent is not None:  # if this is not a root node
+            if self not in self.parent.children:  # if this node is not in the parent children list we add
+                self.parent.children.append(self)
 
     def __update_children_parent(self):
         """
-         Update children parents
+         Update children of this node and assign parent as this node
         """
         if self.children is not None and len(self.children) > 0:
             for child in self.children:
@@ -148,13 +145,13 @@ class ConditionNode:
         for cts in children_to_shift:
             if cts.parent is not None:
                 c = cts.parent.children
-                c.remove(cts)
+                if cts in c:
+                    c.remove(cts)
         cn = ConditionNode(self, value, None, idx)
         cn.add_children(children_to_shift)
-        self.children.append(cn)
-        # for child in self.children:
-        #     if child in children_to_shift:
-        #         self.children.remove(child)
+        for child in self.children:
+            if child in children_to_shift:
+                self.children.remove(child)
         return cn
 
     def add_child(self, cn: ConditionNode) -> None:
@@ -443,15 +440,15 @@ class DeclareConditionTokenizer:
         tokenized_list = self.tokenize(condition)
         root = ParenthesisConditionResolverTree(None)
         my_tree, _, _ = self.to_parenthesis_tree(tokenized_list, root)
+        my_tree.display_tree_graph("parenthesis")
         # OR_root = ORLogicalOperatorNode()
         OR_root = ConditionNode(None, "")
         # self.__parse_to_or_tree(OR_root, my_tree)
-        self.__generate_or_tree_bfs(OR_root, my_tree)
+        self.__generate_or_tree_bfs(OR_root, my_tree, my_tree.size_sub_nodes() + 1)
         print(tokenized_list)
         # print(my_tree)
         # print("OR_root")
         print(OR_root)
-        my_tree.display_tree_graph("parenthesis")
         OR_root.display_tree_graph("or graph")
 
     def __generate_or_tree_bfs(self, or_tree: ConditionNode, ptree: ParenthesisConditionResolverTree, idx: int = 0):
@@ -463,10 +460,8 @@ class DeclareConditionTokenizer:
                 if len(left_side) == 0:
                     raise SyntaxError("Impossible to start a condition with OR or and ")
                 idx = idx + 1
-                # ConditionNode(or_tree, f"cond_{idx}", left_side, idx)
                 or_tree.shift_bottom_children(f"cond_{idx}", left_side, idx)
                 left_side = []
-                # continue
             else:
                 idx = idx + 1
                 cn = ConditionNode(None, pNode.value, None, idx)
@@ -478,16 +473,19 @@ class DeclareConditionTokenizer:
 
         if len(left_side) > 0:
             idx = idx + 1
-            # ConditionNode(or_tree, f"cond_{idx}", left_side, idx)
-            # or_tree.children.append(OR_sub_tree)
-            # for n in left_side:
-            #     n.parent = OR_sub_tree
-
+            ConditionNode(or_tree, f"cond_{idx}", left_side, idx)
         if len(or_tree.children) > 0:
             for t in or_tree.children:  # or children are cond_n
                 for n in t.children:
                     idx = idx + 1
-                    # n.children = self.__generate_or_tree_bfs(t, n, idx)
+                    if n.value == '(':
+                        s = ConditionNode(None, '(', [], idx)
+                        # n.children = self.__generate_or_tree_bfs(s, n, idx)
+                        ch = self.__generate_or_tree_bfs(s, n, idx)
+                        t.children.remove(n)
+                        # t.children.append(s)
+                        t.add_child(s)
+
         return or_tree.children
 
     def tokenize(self, condition: str) -> [str]:
@@ -495,8 +493,6 @@ class DeclareConditionTokenizer:
         if len(normalized_condition) == 0:
             return normalized_condition
         split_cond = normalized_condition.split(" ")
-        print("normalized_condition", normalized_condition)
-        print("split_cond", split_cond)
         new_cond: [str] = self.__unify_enum_conditions(split_cond)
         return new_cond
 
