@@ -440,11 +440,11 @@ class DeclareConditionTokenizer:
         tokenized_list = self.tokenize(condition)
         root = ParenthesisConditionResolverTree(None)
         my_tree, _, _ = self.to_parenthesis_tree(tokenized_list, root)
-        my_tree.display_tree_graph("parenthesis")
+        # my_tree.display_tree_graph("parenthesis")
         # OR_root = ORLogicalOperatorNode()
         OR_root = ConditionNode(None, "")
         # self.__parse_to_or_tree(OR_root, my_tree)
-        self.__generate_or_tree_bfs(OR_root, my_tree, my_tree.size_sub_nodes() + 1)
+        self.__generate_or_tree_bfs(OR_root, my_tree.clone_branch(True, 0), my_tree.size_sub_nodes() + 1)
         print(tokenized_list)
         # print(my_tree)
         # print("OR_root")
@@ -455,6 +455,7 @@ class DeclareConditionTokenizer:
         if ptree is None or len(ptree.children) == 0:
             return or_tree
         left_side = []
+
         for pNode in ptree.children:
             if pNode.value.lower() == "or":
                 if len(left_side) == 0:
@@ -463,10 +464,9 @@ class DeclareConditionTokenizer:
                 or_tree.shift_bottom_children(f"cond_{idx}", left_side, idx)
                 left_side = []
             else:
-                idx = idx + 1
-                cn = ConditionNode(None, pNode.value, None, idx)
+                cn = ConditionNode(None, pNode.value, None, pNode.token_index)
                 if pNode.value == "(":
-                    cn = pNode.clone_branch(reindex=True, idx=idx)
+                    cn = pNode.clone_branch(reindex=False)
                     cn.parent = or_tree
                     idx = idx + pNode.size_sub_nodes()
                 left_side.append(cn)
@@ -479,7 +479,7 @@ class DeclareConditionTokenizer:
                 for n in t.children:
                     idx = idx + 1
                     if n.value == '(':
-                        s = ConditionNode(None, '(', [], idx)
+                        s = ConditionNode(None, '(', [], n.token_index)
                         # n.children = self.__generate_or_tree_bfs(s, n, idx)
                         ch = self.__generate_or_tree_bfs(s, n, idx)
                         t.children.remove(n)
