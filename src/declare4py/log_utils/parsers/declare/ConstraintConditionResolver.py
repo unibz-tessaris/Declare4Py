@@ -269,7 +269,7 @@ class ConditionNode:
         self.generate_tree_graph(dot, [self])
         # dot.view()
         # dot.render(f'{image_name}.gv', view=True)
-        dot.save(f'{image_name}.gv')
+        # dot.save(f'{image_name}.gv')
         dot.render(f'{image_name}.gv')
 
     def generate_tree_graph(self, dot: graphviz.Digraph, node_list: [ConditionNode], edge_counter: int = 0):
@@ -352,6 +352,14 @@ class ConditionNode:
             cn.children.append(cn2)
         return cn
 
+    def delete_node(self):
+        if self.parent is not None:
+            children = self.parent.children
+            children.remove(self)
+            # for i in self.children:  # No need but still we unlink the children
+            #     i.delete_node()
+            self.parent = None
+
     def __str__(self):
         return "\n".join(self.to_str_list(self))
 
@@ -400,7 +408,7 @@ class DeclareConditionTokenizer:
         OR_root.display_tree_graph("or graph")
 
         and_root = ConditionNode(None, "")
-        self.generate_AND_tree(and_root, OR_root.clone_branch(False, 0))
+        and_root = self.generate_AND_tree(and_root, OR_root.clone_branch(False, 0))
         and_root.display_tree_graph("and graph")
 
     def generate_OR_tree(self, or_tree: ConditionNode, ptree: ConditionNode):
@@ -417,16 +425,18 @@ class DeclareConditionTokenizer:
             return or_tree
         and_dict = []
         ls = []
-        an_and_node = None
+        an_and_node: ConditionNode | None = None
+
         for node in or_tree.children:
             if node.value.strip().lower() == "and":
+                # if an_and_node is not None:
+                #     an_and_node.delete_node()
                 an_and_node = node
                 and_dict.append({"and_node": node, "left_part": ls})
                 ls = []
             else:
                 ls.append(node)
-                # node.parent.children.remove(node)
-                # node.parent = None
+
         if len(and_dict) == 0:  # if didn't find any and in the siblings
             and_tree.children = and_tree.children + ls
             # for atl in and_tree.children:
@@ -438,13 +448,13 @@ class DeclareConditionTokenizer:
             an_and_node.children = an_and_node.children + ls  # last remained nodes those were not added in and_dict
             for lan in an_and_node.children:
                 lan.parent = an_and_node
+                or_tree.children.remove(lan)
+            and_tree.children = [an_and_node]
             or_tree.children = [an_and_node]
 
         for i, node in enumerate(and_tree.children):
-            nn = ConditionNode(node.parent, node.value, [], node.token_index)
-            # and_tree.children[i] = self.resolve_boolean_logic_tree_and(nn, node)
+            nn = ConditionNode(None, node.value, [], node.token_index)
             self.resolve_boolean_logic_tree_and(nn, node)
-
         return and_tree
 
     def resolve_boolean_logic_tree_or(self, or_tree: ConditionNode, ptree: ConditionNode, new_node_idx: int = 0,
