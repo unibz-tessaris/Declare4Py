@@ -71,12 +71,13 @@ class DECLARE_LOGIC_OP(str, Enum):
 
 
 class ConditionNode:
+
     def __init__(self, parent: ConditionNode | None, value: str, children: [ConditionNode] | None = None,
                  token_index: int = 0):
-        self.children = [] if children is None else children
-        self.parent = parent
-        self.value = value
-        self.token_index = token_index
+        self.children: [ConditionNode] = [] if children is None else children
+        self.parent: ConditionNode = parent
+        self.value: str = value
+        self.token_index: int = token_index
         self.uid = str(uuid.uuid4())
         self.__add_node_to_parent_children()
         self.__update_children_parent()
@@ -141,12 +142,13 @@ class ConditionNode:
         ConditionNode new Node
         """
         # parents_of_children_to_shift = []
-
         for cts in children_to_shift:
             if cts.parent is not None:
                 c = cts.parent.children
                 if cts in c:
                     c.remove(cts)
+                else:
+                    print("HOW????", c, cts)
         cn = ConditionNode(self, value, None, idx)
         cn.add_children(children_to_shift)
         for child in self.children:
@@ -261,10 +263,14 @@ class ConditionNode:
         return v + len(ct.children)
 
     def display_tree_graph(self, image_name: str = "graph", format: str = "svg"):
+        # dot = graphviz.Digraph(comment="Graph", format=format, edge_attr={"class": "edge_class", "style": " <![CDATA[.edge_class { color:#ff4500;}]]>"})
         dot = graphviz.Digraph(comment="Graph", format=format)
         # self.generate_view_advance(dot, [self])
         self.generate_tree_graph(dot, [self])
-        dot.render(f'{image_name}.gv', view=True)
+        # dot.view()
+        # dot.render(f'{image_name}.gv', view=True)
+        dot.save(f'{image_name}.gv')
+        dot.render(f'{image_name}.gv')
 
     def generate_tree_graph(self, dot: graphviz.Digraph, node_list: [ConditionNode], edge_counter: int = 0):
         if node_list is None or len(node_list) == 0:
@@ -350,58 +356,6 @@ class ConditionNode:
         return "\n".join(self.to_str_list(self))
 
 
-class ParenthesisConditionResolverTree(ConditionNode):
-    """
-        Each node in this tree can represent one of the following thing parenthesis, and, or, val.
-        Val is the condition i.e such as "a>3", "a in (x,y,z)" etc.
-        This helps us to parse the parenthesis in the given condition.
-    """
-
-    def __init__(self, parent: ConditionNode | None, value: str = "", children: [ConditionNode] | None = None,
-                 idx: int = 0):
-        if children is None:
-            children = []
-        self.value: str = "(" if value is None or len(value) == 0 else value
-        self.children: [ConditionNode] = children
-        self.parent: ConditionNode = parent
-        self.token_index = idx
-        super().__init__(parent, value, children, self.token_index)
-
-    def show(self):
-        dot = graphviz.Digraph(comment="Graph", format="svg")
-        self.generate_view(dot)
-        dot.render('digraph.parenthesis.gv', view=True)
-
-    def generate_view(self, dot: graphviz.Digraph):
-        node_id = str(self.token_index)
-        dot.node(node_id, f"{node_id}:{self.get_type_of_node()}")
-        if len(self.children) > 0:
-            for idx, child in enumerate(self.children):
-                child.generate_view(dot)
-            for idx, child in enumerate(self.children):
-                dot.edge(node_id, str(child.token_index))
-
-    def get_type_of_node(self) -> str:
-        if self.is_parenthesis_node():
-            return "(...)"
-        if self.is_AND_node():
-            return "AND"
-        if self.is_OR_node():
-            return "OR"
-        if len(self.value) > 0:
-            return self.value
-        return "UNKNOWN VALUE"
-
-    def is_parenthesis_node(self):
-        return self.value == "("
-
-    def is_AND_node(self):
-        return self.value.lower() == "and"
-
-    def is_OR_node(self):
-        return self.value.lower() == "or"
-
-
 class LogicalOperatorNode:
     node_type: Literal["OR", "AND"] = "OR"
     pass
@@ -438,53 +392,124 @@ class DeclareConditionTokenizer:
             ['(', 'A.attr=x', 'and', 'A.attr2 in (x,y,z)', 'or', '(', 'A.attr>3', ')', ')']
         """
         tokenized_list = self.tokenize(condition)
-        root = ParenthesisConditionResolverTree(None)
-        my_tree, _, _ = self.to_parenthesis_tree(tokenized_list, root)
-        # my_tree.display_tree_graph("parenthesis")
-        # OR_root = ORLogicalOperatorNode()
+        my_tree = self.to_parenthesis_tree(tokenized_list)
+        my_tree.display_tree_graph("parenthesis", format="svg")
+
         OR_root = ConditionNode(None, "")
-        # self.__parse_to_or_tree(OR_root, my_tree)
-        self.__generate_or_tree_bfs(OR_root, my_tree.clone_branch(True, 0), my_tree.size_sub_nodes() + 1)
-        print(tokenized_list)
-        # print(my_tree)
-        # print("OR_root")
-        print(OR_root)
+        self.generate_OR_tree(OR_root, my_tree.clone_branch(False, 0))
         OR_root.display_tree_graph("or graph")
 
-    def __generate_or_tree_bfs(self, or_tree: ConditionNode, ptree: ParenthesisConditionResolverTree, idx: int = 0):
-        if ptree is None or len(ptree.children) == 0:
-            return or_tree
-        left_side = []
+        and_root = ConditionNode(None, "")
+        self.generate_AND_tree(and_root, OR_root.clone_branch(False, 0))
+        and_root.display_tree_graph("and graph")
 
+    def generate_OR_tree(self, or_tree: ConditionNode, ptree: ConditionNode):
+        return self.resolve_boolean_logic_tree_or(or_tree, ptree, ptree.size_sub_nodes() + 1, "or")
+
+    def generate_AND_tree(self, node: ConditionNode, or_tree: ConditionNode):
+        return self.resolve_boolean_logic_tree_and(node, or_tree)
+
+    def resolve_boolean_logic_tree_and(self, and_tree: ConditionNode, or_tree: ConditionNode):
+        """One AND can have only """
+        if or_tree is None:
+            return []
+        if len(or_tree.children) == 0:  # or len(or_tree.children) == 1:
+            return or_tree
+        and_dict = []
+        ls = []
+        an_and_node = None
+        for node in or_tree.children:
+            if node.value.strip().lower() == "and":
+                an_and_node = node
+                and_dict.append({"and_node": node, "left_part": ls})
+                ls = []
+            else:
+                ls.append(node)
+                # node.parent.children.remove(node)
+                # node.parent = None
+        if len(and_dict) == 0:  # if didn't find any and in the siblings
+            and_tree.children = and_tree.children + ls
+            # for atl in and_tree.children:
+            #     atl.parent = and_tree
+        elif len(ls) > 0:  # elsewise ls can not be empty, so
+            for d in and_dict:
+                # we take the last "and" node and add the all the children to it and updates
+                an_and_node.children = an_and_node.children + d["left_part"]
+            an_and_node.children = an_and_node.children + ls  # last remained nodes those were not added in and_dict
+            for lan in an_and_node.children:
+                lan.parent = an_and_node
+            or_tree.children = [an_and_node]
+
+        for i, node in enumerate(and_tree.children):
+            nn = ConditionNode(node.parent, node.value, [], node.token_index)
+            # and_tree.children[i] = self.resolve_boolean_logic_tree_and(nn, node)
+            self.resolve_boolean_logic_tree_and(nn, node)
+
+        return and_tree
+
+    def resolve_boolean_logic_tree_or(self, or_tree: ConditionNode, ptree: ConditionNode, new_node_idx: int = 0,
+                                   boolean_logic: typing.Literal["or", "and"] = "or"):
+        if ptree is None or len(ptree.children) == 0:
+            return []
+        left_side = []
+        or_flag = False
+        for pNode in ptree.children:
+            if pNode.value.lower() == boolean_logic.lower():
+                if len(left_side) == 0:
+                    raise SyntaxError(f"Impossible to start a condition with \"{boolean_logic}\"")
+                new_node_idx = new_node_idx + 1
+                or_tree.shift_bottom_children(f"{boolean_logic.upper()}", left_side, new_node_idx)
+                or_flag = True
+                left_side = []
+            elif pNode.value == '(':
+                new_node_idx = new_node_idx + 1
+                new_node = ConditionNode(None, '(', [], pNode.token_index)
+                s = self.resolve_boolean_logic_tree_or(new_node, pNode, new_node_idx)
+                left_side.append(s)
+            else:
+                cn = ConditionNode(None, pNode.value, None, pNode.token_index)
+                left_side.append(cn)
+        if len(left_side) > 0:
+            new_node_idx = new_node_idx + 1
+            if or_flag:
+                ConditionNode(or_tree, f"{boolean_logic.upper()}", left_side, new_node_idx)
+            else:
+                or_tree.children = or_tree.children + left_side
+                for ls in left_side:
+                    ls.parent = or_tree
+        return or_tree
+
+    def __generate_or_tree_bfs(self, or_tree: ConditionNode, ptree: ConditionNode, new_node_idx: int = 0):
+        if ptree is None or len(ptree.children) == 0:
+            return []
+        left_side = []
         for pNode in ptree.children:
             if pNode.value.lower() == "or":
                 if len(left_side) == 0:
-                    raise SyntaxError("Impossible to start a condition with OR or and ")
-                idx = idx + 1
-                or_tree.shift_bottom_children(f"cond_{idx}", left_side, idx)
+                    continue
+                    # raise SyntaxError("Impossible to start a condition with OR or and ")
+                new_node_idx = new_node_idx + 1
+                or_tree.shift_bottom_children(f"_OR_", left_side, new_node_idx)
                 left_side = []
             else:
                 cn = ConditionNode(None, pNode.value, None, pNode.token_index)
                 if pNode.value == "(":
                     cn = pNode.clone_branch(reindex=False)
                     cn.parent = or_tree
-                    idx = idx + pNode.size_sub_nodes()
+                    new_node_idx = new_node_idx + pNode.size_sub_nodes()
                 left_side.append(cn)
-
         if len(left_side) > 0:
-            idx = idx + 1
-            ConditionNode(or_tree, f"cond_{idx}", left_side, idx)
-        if len(or_tree.children) > 0:
-            for t in or_tree.children:  # or children are cond_n
-                for n in t.children:
-                    idx = idx + 1
-                    if n.value == '(':
-                        s = ConditionNode(None, '(', [], n.token_index)
-                        # n.children = self.__generate_or_tree_bfs(s, n, idx)
-                        ch = self.__generate_or_tree_bfs(s, n, idx)
-                        t.children.remove(n)
-                        # t.children.append(s)
-                        t.add_child(s)
+            new_node_idx = new_node_idx + 1
+            ConditionNode(or_tree, f"_OR_", left_side, new_node_idx)
+        # if len(or_tree.children) > 0:
+        #     for t in or_tree.children:  # or children are cond_n
+        #         for n in t.children:
+        #             if n.value == '(':
+        #                 idx = idx + 1
+        #                 s = ConditionNode(None, '(', [], n.token_index)
+        #                 self.__generate_or_tree_bfs(s, n, idx)
+        #                 t.children.remove(n)
+        #                 t.add_child(s)
 
         return or_tree.children
 
@@ -496,31 +521,38 @@ class DeclareConditionTokenizer:
         new_cond: [str] = self.__unify_enum_conditions(split_cond)
         return new_cond
 
-    def to_parenthesis_tree(self, conds: [str], parent: ConditionNode, token_idx: int = 0) -> (ConditionNode, int):
+    def to_parenthesis_tree(self, conds: [str], token_idx: int = 1) -> ConditionNode:
+        open_parenthesis = [idx for idx in conds if idx == '(']
+        close_parenthesis = [idx for idx in conds if idx == ')']
+        if len(open_parenthesis) != len(close_parenthesis):
+            raise SyntaxError("Condition is incorrect. Open parenthesis and closing parenthesis in condition are not "
+                              "equal")
         cond_index = 0
-        if token_idx == 0 and conds[0].strip() != '(':
-            token_idx = token_idx + 1
-        return self._to_parenthesis_tree(conds, parent, token_idx, cond_index)
+        parent = ConditionNode(None, "---")
+        out, _, _ = self._to_parenthesis_tree(conds, parent, token_idx, cond_index)
+        return out
 
     def _to_parenthesis_tree(
             self, conds: [str], parent: ConditionNode, token_idx: int = 0, cond_index: int = 0
-    ) -> (ConditionNode, int):
+    ) -> (ConditionNode, int, int):
+        conds_len = len(conds)
+        if conds_len == 0 or conds_len - cond_index <= 0:
+            return parent
         while len(conds) > cond_index:
             cond = conds[cond_index]
             if cond.strip() == '(':
-                current_idx = token_idx
-                parenthesis_node = parent if current_idx == 0 else ParenthesisConditionResolverTree(
-                    parent, "(", None, idx=token_idx)
+                parenthesis_node = ConditionNode(parent, "(", None, token_index=token_idx)
                 parenthesis_node.value = "("
                 parenthesis_node.token_index = token_idx
-                c_node, token_idx, cond_index = self._to_parenthesis_tree(conds, parenthesis_node, token_idx + 1,
-                                                                          cond_index + 1)
-                if current_idx == 0:
-                    parent = c_node
+                c_node, token_idx, cond_index = self._to_parenthesis_tree(conds, parenthesis_node, token_idx + 1, cond_index + 1)
+                if len(c_node.children) == 1:  # we simplify the parenthesis
+                    parenthesis_node.token_index = c_node.children[0].token_index
+                    parenthesis_node.value = c_node.children[0].value
+                    parenthesis_node.children = []
             elif cond.strip() == ')':
-                return parent, token_idx, cond_index
+                return parent, token_idx - 1, cond_index
             else:
-                ParenthesisConditionResolverTree(parent, value=cond, children=None, idx=token_idx)
+                ConditionNode(parent, value=cond, children=None, token_index=token_idx)
             token_idx = token_idx + 1
             cond_index = cond_index + 1
         return parent, token_idx, cond_index
