@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-import dataclasses
 import re
 import typing
 import warnings
 from enum import Enum
-from typing import Literal
 import uuid
 
 try:
+    """
+        This is an optional library used to draw the graphs in image.
+        To understand a condition, represented in form of a graph would make little easy.
+    """
     import graphviz
 except:
     raise warnings.warn("Unable to load graphviz library. Declare model Constraint"
@@ -141,14 +143,11 @@ class ConditionNode:
         -------
         ConditionNode new Node
         """
-        # parents_of_children_to_shift = []
         for cts in children_to_shift:
             if cts.parent is not None:
                 c = cts.parent.children
                 if cts in c:
                     c.remove(cts)
-                else:
-                    print("HOW????", c, cts)
         cn = ConditionNode(self, value, None, idx)
         cn.add_children(children_to_shift)
         for child in self.children:
@@ -161,7 +160,11 @@ class ConditionNode:
             return
         if cn not in self.children:
             self.children.append(cn)
-        cn.parent = self
+        if cn.parent is not None:
+            # Remove given node from parent's children list if parent exists
+            if cn in cn.parent.children:
+                cn.parent.children.remove(cn)
+        cn.parent = self  # assign new parent
 
     def add_children(self, children_list: [ConditionNode]) -> None:
         for child in children_list:
@@ -263,9 +266,7 @@ class ConditionNode:
         return v + len(ct.children)
 
     def display_tree_graph(self, image_name: str = "graph", format: str = "svg"):
-        # dot = graphviz.Digraph(comment="Graph", format=format, edge_attr={"class": "edge_class", "style": " <![CDATA[.edge_class { color:#ff4500;}]]>"})
         dot = graphviz.Digraph(comment="Graph", format=format)
-        # self.generate_view_advance(dot, [self])
         self.generate_tree_graph(dot, [self])
         # dot.view()
         # dot.render(f'{image_name}.gv', view=True)
@@ -280,6 +281,8 @@ class ConditionNode:
             value = f"{node.token_index}:{node.value}"
             if value is None:
                 value = "Undefined"
+            if value == '(':
+                value = '(..)'
             dot.node(edge_name, value)
             parent = node.parent
             if parent is not None:
@@ -288,53 +291,47 @@ class ConditionNode:
             if len(node.children) > 0:
                 self.generate_tree_graph(dot, node.children, edge_counter + 1)
 
-    def generate_view_advance(self, dot: graphviz.Digraph, node_list: [ConditionNode], edge_counter: int = 0):
-        if node_list is None or len(node_list) == 0:
-            return
-        for node in node_list:
-            if isinstance(node, list):
-                self.generate_view_advance(dot, node, edge_counter + 1)
-            else:
-                edge_name = f"{node.uid}"
-                # edge_name = f"{edge_counter}"
-                value = f"{node.token_index}:{node.value}"
-                if value is None:
-                    value = "Undefined"
-                dot.node(edge_name, value)
-                parent = node.parent
-                if parent is not None:
-                    p_edge_name = str(node.parent.uid)
-                    # p_edge_name = f"{edge_counter}_{node.parent.token_index}"
-                    dot.edge(p_edge_name, edge_name)
-                if len(node.children) > 0:
-                    self.generate_view_advance(dot, node.children, edge_counter + 1)
+    def to_str(self) -> str:
+        """
+        Converts the node into string.
+        Returns
+        -------
+        """
+        return self.tree_to_string()
 
-    def _generate_view_list(self, dot: graphviz.Digraph, ls: [ConditionNode], lvl, node_id: str):
-        edge_name = f"cond_{lvl}"
-        dot.node(edge_name, edge_name)
-        dot.edge(str(node_id), edge_name)
-        if len(ls) > 0:
-            for idx, child in enumerate(ls):
-                if isinstance(child, list):
-                    self._generate_view_list(dot, child, lvl, edge_name)
-                else:
-                    child.generate_view_advance(dot, child, lvl, edge_name)
+    def tree_to_string(self) -> str:
+        """
+        Converts node and its children to string output.
 
-    def to_str_list(self, cn: ConditionNode) -> [str]:
-        spaces = "-" * cn.get_inverse_height()
+        The output is also used in unit tests to test the correctness of creating correct tree
+        Try to avoid the changes as much as possible in this method in order to make fails the tests
+
+        The output is generated according to the DFS traverse
+
+        Parameters
+        ----------
+        Returns
+        -------
+        str
+        """
+        spaces = "-" * self.get_inverse_height()
         p_idx = "-"
-        if cn.parent is not None:
-            p_idx = cn.parent.token_index
-
-        # ls = [f"{spaces}(\"idx\":\"{cn.token_index}\", \"parent_idx\":\"{p_idx}\", \"value\":\"{cn.value}\")"]
-        ls = [f"{spaces}(id:{cn.token_index}, parent_id:{p_idx}, value:{cn.value})"]
-        for child in cn.children:
-            ls = ls + child.to_str_list(child)
-        return ls
+        if self.parent is not None:
+            p_idx = self.parent.token_index
+        s = f"{spaces}->(ID=\"{self.token_index}\", parentId=\"{p_idx}\", value:\"{self.value}\")\n"
+        for child in self.children:
+            s = s + child.tree_to_string()
+        return s
 
     def clone_branch(self, reindex: bool = False, idx: int = 0) -> ConditionNode:
+        new_tree_from_this_node, _ = self.__clone_branch(reindex, idx)
+        return new_tree_from_this_node
+
+    def __clone_branch(self, reindex: bool = False, idx: int = 0) -> (ConditionNode, int):
         """
         Create a new tree from this node to its children and sub-children
+        Traverse DFS
+
         Parameters
         ----------
         reindex: bool whether should use the same index or should create from scratch.
@@ -345,52 +342,48 @@ class ConditionNode:
         """
         cn = ConditionNode(None, self.value, [], idx if reindex else self.token_index)
         if len(self.children) == 0:
-            return cn
-        for i, child in enumerate(self.children):
-            cn2 = child.clone_branch(reindex, idx + i + 1)
+            return cn, idx
+        for child in self.children:
+            idx = idx + 1
+            cn2, idx = child.__clone_branch(reindex, idx)
             cn2.parent = cn
             cn.children.append(cn2)
-        return cn
+        return cn, idx
 
-    def delete_node(self):
+    def unlink_parent_node(self):
+        """
+        Set the parent to none and remove itself from parent's children
+        Returns
+        -------
+
+        """
         if self.parent is not None:
             children = self.parent.children
             children.remove(self)
-            # for i in self.children:  # No need but still we unlink the children
-            #     i.delete_node()
             self.parent = None
 
     def __str__(self):
-        return "\n".join(self.to_str_list(self))
-
-
-class LogicalOperatorNode:
-    node_type: Literal["OR", "AND"] = "OR"
-    pass
-
-
-class ORLogicalOperatorNode(LogicalOperatorNode):
-    node_type = "OR"
-    children: [ConditionNode] = []
+        # return "\n".join(self.to_str())
+        return self.to_str()
 
 
 class DeclareConditionTokenizer:
     # operatorsRegex = r" *(is_not|is|not_in|in|or|and|not|same|different|exist|<=|>=|<|>|=|!=) *"
     operatorsRegex = r" *(is_not|is|not_in|in|or|and|not|<=|>=|<|>|=|!=) *"
 
-    def __normalize_condition(self, condition: str) -> str:
+    def normalize_condition_string_to_tokenize(self, condition: str) -> str:
         string = re.sub(r'\)', ' ) ', condition)
         string = re.sub(r'\(', ' ( ', string)
         string = string.strip()
         string = re.sub(' +', ' ', string)
-        string = re.sub(r'is not', 'is_not', string)
+        string = re.sub(r' *is *not *', '!=', string)
+        string = re.sub(r' *is *', '=', string)
+        # string = re.sub(r'is not', 'is_not', string)
         string = re.sub(r'not in', 'not_in', string)
         string = re.sub(r' *> *', '>', string)
         string = re.sub(r' *< *', '<', string)
         string = re.sub(r' *= *', '=', string)
         string = re.sub(r' *!= *', '!=', string)
-        string = re.sub(r' *is *', '=', string)
-        string = re.sub(r' *is *not *', '!=', string)
         string = re.sub(r' *<= *', '<=', string)
         string = re.sub(r' *>= *', '>=', string)
         return string
@@ -408,17 +401,29 @@ class DeclareConditionTokenizer:
         OR_root.display_tree_graph("or graph")
 
         and_root = ConditionNode(None, "")
-        and_root = self.generate_AND_tree(and_root, OR_root.clone_branch(False, 0))
-        and_root.display_tree_graph("and graph")
+        or_tree_cloned = OR_root.clone_branch(False, 0)
+        self.generate_AND_tree(and_root, or_tree_cloned)
+        or_tree_cloned.display_tree_graph("and graph")
 
     def generate_OR_tree(self, or_tree: ConditionNode, ptree: ConditionNode):
-        return self.resolve_boolean_logic_tree_or(or_tree, ptree, ptree.size_sub_nodes() + 1, "or")
+        return self.resolve_boolean_logic_tree_or(or_tree, ptree, ptree.size_sub_nodes() + 1)
 
     def generate_AND_tree(self, node: ConditionNode, or_tree: ConditionNode):
         return self.resolve_boolean_logic_tree_and(node, or_tree)
 
     def resolve_boolean_logic_tree_and(self, and_tree: ConditionNode, or_tree: ConditionNode):
-        """One AND can have only """
+        """
+        Tree traverse here is BFS breadth first search.
+        Basically, we check all the children of or_tree and find "and" node. if there are more "and" nodes, we take last node
+        and all other siblings to this node except other "and" nodes.
+        Parameters
+        ----------
+        and_tree: an node
+        or_tree: conditionNode. An OR tree to be parsed and converted into and tree
+
+        Returns
+        -------
+        """
         if or_tree is None:
             return []
         if len(or_tree.children) == 0:  # or len(or_tree.children) == 1:
@@ -451,24 +456,36 @@ class DeclareConditionTokenizer:
                 or_tree.children.remove(lan)
             and_tree.children = [an_and_node]
             or_tree.children = [an_and_node]
-
         for i, node in enumerate(and_tree.children):
             nn = ConditionNode(None, node.value, [], node.token_index)
-            self.resolve_boolean_logic_tree_and(nn, node)
+            p = self.resolve_boolean_logic_tree_and(nn, node)
+            # p.parent = node.parent
+            # nn.children = p.children
         return and_tree
 
-    def resolve_boolean_logic_tree_or(self, or_tree: ConditionNode, ptree: ConditionNode, new_node_idx: int = 0,
-                                   boolean_logic: typing.Literal["or", "and"] = "or"):
+    def resolve_boolean_logic_tree_or(self, or_tree: ConditionNode, ptree: ConditionNode, new_node_idx: int = 0):
+        """
+        Traverse here is LS DFS Left Side Depth First Search
+        Parameters
+        ----------
+        :param ConditionNode or_tree: Maybe an empty root node
+        :param ConditionNode ptree: first level of tree, which is generated from after conditions tokenized
+        :param int new_node_idx: a start number that will be used when new nodes are created and assigned as to them
+
+        Returns
+        -------
+
+        """
         if ptree is None or len(ptree.children) == 0:
             return []
         left_side = []
         or_flag = False
         for pNode in ptree.children:
-            if pNode.value.lower() == boolean_logic.lower():
+            if pNode.value.lower() == "or":
                 if len(left_side) == 0:
-                    raise SyntaxError(f"Impossible to start a condition with \"{boolean_logic}\"")
+                    raise SyntaxError(f"Impossible to start a condition with \"OR\"")
                 new_node_idx = new_node_idx + 1
-                or_tree.shift_bottom_children(f"{boolean_logic.upper()}", left_side, new_node_idx)
+                or_tree.shift_bottom_children(f"OR", left_side, new_node_idx)
                 or_flag = True
                 left_side = []
             elif pNode.value == '(':
@@ -482,61 +499,31 @@ class DeclareConditionTokenizer:
         if len(left_side) > 0:
             new_node_idx = new_node_idx + 1
             if or_flag:
-                ConditionNode(or_tree, f"{boolean_logic.upper()}", left_side, new_node_idx)
+                ConditionNode(or_tree, f"OR", left_side, new_node_idx)
             else:
                 or_tree.children = or_tree.children + left_side
                 for ls in left_side:
                     ls.parent = or_tree
         return or_tree
 
-    def __generate_or_tree_bfs(self, or_tree: ConditionNode, ptree: ConditionNode, new_node_idx: int = 0):
-        if ptree is None or len(ptree.children) == 0:
-            return []
-        left_side = []
-        for pNode in ptree.children:
-            if pNode.value.lower() == "or":
-                if len(left_side) == 0:
-                    continue
-                    # raise SyntaxError("Impossible to start a condition with OR or and ")
-                new_node_idx = new_node_idx + 1
-                or_tree.shift_bottom_children(f"_OR_", left_side, new_node_idx)
-                left_side = []
-            else:
-                cn = ConditionNode(None, pNode.value, None, pNode.token_index)
-                if pNode.value == "(":
-                    cn = pNode.clone_branch(reindex=False)
-                    cn.parent = or_tree
-                    new_node_idx = new_node_idx + pNode.size_sub_nodes()
-                left_side.append(cn)
-        if len(left_side) > 0:
-            new_node_idx = new_node_idx + 1
-            ConditionNode(or_tree, f"_OR_", left_side, new_node_idx)
-        # if len(or_tree.children) > 0:
-        #     for t in or_tree.children:  # or children are cond_n
-        #         for n in t.children:
-        #             if n.value == '(':
-        #                 idx = idx + 1
-        #                 s = ConditionNode(None, '(', [], n.token_index)
-        #                 self.__generate_or_tree_bfs(s, n, idx)
-        #                 t.children.remove(n)
-        #                 t.add_child(s)
-
-        return or_tree.children
-
     def tokenize(self, condition: str) -> [str]:
-        normalized_condition = self.__normalize_condition(condition)
+        normalized_condition = self.normalize_condition_string_to_tokenize(condition)
         if len(normalized_condition) == 0:
             return normalized_condition
         split_cond = normalized_condition.split(" ")
         new_cond: [str] = self.__unify_enum_conditions(split_cond)
         return new_cond
 
-    def to_parenthesis_tree(self, conds: [str], token_idx: int = 1) -> ConditionNode:
+    def to_parenthesis_tree(self, conds: [str], token_idx: int = 1) -> ConditionNode | None:
         open_parenthesis = [idx for idx in conds if idx == '(']
         close_parenthesis = [idx for idx in conds if idx == ')']
         if len(open_parenthesis) != len(close_parenthesis):
             raise SyntaxError("Condition is incorrect. Open parenthesis and closing parenthesis in condition are not "
                               "equal")
+        if len(conds) == 0:
+            return None
+        if len(conds) == 1:
+            return ConditionNode(None, conds[0], [], token_idx)
         cond_index = 0
         parent = ConditionNode(None, "---")
         out, _, _ = self._to_parenthesis_tree(conds, parent, token_idx, cond_index)
@@ -545,6 +532,19 @@ class DeclareConditionTokenizer:
     def _to_parenthesis_tree(
             self, conds: [str], parent: ConditionNode, token_idx: int = 0, cond_index: int = 0
     ) -> (ConditionNode, int, int):
+        """
+        Traverse LS DFS
+        Parameters
+        ----------
+        conds list[str]: array/list of tokens created by tokenize method
+        parent: Root Node
+        token_idx: Nodes token number starting from
+        cond_index
+
+        Returns
+        -------
+
+        """
         conds_len = len(conds)
         if conds_len == 0 or conds_len - cond_index <= 0:
             return parent
@@ -568,6 +568,17 @@ class DeclareConditionTokenizer:
         return parent, token_idx, cond_index
 
     def __tokenize_parenthesized_condition(self, split_cond: [str], idx: int) -> ([str | typing.List[typing.Any]], int):
+        """
+
+        Parameters
+        ----------
+        split_cond
+        idx
+
+        Returns
+        -------
+
+        """
         ls = []
         curr_item = split_cond[idx]
         if curr_item.strip() == '(':
