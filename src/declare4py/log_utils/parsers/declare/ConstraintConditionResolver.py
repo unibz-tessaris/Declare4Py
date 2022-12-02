@@ -269,9 +269,9 @@ class ConditionNode:
         dot = graphviz.Digraph(comment="Graph", format=format)
         self.generate_tree_graph(dot, [self])
         # dot.view()
-        # dot.render(f'{image_name}.gv', view=True)
+        dot.render(f'{image_name}.gv', view=True)
         # dot.save(f'{image_name}.gv')
-        dot.render(f'{image_name}.gv')
+        # dot.render(f'{image_name}.gv')
 
     def generate_tree_graph(self, dot: graphviz.Digraph, node_list: [ConditionNode], edge_counter: int = 0):
         if node_list is None or len(node_list) == 0:
@@ -388,28 +388,26 @@ class DeclareConditionTokenizer:
         string = re.sub(r' *>= *', '>=', string)
         return string
 
-    def parse_to_tree(self, condition: str):
-        """
-            ['(', 'A.attr=x', 'and', 'A.attr2 in (x,y,z)', 'or', '(', 'A.attr>3', ')', ')']
-        """
+    def parse_to_logic_tree(self, condition: str, show_final_graph: bool = True):
         tokenized_list = self.tokenize(condition)
         my_tree = self.to_parenthesis_tree(tokenized_list)
         my_tree.display_tree_graph("parenthesis", format="svg")
+        OR_tree = self.to_OR_tree(my_tree)
+        OR_tree.display_tree_graph("or graph")
+        and_tree = self.generate_AND_tree(OR_tree)
+        if show_final_graph:
+            and_tree.display_tree_graph()
+        return and_tree
 
+    def to_OR_tree(self, parenthesis_solved_Tree: ConditionNode):
         OR_root = ConditionNode(None, "")
-        self.generate_OR_tree(OR_root, my_tree.clone_branch(False, 0))
-        OR_root.display_tree_graph("or graph")
+        ptree = parenthesis_solved_Tree.clone_branch(False, 0)
+        return self.resolve_boolean_logic_tree_or(OR_root, ptree, ptree.size_sub_nodes() + 1)
 
-        and_root = ConditionNode(None, "")
-        or_tree_cloned = OR_root.clone_branch(False, 0)
-        self.generate_AND_tree(and_root, or_tree_cloned)
-        or_tree_cloned.display_tree_graph("and graph")
-
-    def generate_OR_tree(self, or_tree: ConditionNode, ptree: ConditionNode):
-        return self.resolve_boolean_logic_tree_or(or_tree, ptree, ptree.size_sub_nodes() + 1)
-
-    def generate_AND_tree(self, node: ConditionNode, or_tree: ConditionNode):
-        return self.resolve_boolean_logic_tree_and(node, or_tree)
+    def generate_AND_tree(self, or_tree: ConditionNode):
+        or_tree = or_tree.clone_branch(False, 0)
+        self.resolve_boolean_logic_tree_and(ConditionNode(None, ""), or_tree)
+        return or_tree
 
     def resolve_boolean_logic_tree_and(self, and_tree: ConditionNode, or_tree: ConditionNode):
         """
@@ -476,8 +474,11 @@ class DeclareConditionTokenizer:
         -------
 
         """
-        if ptree is None or len(ptree.children) == 0:
+        if ptree is None:
             return []
+        if len(ptree.children) == 0:
+            return ConditionNode(ptree.parent, ptree.value, ptree.children, ptree.token_index)
+
         left_side = []
         or_flag = False
         for pNode in ptree.children:
