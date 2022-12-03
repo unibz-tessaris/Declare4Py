@@ -3,12 +3,13 @@
 Abductive logic programming (ALP) is a high-level knowledge-representation framework that can be used to solve
  problems declaratively based on abductive reasoning.
 """
-from src.declare4py.log_utils.interpreter.alp.declare_constraint_resolver import DeclareModalConditionResolver
+
 from src.declare4py.log_utils.parsers.declare.decl_model import DeclareModelAttributeType, DeclareTemplateModalDict, \
     DeclModel
+from src.declare4py.log_utils.translators.asp.declare_constraint_resolver import DeclareModalConditionResolver
 
 
-class ALPModel:
+class ASPModel:
     lines: [str] = []
     values_assignment: [str] = []
     attributes_values: [str] = []
@@ -89,32 +90,33 @@ class ALPModel:
         return line
 
     def __repr__(self):
-        return f"{{ \"total_facts\": \"{len(self.lines) - len(self.values_assignment)}\", \"values_assignment\": \"{len(self.values_assignment)}\" }}"
+        return f"{{ \"total_facts\": \"{len(self.lines) - len(self.values_assignment)}\"," \
+               f" \"values_assignment\": \"{len(self.values_assignment)}\" }}"
 
 
-class ALPInterpreter:
-    alp_model: ALPModel
+class ASPInterpreter:
+    asp_model: ASPModel
 
     def __init__(self) -> None:
-        self.alp_model = ALPModel()
+        self.asp_model = ASPModel()
 
-    def from_decl_model(self, model: DeclModel, use_encoding: bool = True) -> ALPModel:
+    def from_decl_model(self, model: DeclModel, use_encoding: bool = True) -> ASPModel:
         if use_encoding:
             keys = model.parsed_model.encode()
         else:
             keys = model.parsed_model
         for k in keys.events:
             event = keys.events[k]
-            self.alp_model.define_predicate(event.name, event.event_type, use_encoding)
+            self.asp_model.define_predicate(event.name, event.event_type, use_encoding)
             attrs = event.attributes
             for attr in attrs:
-                self.alp_model.define_predicate_attr(event.name, attr, use_encoding)
+                self.asp_model.define_predicate_attr(event.name, attr, use_encoding)
                 dopt = attrs[attr]
-                self.alp_model.set_attr_value(attr, dopt, use_encoding)
+                self.asp_model.set_attr_value(attr, dopt, use_encoding)
         templates_idx = 0
         for ct in keys.templates:
-            self.alp_model.add_template(ct.template_name, ct, templates_idx, keys.attributes_list)
+            self.asp_model.add_template(ct.template_name, ct, templates_idx, keys.attributes_list)
             # template_line.append(f"template({templates_idx},\"{tmp_name}\")")
             templates_idx = templates_idx + 1
-        return self.alp_model
+        return self.asp_model
 

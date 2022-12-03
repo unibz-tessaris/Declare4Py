@@ -1,7 +1,8 @@
 
 
-class ALPTemplate(str):
-    value: str = """automaton("Absence2",s_1,c,s_1).
+class ASPTemplate(str):
+    value: str = """
+automaton("Absence2",s_1,c,s_1).
 automaton("Absence2",s_2,c,s_2).
 automaton("Absence2",s_2,a,s_2).
 automaton("Absence2",s_0,c,s_0).

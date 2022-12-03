@@ -20,3 +20,7 @@ sat(I,T) :- cur_state(I,S,T), template(I,Name), accepting(Name,S).
 #show trace/2.
 #show assigned_value/3.
 %#show sat/2.
+
+
+
+

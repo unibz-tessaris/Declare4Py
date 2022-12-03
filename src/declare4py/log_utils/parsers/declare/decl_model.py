@@ -383,6 +383,7 @@ class DeclareParsedModelEncoder:
         d = {}
         for attr_name, attr_obj in attr_list.items():
             e_attr_name = self.encode_value(attr_name)
+            print(attr_obj)
             self.model.attributes_list[e_attr_name] = attr_obj
             d[e_attr_name] = {}
             if attr_obj['value_type'] is DeclareModelAttributeType.ENUMERATION:
@@ -490,6 +491,8 @@ class DeclareParsedModelEncoder:
         return ss
 
     def encode_value(self, s) -> str:
+        if "ENCODEDSTRINGENCODEDSTRING" in s:  # s is already encoded
+            return s
         if s not in self.encoded_dict:
             v = base64.b64encode(s.encode())
             # v = v.decode("utf-8")
@@ -510,6 +513,8 @@ class DeclareParsedModelEncoder:
 
     def decode_value(self, s: str) -> str:
         if not isinstance(s, str):
+            return s
+        if "ENCODEDSTRINGENCODEDSTRING" not in s:  # s doesn't have ENCODEDSTRINGENCODEDSTRING then its already decoded
             return s
         vals: [str] = list(self.encoded_dict.values())  # ["..", ".."]
         s = s.strip()

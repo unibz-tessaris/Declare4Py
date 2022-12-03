@@ -13,17 +13,19 @@ Initializes super class PMTask
 Attributes
 -------
     log_analyzer : LogAnalyzer
-
-    decl_model : DeclareModel
+    decl_model : LTLModel
     
 """
+from __future__ import annotations
 
 
 class PMTask:
 
-    def __init__(self, log: LogAnalyzer, ltl_model: LTLModel):
+    def __init__(self, log: LogAnalyzer | None, ltl_model: LTLModel):
+        if log is None:
+            log = LogAnalyzer()
         self.log_analyzer: LogAnalyzer = log
-        self.decl_model: DeclModel = ltl_model
+        self.decl_model: LTLModel = ltl_model
 
     @abstractmethod
     def run(self):
