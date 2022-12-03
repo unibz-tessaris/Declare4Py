@@ -1,6 +1,6 @@
 import unittest
 
-from src.declare4py.log_utils.parsers.declare.ConstraintConditionResolver import ConditionNode
+from src.declare4py.log_utils.parsers.declare.declare_condition_parser import ConditionNode
 
 
 """

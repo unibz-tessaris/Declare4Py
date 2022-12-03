@@ -1,8 +1,8 @@
 import unittest
 import warnings
 
-from src.declare4py.log_utils.parsers.declare.ConstraintConditionResolver import DeclareConditionTokenizer
-from src.declare4py.log_utils.parsers.declare.ConstraintConditionResolver import ConditionNode
+from src.declare4py.log_utils.parsers.declare.declare_condition_parser import DeclareConditionTokenizer
+from src.declare4py.log_utils.parsers.declare.declare_condition_parser import ConditionNode
 
 
 class DeclareConstraintParserTest(unittest.TestCase):
@@ -526,60 +526,137 @@ class DeclareConstraintParserTest(unittest.TestCase):
         actual = dts.tree_to_string().strip()
         self.assertEqual(expected, actual)
 
+    # @unittest.expectedFailure
     def test_7_decl_complex_constraint_condition(self):
-        conditions = "A.grade > 8 and (A.point >= 5 and A.name in (marco, polo, franco)) or (A.attr > 3) and (A.attr3 > 5 and A.attr  < 4)" \
+        conditions = "A.grade > 8 and (A.point >= 5 and A.name in (marco, polo, franco)) or (A.attr > 3) and" \
+                     " (A.attr3 > 5 and A.attr  < 4)" \
                      " and (A.attr3 in (x, y, z) and (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3) or (A.at is x)" \
                      " or (A.ar is true) and (A.attr7 is false) and ((A.a1 is true) or (A.a2 is false)))"
         dct = DeclareConditionTokenizer()
-        dct.parse_to_logic_tree(conditions)
+        with self.assertRaises(SyntaxError):
+            dct.parse_to_logic_tree(conditions)
 
     def test_8_decl_complex_constraint_condition(self):
-        # conditions = "A.attr is x and (A.attr2 in (x, y, z) or (A.attr > 3) and (A.attr3 > 5 and A.attr  < 4)) and (A.attr3 in (x, y, z) and (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3)"
-        conditions = "A.attr is x and (A.attr2 in (x, y, z) or (A.attr > 3)) and (A.attr3 is yes and (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3)"
+        """
+        Starting without parenthesis a condition
+        Returns
+        -------
+
+        """
+        conditions = "A.attr is x and (A.attr2 in (x, y, z) or (A.attr > 3)) and (A.attr3 is yes and" \
+                     " (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3)"
         # conditions = "A.points > 8 and A.grade > 13 or (A.name in (x,y,z) or A.session_one is true)"
         dct = DeclareConditionTokenizer()
-        dct.parse_to_logic_tree(conditions)
+        lt = dct.parse_to_logic_tree(conditions)  # lt = LogicalTree
+        self.assertEqual("""->(ID="0", parentId="-", value:"")
+-->(ID="20", parentId="0", value:"OR")
+--->(ID="8", parentId="20", value:"and")
+---->(ID="1", parentId="8", value:"A.attr=x")
+---->(ID="3", parentId="8", value:"(")
+----->(ID="19", parentId="3", value:"OR")
+------>(ID="4", parentId="19", value:"A.attr2 in (x,y,z)")
+----->(ID="20", parentId="3", value:"OR")
+------>(ID="7", parentId="20", value:"A.attr>3")
+---->(ID="9", parentId="8", value:"(")
+----->(ID="11", parentId="9", value:"and")
+------>(ID="10", parentId="11", value:"A.attr3=yes")
+------>(ID="13", parentId="11", value:"A.attr5>5")
+-->(ID="22", parentId="0", value:"OR")
+--->(ID="15", parentId="22", value:"(")
+---->(ID="17", parentId="15", value:"and")
+----->(ID="16", parentId="17", value:"A.attr6>1")
+----->(ID="18", parentId="17", value:"A.attr6<3")""", lt.tree_to_string().strip())
 
     def test_9_decl_complex_constraint_condition(self):
-        conditions = "(A.attr is x and A.attr2 in (x, y, z) or (A.attr > 3) and (A.attr3 > 5 and A.attr  < 4) and (A.attr3 in (x, y, z) and (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3))"
-        # conditions = "A.points > 8 and A.grade > 13 or (A.name in (x,y,z) or A.session_one is true)"
+        """
+        Whole condition wrapped in Parenthesis
+        Returns
+        -------
+
+        """
+        conditions = "(A.attr is x and A.attr2 in (x, y, z) or (A.attr > 3) and (A.attr3 > 5 and A.attr  < 4)" \
+                     " and (A.attr3 in (x, y, z) and (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3))"
+        expected = """->(ID="0", parentId="-", value:"")
+-->(ID="1", parentId="0", value:"(")
+--->(ID="24", parentId="1", value:"OR")
+---->(ID="3", parentId="24", value:"and")
+----->(ID="2", parentId="3", value:"A.attr=x")
+----->(ID="4", parentId="3", value:"A.attr2 in (x,y,z)")
+--->(ID="27", parentId="1", value:"OR")
+---->(ID="13", parentId="27", value:"and")
+----->(ID="7", parentId="13", value:"A.attr>3")
+----->(ID="9", parentId="13", value:"(")
+------>(ID="11", parentId="9", value:"and")
+------->(ID="10", parentId="11", value:"A.attr3>5")
+------->(ID="12", parentId="11", value:"A.attr<4")
+----->(ID="14", parentId="13", value:"(")
+------>(ID="16", parentId="14", value:"and")
+------->(ID="15", parentId="16", value:"A.attr3 in (x,y,z)")
+------->(ID="18", parentId="16", value:"A.attr5>5")
+--->(ID="29", parentId="1", value:"OR")
+---->(ID="20", parentId="29", value:"(")
+----->(ID="22", parentId="20", value:"and")
+------>(ID="21", parentId="22", value:"A.attr6>1")
+------>(ID="23", parentId="22", value:"A.attr6<3")"""
         dct = DeclareConditionTokenizer()
-        dct.parse_to_logic_tree(conditions)
+        lt = dct.parse_to_logic_tree(conditions)
+        self.assertEqual(expected, lt.tree_to_string().strip())
 
     def test_10_decl_complex_constraint_condition(self):
-        conditions = "(A.attr is x and A.attr2 in (x, y, z) or (A.attr > 3) and (A.attr3 in (x, y, z) and (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3)) and A.ciao is hello"
+        # After first parenthesis there is and condition at the end outside of parenthesis
+        conditions = "(A.attr is x and A.attr2 in (x, y, z) or (A.attr > 3) and (A.attr3 in (x, y, z) and (A.attr5 > 5)) " \
+                     "or (A.attr6 > 1 and A.attr6  < 3)) and A.ciao is hello"
         # conditions = "A.points > 8 and A.grade > 13 or (A.name in (x,y,z) or A.session_one is true)"
+        expected = """->(ID="0", parentId="-", value:"")
+-->(ID="19", parentId="0", value:"and")
+--->(ID="1", parentId="19", value:"(")
+---->(ID="21", parentId="1", value:"OR")
+----->(ID="3", parentId="21", value:"and")
+------>(ID="2", parentId="3", value:"A.attr=x")
+------>(ID="4", parentId="3", value:"A.attr2 in (x,y,z)")
+---->(ID="23", parentId="1", value:"OR")
+----->(ID="8", parentId="23", value:"and")
+------>(ID="7", parentId="8", value:"A.attr>3")
+------>(ID="9", parentId="8", value:"(")
+------->(ID="11", parentId="9", value:"and")
+-------->(ID="10", parentId="11", value:"A.attr3 in (x,y,z)")
+-------->(ID="13", parentId="11", value:"A.attr5>5")
+---->(ID="25", parentId="1", value:"OR")
+----->(ID="15", parentId="25", value:"(")
+------>(ID="17", parentId="15", value:"and")
+------->(ID="16", parentId="17", value:"A.attr6>1")
+------->(ID="18", parentId="17", value:"A.attr6<3")
+--->(ID="20", parentId="19", value:"A.ciao=hello")"""
         dct = DeclareConditionTokenizer()
         dct.parse_to_logic_tree(conditions)
+        lt = dct.parse_to_logic_tree(conditions)
+        actual = lt.tree_to_string().strip()
+        # print(actual)
+        self.assertEqual(expected, actual)
 
     def test_11_decl_complex_constraint_condition(self):
-        # conditions = "A.points > 8 or A.grade > 13 or (A.name in (x,y,z) or A.session_one is true) or (B.name is x and B.has in (y, z))"
-        # conditions = "(A.attr is x and A.attr2 in (x, y, z) or (A.attr > 3) and (A.attr3 > 5 and A.attr  < 4) and (A.attr3 in (x, y, z) and (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3))"
-        conditions = "(A.attr is x and A.attr2 in (x, y, z) or (A.attr > 3) and (A.attr3 > 5 and A.attr  < 4 or B>5 or B in (c,d) or b is true) and (A.attr3 in (x, y, z) and (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3))"
-        conditions = "(A.attr is x and A.attr2 in (x, y, z) or (A.attr > 3) and (A.attr3 > 5 and A.attr  < 4 or B>5 or B in (c,d) or b is true) and (A.attr3 in (x, y, z) and (A.attr5 > 5)) or (A.attr6 > 1 and A.attr6  < 3))"
-        conditions = "A.points > 8 and A.grade > 13 or (A.name in (x,y,z) or A.session_one is true)"
-        conditions = "A.points > 8 or A.grade > 13 or (A.name in (x,y,z) or A.session_one is true)"
-        dct = DeclareConditionTokenizer()
-        dct.parse_to_logic_tree(conditions)
-
-    def test_12_decl_complex_constraint_condition(self):
-        conditions = "A.points > 8 or A.grade > 13 or (A.name in (x,y,z) or A.session_one is true) or (B.name is x and B.has in (y, z))"
-        # conditions = "A.points > 8 and A.grade > 13 or (A.name in (x,y,z) or A.session_one is true)"
-        dct = DeclareConditionTokenizer()
-        dct.parse_to_logic_tree(conditions)
-
-    def test_13_decl_complex_constraint_condition(self):
         # conditions = "A.points > 8 and A.grade > 13 and (A.name in (x,y,z) or A.session_one is true) and (B.name is x and B.has in (y, z))"
         # conditions = "A.points > 8 and (B.name is x and B.has in (y, z))"
         # conditions = "A.points > 8 and B.name is X"
         # conditions = "A.points > 8"
         # conditions = "(B.name is x and B.has in (y, z))"
         # conditions = "B.name is x and B.has in (y, z)"
+        expected = """->(ID="0", parentId="-", value:"")
+-->(ID="10", parentId="0", value:"OR")
+--->(ID="2", parentId="10", value:"and")
+---->(ID="1", parentId="2", value:"A.points>8")
+---->(ID="3", parentId="2", value:"A.grade>13")
+-->(ID="12", parentId="0", value:"OR")
+--->(ID="5", parentId="12", value:"(")
+---->(ID="12", parentId="5", value:"OR")
+----->(ID="6", parentId="12", value:"A.name in (x,y,z)")
+---->(ID="13", parentId="5", value:"OR")
+----->(ID="8", parentId="13", value:"A.session_one=true")"""
         conditions = "A.points > 8 and A.grade > 13 or (A.name in (x,y,z) or A.session_one is true)"
         dct = DeclareConditionTokenizer()
-        dct.parse_to_logic_tree(conditions)
-
-
+        lt = dct.parse_to_logic_tree(conditions)
+        actual = lt.tree_to_string().strip()
+        self.assertEqual(expected, actual)
 
 if __name__ == '__main__':
     unittest.main()

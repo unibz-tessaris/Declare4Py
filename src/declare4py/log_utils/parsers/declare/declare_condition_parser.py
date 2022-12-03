@@ -367,6 +367,47 @@ class ConditionNode:
         return self.to_str()
 
 
+"""
+
+Parse given condition in a logical tree.
+
+Logical tree can have 4 types of nodes: Parenthesis, AND, OR, Condition/expression
+- Condition can be an logical expression such as:
+ - "a>5", "a<5", "a<=5", "a>=5"
+ - "a=5", "a!=8",
+ - "a is enum", "a is not val",
+ - "a in (alphas, alphanumeric)", "a in not (enum1, enum2)"
+- Parenthesis can have other nodes, they can be "and", "or", "conditions". Parenthesis can have other parenthesis.
+  - parenthesis are removed if they contain only one condition
+- AND node represents conjunction operation
+  - its all children are connected with "and" operand
+  - ie. "and" node has 2 children: x>2, z<9. This can be seen in condition string as x>2 and z<9
+- OR node represents disjunction operation
+  - its all children are connected with "or" operand
+  - ie. "or" node has 2 children: x>2, z<9. This can be seen in condition string as x>2 or z<9
+
+How does it work or parse?
+
+We tokenize the string and use tree types of trees.
+
+1.) Tokenize the string
+    1.1.) From string value, it cleans/normalizes the string by adjusting spaces, " in ", " in not", " is ",  " is not "
+    converting into in some different values " in not " => "in_not", " is not " => is_not". "a in (alphas, alphanumeric)"
+    is converted like this "a in ( alphas, alphanumeric )"
+    1.2.) We split the normalized string with spaces
+    1.3.) if we have in operator "a in ( alphas, alphanumeric )", this is converted as "a in (alphas, alphanumeric)" =>
+     ["a", "in", "(", "alphas,", "alphanumeric,", ")" ] at step 1.2. So we have to unify into one expression.
+2.) Coverts the tokens list into a parenthesis tree. i.e if a parenthesis token is encounter reading the token list,
+    it creates a node and add next tokens as children and so on. 
+3.) After parenthesis tree, we convert this tree into "OR tree" because or conditions can be imagined as splitting
+    one condition in two sub condition and one of them true is sufficient to execute a captured block. In other words,
+    "OR" logic has more precedence than "And" logic while parsing the condition the entire condition after parenthesis.
+4.) Finally, we converts OR tree into "And tree", when we encounter "and" node while traversing(BFS way) the tree,
+    we take the left and right part of "and" node and change the parent to these nodes.
+5.) And tree is the logic tree and can be use for further steps, translate asp, discovery, etc
+"""
+
+
 class DeclareConditionTokenizer:
     # operatorsRegex = r" *(is_not|is|not_in|in|or|and|not|same|different|exist|<=|>=|<|>|=|!=) *"
     operatorsRegex = r" *(is_not|is|not_in|in|or|and|not|<=|>=|<|>|=|!=) *"
@@ -388,12 +429,12 @@ class DeclareConditionTokenizer:
         string = re.sub(r' *>= *', '>=', string)
         return string
 
-    def parse_to_logic_tree(self, condition: str, show_final_graph: bool = True):
+    def parse_to_logic_tree(self, condition: str, show_final_graph: bool = False):
         tokenized_list = self.tokenize(condition)
         my_tree = self.to_parenthesis_tree(tokenized_list)
-        my_tree.display_tree_graph("parenthesis", format="svg")
+        # my_tree.display_tree_graph("parenthesis", format="svg")
         OR_tree = self.to_OR_tree(my_tree)
-        OR_tree.display_tree_graph("or graph")
+        # OR_tree.display_tree_graph("or graph")
         and_tree = self.generate_AND_tree(OR_tree)
         if show_final_graph:
             and_tree.display_tree_graph()
@@ -555,7 +596,8 @@ class DeclareConditionTokenizer:
                 parenthesis_node = ConditionNode(parent, "(", None, token_index=token_idx)
                 parenthesis_node.value = "("
                 parenthesis_node.token_index = token_idx
-                c_node, token_idx, cond_index = self._to_parenthesis_tree(conds, parenthesis_node, token_idx + 1, cond_index + 1)
+                c_node, token_idx, cond_index = self._to_parenthesis_tree(conds, parenthesis_node, token_idx + 1,
+                                                                          cond_index + 1)
                 if len(c_node.children) == 1:  # we simplify the parenthesis
                     parenthesis_node.token_index = c_node.children[0].token_index
                     parenthesis_node.value = c_node.children[0].value
