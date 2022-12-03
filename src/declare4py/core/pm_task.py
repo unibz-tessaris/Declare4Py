@@ -1,3 +1,11 @@
+try:
+    from future import annotations
+except:
+    pass
+from abc import abstractmethod
+from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel
+from src.declare4py.log_utils.log_analyzer import LogAnalyzer
+from src.declare4py.log_utils.ltl_model import LTLModel
 
 """
 Initializes super class PMTask
@@ -10,10 +18,6 @@ Attributes
 """
 from __future__ import annotations
 
-from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel
-from src.declare4py.log_utils.log_analyzer import LogAnalyzer
-from src.declare4py.log_utils.ltl_model import LTLModel
-
 
 class PMTask:
 
@@ -23,3 +27,6 @@ class PMTask:
         self.log_analyzer: LogAnalyzer = log
         self.decl_model: LTLModel = ltl_model
 
+    @abstractmethod
+    def run(self):
+        pass

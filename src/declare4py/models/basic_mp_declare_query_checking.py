@@ -1,3 +1,7 @@
+try:
+    from future import annotations
+except:
+    pass
 import re
 import sys
 from abc import ABC

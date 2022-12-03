@@ -1,6 +1,8 @@
+try:
+    from future import annotations
+except:
+    pass
 import sys
-
-from _future_ import annotations
 
 """
 Initializes class QueryCheckingResults

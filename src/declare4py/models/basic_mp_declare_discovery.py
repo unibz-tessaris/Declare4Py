@@ -1,4 +1,14 @@
-from _future_ import annotations
+try:
+    from future import annotations
+except:
+    pass
+from src.declare4py.api_functions import check_trace_conformance
+from src.declare4py.checker_result import CheckerResult
+from src.declare4py.core.discovery import Discovery
+from src.declare4py.log_utils.log_analyzer import LogAnalyzer
+from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel
+from src.declare4py.models.basic_discovery_results import BasicDiscoveryResults
+from src.declare4py.mp_constants import Template, TraceState
 
 """
 Provides basic discovery functionalities
@@ -10,16 +20,12 @@ Parameters
 
 Attributes
 --------
-
+    super()
+        inheriting from class Discovery
+    output_path : str
+        if specified, save the discovered constraints in a DECLARE model to the provided path.
 
 """
-from src.declare4py.api_functions import check_trace_conformance
-from src.declare4py.checker_result import CheckerResult
-from src.declare4py.core.discovery import Discovery
-from src.declare4py.log_utils.log_analyzer import LogAnalyzer
-from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel
-from src.declare4py.models.basic_discovery_results import BasicDiscoveryResults
-from src.declare4py.mp_constants import Template, TraceState
 
 
 class BasicMPDeclareDiscovery(Discovery):
@@ -132,7 +138,7 @@ class BasicMPDeclareDiscovery(Discovery):
 
         return result
 
-    def discover_constraint(log: LogAnalyzer, constraint: str, consider_vacuity: bool):
+    def discover_constraint(self, log: LogAnalyzer, constraint: str, consider_vacuity: bool):
         # Fake model composed by a single constraint
         model = DeclModel()
         model.constraints.append(constraint)

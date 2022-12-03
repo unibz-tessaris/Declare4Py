@@ -1,5 +1,7 @@
-from _future_ import annotations
-
+try:
+    from future import annotations
+except:
+    pass
 from src.declare4py.mp_constants import *
 from src.declare4py.checker_result import CheckerResult
 from src.declare4py.log_utils.encoder_declare import parse_data_cond, parse_time_cond

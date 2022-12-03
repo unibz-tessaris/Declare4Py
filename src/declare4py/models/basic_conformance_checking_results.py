@@ -1,5 +1,9 @@
-from _future_ import annotations
+from src.declare4py.checker_result import CheckerResult
 
+try:
+    from future import annotations
+except:
+    pass
 """
 Initializes class ConformanceCheckingResults
 
@@ -14,66 +18,47 @@ class BasicConformanceCheckingResults:
 
     def __init__(self, dict_results: dict):
         self.basic_conformance_checking_results: dict = dict_results
-
-    def pendings(self, trace_id: int, constr_id: int) -> int:
-        if trace_id == None and constr_id == None:
-            print("ERROR: at least one parameter is expected.")
-        elif trace_id == None:
-            # TODO: returns a dictionary with all the traces in model respecting the specified constraint
-            # TODO: count the elements in dictionary and return that number
-            pass
-        elif constr_id == None:
-            # TODO: returns a dictionary with all the constraints in model for the specified trace
-            # TODO: count the elements in dictionary and return that number
-            pass
+        self.model_check_res: CheckerResult = CheckerResult
 
     def activations(self, trace_id: int, constr_id: int) -> int:
-        if trace_id == None and constr_id == None:
+        if trace_id is None and constr_id is None:
             print("ERROR: at least one parameter is expected.")
-        elif trace_id == None:
-            # TODO: returns a dictionary with all the traces in model respecting the specified constraint
-            # TODO: count the elements in dictionary and return that number
-            pass
-        elif constr_id == None:
-            # TODO: returns a dictionary with all the constraints in model for the specified trace
-            # TODO: count the elements in dictionary and return that number
-            pass
+        elif trace_id is None:
+            return self.model_check_res[constr_id].num_activations
+        elif constr_id is None:
+            return self.model_check_res[trace_id].num_activations
+        else:
+            return self.model_check_res[trace_id][constr_id].num_activations
 
     def violations(self, trace_id: int, constr_id: int) -> int:
-        if trace_id == None and constr_id == None:
+        if trace_id is None and constr_id is None:
             print("ERROR: at least one parameter is expected.")
-        elif trace_id == None:
-            # TODO: returns a dictionary with all the traces in model respecting the specified constraint
-            # TODO: count the elements in dictionary and return that number
-            pass
-        elif constr_id == None:
-            # TODO: returns a dictionary with all the constraints in model for the specified trace
-            # TODO: count the elements in dictionary and return that number
-            pass
+        elif trace_id is None:
+            return self.model_check_res[constr_id].num_violations
+        elif constr_id is None:
+            return self.model_check_res[trace_id].num_violations
+        else:
+            return self.model_check_res[trace_id][constr_id].num_violations
 
-    def fullfillments(self, trace_id: int, constr_id: int) -> int:
-        if trace_id == None and constr_id == None:
+    def fulfillments(self, trace_id: int, constr_id: int) -> int:
+        if trace_id is None and constr_id is None:
             print("ERROR: at least one parameter is expected.")
-        elif trace_id == None:
-            # TODO: returns a dictionary with all the traces in model respecting the specified constraint
-            # TODO: count the elements in dictionary and return that number
-            pass
-        elif constr_id == None:
-            # TODO: returns a dictionary with all the constraints in model for the specified trace
-            # TODO: count the elements in dictionary and return that number
-            pass
+        elif trace_id is None:
+            return self.model_check_res[constr_id].num_fulfillments
+        elif constr_id is None:
+            return self.model_check_res[trace_id].num_fulfillments
+        else:
+            return self.model_check_res[trace_id][constr_id].num_fulfillments
 
     def state(self, trace_id: int, constr_id: int) -> bool:
-        if trace_id == None and constr_id == None:
+        if trace_id is None and constr_id is None:
             print("ERROR: at least one parameter is expected.")
-        elif trace_id == None:
-            # TODO: returns a dictionary with all the traces in model respecting the specified constraint
-            # TODO: count the elements in dictionary and return that number
-            pass
-        elif constr_id == None:
-            # TODO: returns a dictionary with all the constraints in model for the specified trace
-            # TODO: count the elements in dictionary and return that number
-            pass
+        elif trace_id is None:
+            return self.model_check_res[constr_id].state
+        elif constr_id is None:
+            return self.model_check_res[trace_id].state
+        else:
+            return self.model_check_res[trace_id][constr_id].state
 
     def clean(self):
         return self.basic_conformance_checking_results
