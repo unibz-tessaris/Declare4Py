@@ -1,0 +1,44 @@
+activity login
+activity add_to_basket
+activity remove_from_basket
+activity confirmation
+activity pay
+activity payment_success
+activity order
+activity shipping
+activity get_discount
+
+bind login: user_id, password, confirm, user_type
+bind add_to_basket: product, quantity, price
+bind remove_from_basket: product, quantity
+bind confirmation: confirm
+bind pay: price, success
+bind payment_success: confirm
+bind order: status
+bind shipping: shipped
+bind get_discount: discount
+
+user_id: integer from 1 to 100
+password: float from 10000000 to 90000000
+discount: integer from 5 to 15
+quantity: integer from 1 to 50
+product: cloths, radio, computer, notebook, food, chocolate
+shipped, success, confirm: true, false
+price: float from 0.99 to 10000.0
+status: approved, cancelled, pending
+user_type: admin, customer, delivery_boy
+
+
+existence[login] | A.confirm is true |
+Precedence[pay, confirmation] | | |
+Response[pay, get_discount] |A.price > 100 and A.price < 1000 and A.success is true | T.discount = 10|
+Response[pay, get_discount] |A.price > 1000 and A.success is true | T.discount = 15|
+Response[pay, order] |A.success is true | T.status is approved|
+Response[pay, order] |A.success is false | T.status is cancelled|
+Response[order, shipping] |A.status is approved | T.shipped is true|
+Response[payment_success, get_discount] | | T.discount > 0.99|
+Response[add_to_basket, pay] | same price | |
+Precedence[pay, logic] | |T.user_type is customer|
+Precedence[payment_success, pay] | |T.price >= 0.99|
+Precedence[remove_from_basket, add_to_basket] |same product | |
+

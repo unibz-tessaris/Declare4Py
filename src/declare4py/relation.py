@@ -1,7 +1,5 @@
-try:
-    from future import annotations
-except:
-    pass
+from __future__ import annotations
+
 from src.declare4py.mp_constants import TraceState
 from src.declare4py.checker_result import CheckerResult
 from src.declare4py.log_utils.encoder_declare import parse_data_cond, parse_time_cond
@@ -74,8 +72,8 @@ def mp_responded_existence(trace, done, a, b, rules):
 # mp-response constraint checker
 # Description:
 # The future constraining constraint response(a, b) indicates that
-# if event a occurs in the trace, then event b occurs after a.
-# Event a activates the constraint.
+# if event an occurs in the trace, then event b occurs after a.
+# Event an activates the constraint.
 def mp_response(trace, done, a, b, rules):
     activation_rules = parse_data_cond(rules["activation"])
     correlation_rules = parse_data_cond(rules["correlation"])
