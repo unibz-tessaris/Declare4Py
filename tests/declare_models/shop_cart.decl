@@ -3,36 +3,42 @@ activity add_to_basket
 activity remove_from_basket
 activity confirmation
 activity pay
+activity get_discount
 activity payment_success
 activity order
 activity shipping
-activity get_discount
 
 bind login: user_id, password, confirm, user_type
 bind add_to_basket: product, quantity, price
 bind remove_from_basket: product, quantity
 bind confirmation: confirm
-bind pay: price, success
+bind pay: price, success, quantity, product
 bind payment_success: confirm
 bind order: status
 bind shipping: shipped
 bind get_discount: discount
 
-user_id: integer from 1 to 100
-password: float from 10000000 to 90000000
-discount: integer from 5 to 15
-quantity: integer from 1 to 50
+user_id: integer between 1 and 100
+password: float between 10000000 to 90000000
+discount: integer between 5 and 15
+quantity: integer between 1 and 50
 product: cloths, radio, computer, notebook, food, chocolate
-shipped, success, confirm: true, false
-price: float from 0.99 to 10000.0
+shipped: true, false
+success: true, false
+confirm: true, false
+price: float between 0.99 and 10000.0
 status: approved, cancelled, pending
 user_type: admin, customer, delivery_boy
 
 
 existence[login] | A.confirm is true |
 Precedence[pay, confirmation] | | |
-Response[pay, get_discount] |A.price > 100 and A.price < 1000 and A.success is true | T.discount = 10|
-Response[pay, get_discount] |A.price > 1000 and A.success is true | T.discount = 15|
+
+Response[pay, get_discount] |A.success is true and (A.price > 1000 or (A.product in (computer, notebook))) | T.discount = 10|
+Response[pay, get_discount] |A.success is true and (A.price > 50 or (A.product in (chocolate, food))) | T.discount = 2|
+Response[pay, get_discount] |A.price > 100 and (A.price < 1000) and A.success is true | T.discount = 5|
+Response[pay, get_discount] | (A.success is false or A.quantity <= 0) and A.product not in (computer, notebook) or ((A.product is not food) and (A.product is not cloths)) | T.discount = 0|
+Response[pay, get_discount] |A.price > 1500 and A.success is true | T.discount = 5|
 Response[pay, order] |A.success is true | T.status is approved|
 Response[pay, order] |A.success is false | T.status is cancelled|
 Response[order, shipping] |A.status is approved | T.shipped is true|
