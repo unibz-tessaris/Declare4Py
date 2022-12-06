@@ -173,7 +173,9 @@ class AspGenerator(LogGenerator):
 
     def run(self):
         lp = self.generate_asp_from_decl_model(self.encode_decl_model)
-        print(lp)
+        # TODO: remove the follow file
+        with open("gen_lp.lp", "w+") as f:
+            f.write(lp)
         self.clingo_output = []
         for events, traces in self.traces_length.items():
             random_seed = randrange(0, 2 ** 32 - 1)

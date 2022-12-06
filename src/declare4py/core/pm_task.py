@@ -1,7 +1,5 @@
-try:
-    from future import annotations
-except:
-    pass
+from __future__ import annotations
+
 from abc import abstractmethod
 from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel
 from src.declare4py.log_utils.log_analyzer import LogAnalyzer
@@ -16,7 +14,6 @@ Attributes
     decl_model : LTLModel
     
 """
-from __future__ import annotations
 
 
 class PMTask:

@@ -49,6 +49,17 @@ class ASPModel:
         elif value["value_type"] == DeclareModelAttributeType.FLOAT_RANGE:
             frm, til = self.__parse_range_value(value["value"])
             # TODO: scale float values
+            eths = frm.split('.')
+            eths2 = til.split('.')
+            assert len(eths) == 2
+            assert len(eths2) == 2
+            eths = eths[1]
+            eths2 = eths2[1]
+            count_eths = len(eths)
+            count_eths2 = len(eths2)
+            max_eths = max(count_eths, count_eths2)
+            frm = int(float(frm) * 10**max_eths)
+            til = int(float(til) * 10**max_eths)
             self.add_attribute_value_to_list(f'value({attr}, {frm}..{til}).')
         elif value["value_type"] == DeclareModelAttributeType.ENUMERATION:
             val = value["value"].split(",")

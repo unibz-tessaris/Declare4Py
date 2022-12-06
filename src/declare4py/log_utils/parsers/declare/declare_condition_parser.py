@@ -36,21 +36,22 @@ class DECLARE_LOGIC_OP(str, Enum):
         self.operator = operator_name
         self.token = token
         self.symbol = symbol
-
+    # logical operators
     AND = "and", "AND", "and"  # TODO: don't yet whether declare model can have && sybmol as and
     OR = "or", "OR", "or"  # TODO: don't yet whether declare model can have || sybmol as or
+    # numerical operations
     GT = "greater_then", "GT", ">"
     GEQ = "greater_eq", "GEQ", ">="
     LT = "less_then", "LT", "<"
     LEQ = "less_eq", "LEQ", "<="
     EQ = "equal", "EQ", "="  # TODO: would be converted in "is"
     NEQ = "not_equal", "NEQ", "!="  # TODO: should convert into  is not
-
+    # enum operation
     IS = "is", "IS", "is"
     IS_NOT = "is not", "IS_NOT", "is not"
     IN = "in", "IN", "in"
     IN_NOT = "not in", "NOT_IN", "not in"
-
+    # bohhh. As I know, same and different keywords are used only in target conditions
     SAME = "same", "SAME", "same"  # TODO: not implemented yet
     different = "different", "DIFFERENT", "different"  # TODO: not implemented yet
     exist = "exist", "EXIST", "exist"  # TODO: not implemented yet

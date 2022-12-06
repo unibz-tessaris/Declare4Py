@@ -1,7 +1,6 @@
-try:
-    from future import annotations
-except:
-    pass
+
+from __future__ import annotations
+
 from src.declare4py.core.pm_task import PMTask
 from src.declare4py.log_utils.log_analyzer import LogAnalyzer
 from src.declare4py.log_utils.ltl_model import LTLModel

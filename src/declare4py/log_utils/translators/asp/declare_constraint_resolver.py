@@ -199,7 +199,7 @@ class DeclareModalConditionResolver:
                 el = re.sub(r' \)', ')', el)
                 form_list[i] = el
 
-        keywords = {'and', 'or', '(', ')'}
+        keywords = {'and', 'AND', 'OR', 'or', '(', ')'}
         c = 0
         name_to_cond = dict()
         cond_to_name = dict()
@@ -215,6 +215,10 @@ class DeclareModalConditionResolver:
             else:
                 form_string = form_string + el + ' '
         algebra = boolean.BooleanAlgebra()
+        print("form_list", form_list)
+        print("form_string", form_string)
+        print("condition", condition)
+        print("str", string)
         expression = algebra.parse(form_string, simplify=True)
         return expression, name_to_cond, cond_to_name
 
