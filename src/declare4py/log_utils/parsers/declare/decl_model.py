@@ -383,7 +383,6 @@ class DeclareParsedModelEncoder:
         d = {}
         for attr_name, attr_obj in attr_list.items():
             e_attr_name = self.encode_value(attr_name)
-            print(attr_obj)
             self.model.attributes_list[e_attr_name] = attr_obj
             d[e_attr_name] = {}
             if attr_obj['value_type'] is DeclareModelAttributeType.ENUMERATION:
@@ -541,7 +540,7 @@ class DeclModel(LTLModel):
         self.activities = []
         self.serialized_constraints = []
         self.constraints = []
-        # self.parsed_model = DeclareParsedModel()
+        self.parsed_model = DeclareParsedModel()
 
     def set_constraints(self):
         constraint_str = ''

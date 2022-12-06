@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 import json
+import re
 import typing
 from random import randrange
 
@@ -13,9 +14,9 @@ from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
 
 from src.declare4py.core.log_generator import LogGenerator
-from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel
+from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel, DeclareParsedModel, DeclareModelAttributeType
 from src.declare4py.log_utils.log_analyzer import LogAnalyzer
-from src.declare4py.log_utils.translators.asp.asp_translator import ASPInterpreter
+from src.declare4py.log_utils.translators.asp.asp_translator import ASPInterpreter, ASPModel
 from src.declare4py.models.log_generation.asp.asp_encoding import ASPEncoding
 from src.declare4py.models.log_generation.asp.asp_template import ASPTemplate
 from src.declare4py.models.log_generation.asp.distribution import Distributor
@@ -51,10 +52,13 @@ class ASPCustomTraceModel:
     name: str
     events: [ASPCustomEventModel] = []
 
-    def __init__(self, trace_name: str, model: [clingo.solving.Model]):
+    def __init__(self, trace_name: str, model: [clingo.solving.Model], scale_down: int):
         self.model = model
         self.name = trace_name
         self.events = []
+        # ASP/clingo doesn't handle floats, thus we scaling up the number values and now, we have to scale down back
+        # after result
+        self.scale_down_number = scale_down
         self.parse_clingo_trace()
 
     def parse_clingo_trace(self):
@@ -76,11 +80,17 @@ class ASPCustomTraceModel:
 
     def parse_clingo_val_assignement(self, syb: [clingo.symbol.Symbol]):
         val = []
-        for symbols in syb:
+        tot_symbols = len(syb)
+        for i, symbols in enumerate(syb):
             if symbols.type == SymbolType.Function:  # if symbol is functionm it can have .arguments
                 val.append(symbols.name)
             else:
-                val.append(symbols.number)
+                num = symbols.number
+                # we shouldn't scale the last number of given symbol because it referred to the trace
+                # position and not attribute values
+                # if (tot_symbols - 1) != i:
+                #     num = (symbols.number / self.scale_down_number)
+                val.append(num)
         return val[0], val[1], val[2]
 
     def __str__(self):
@@ -131,7 +141,7 @@ class AspGenerator(LogGenerator):
         scale sigma:float in case gaussian distribution is used, You must provide mu and sigma
         """
         super().__init__(num_traces, min_event, max_event, decl_model)
-        self.py_logger = logging.getLogger("ASP generator")
+        self.py_logger = logging.getLogger("ASP generator ")
         self.clingo_output = []
         self.asp_custom_structure: AspCustomLogModel | None = None
         self.asp_encoding = ASPEncoding().get_alp_encoding()
@@ -141,6 +151,7 @@ class AspGenerator(LogGenerator):
         self.scale = scale
         self.loc = loc
         self.traces_length = {}
+        self.lp_model: ASPModel = None
         self.encode_decl_model = encode_decl_model
         self.compute_distribution()
 
@@ -166,9 +177,9 @@ class AspGenerator(LogGenerator):
         self.py_logger.info(f"Distribution result {self.traces_length}")
 
     def generate_asp_from_decl_model(self, encode: bool = True) -> str:
-        lp_model = ASPInterpreter().from_decl_model(self.decl_model, encode)
-        lp = lp_model.to_str()
-        self.asp_encoding = ASPEncoding().get_alp_encoding(lp_model.fact_names)
+        self.lp_model = ASPInterpreter().from_decl_model(self.decl_model, encode)
+        lp = self.lp_model.to_str()
+        self.asp_encoding = ASPEncoding().get_alp_encoding(self.lp_model.fact_names)
         return lp
 
     def run(self):
@@ -197,7 +208,7 @@ class AspGenerator(LogGenerator):
         asp_model = self.asp_custom_structure
         i = 0
         for clingo_trace in self.clingo_output:
-            trace_model = ASPCustomTraceModel(f"trace_{i}", clingo_trace)
+            trace_model = ASPCustomTraceModel(f"trace_{i}", clingo_trace, self.lp_model.scale_number)
             asp_model.traces.append(trace_model)
             i = i + 1
 
@@ -206,12 +217,10 @@ class AspGenerator(LogGenerator):
         self.clingo_output.append(symbols)
 
     def __pm4py_log(self):
+        self.py_logger.info("")
         self.log_analyzer.log = lg.EventLog()
-        self.log_analyzer.log.extensions["concept"] = {}  # TODO: add which extensions?
-        self.log_analyzer.log.extensions["concept"]["name"] = lg.XESExtension.Concept.name
-        self.log_analyzer.log.extensions["concept"]["prefix"] = lg.XESExtension.Concept.prefix
-        self.log_analyzer.log.extensions["concept"]["uri"] = lg.XESExtension.Concept.uri
-        decl_encoded_model = self.decl_model.parsed_model
+        decl_encoded_model: DeclareParsedModel = self.decl_model.parsed_model
+        attr_list = decl_encoded_model.attributes_list
         for trace in self.asp_custom_structure.traces:
             trace_gen = lg.Trace()
             trace_gen.attributes["concept:name"] = trace.name
@@ -221,6 +230,30 @@ class AspGenerator(LogGenerator):
                 for res_name, res_value in asp_event.resource.items():
                     res_name_decoded = decl_encoded_model.decode_value(res_name)
                     res_value_decoded = decl_encoded_model.decode_value(res_value)
+                    res_value_decoded = str(res_value_decoded)
+                    is_number = re.match(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", res_value_decoded)
+                    if is_number:
+                        if res_name_decoded in attr_list:
+                            attr = attr_list[res_name_decoded]
+                            if attr["value_type"] != DeclareModelAttributeType.ENUMERATION:
+                                num = int(res_value_decoded) / self.lp_model.scale_number
+                                dmat = DeclareModelAttributeType
+                                if attr["value_type"] in [dmat.INTEGER_RANGE, dmat.INTEGER]:
+                                    if isinstance(num, float):
+                                        # age: integer between 1 to 10
+                                        # but after scaled up this for example with 100, this would have become value
+                                        # from 100 to 1000 and log/cling might have generated the generated the value
+                                        # for example 485 but scaling down back, it would become 4.85, which is not an
+                                        # integer but float. I don't know what to do in this case, right now, i am
+                                        # scaling down and round to nearst integer
+                                        self.py_logger.info(f"Unsafe: attribute \"{res_name_decoded}\" =>"
+                                                            f" \"{attr['value']}\" is type"
+                                                            f" of integer but scaling down from a float."
+                                                            f" Value: {res_value_decoded}"
+                                                            f" precision: {self.lp_model.scale_number}"
+                                                            f" num: {num}")
+                                    num = round(num)
+                                res_value_decoded = str(num)
                     event[res_name_decoded] = str(res_value_decoded).strip()
                 event["time:timestamp"] = datetime.now().timestamp()  # + timedelta(hours=c).datetime
                 trace_gen.append(event)

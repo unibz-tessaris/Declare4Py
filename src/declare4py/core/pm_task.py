@@ -4,6 +4,7 @@ from abc import abstractmethod
 from src.declare4py.log_utils.parsers.declare.decl_model import DeclModel
 from src.declare4py.log_utils.log_analyzer import LogAnalyzer
 from src.declare4py.log_utils.ltl_model import LTLModel
+from src.declare4py.models.process_models import ProcessModel
 
 """
 Initializes super class PMTask
@@ -16,7 +17,7 @@ Attributes
 """
 
 
-class PMTask:
+class PMTask(ProcessModel):
 
     def __init__(self, log: LogAnalyzer | None, ltl_model: LTLModel):
         if log is None:

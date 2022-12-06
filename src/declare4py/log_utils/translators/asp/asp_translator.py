@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 """
 Abductive logic programming (ALP) is a high-level knowledge-representation framework that can be used to solve
@@ -5,23 +6,20 @@ Abductive logic programming (ALP) is a high-level knowledge-representation frame
 """
 
 from src.declare4py.log_utils.parsers.declare.decl_model import DeclareModelAttributeType, DeclareTemplateModalDict, \
-    DeclModel
-from src.declare4py.log_utils.translators.asp.declare_constraint_resolver import DeclareModalConditionResolver
+    DeclModel, DeclareParsedModel
+from src.declare4py.log_utils.translators.asp.declare_constraint_resolver import DeclareModalConditionResolver2ASP
 
 
 class ASPModel:
-    lines: [str] = []
-    values_assignment: [str] = []
-    attributes_values: [str] = []
-    templates_s: [str] = []
-    fact_names: [str] = []
-
-    def __init__(self):
-        self.lines = []
-        self.values_assignment = []
-        self.attributes_values = []
-        self.templates_s = []
-        self.fact_names = []
+    def __init__(self, scale_number: int, is_encoded: bool):
+        self.lines: [str] = []
+        self.values_assignment: [str] = []
+        self.attributes_values: [str] = []
+        self.templates_s: [str] = []
+        self.fact_names: [str] = []
+        self.fact_names: [str] = []
+        self.scale_number: int = scale_number
+        self.is_encoded: bool = is_encoded
 
     def define_predicate(self, name: str, predicate_name: str, is_encoded: bool = True):
         if not is_encoded:
@@ -32,6 +30,7 @@ class ASPModel:
 
     def define_predicate_attr(self, event_name: str, attr_name: str, is_encoded: bool = True):
         if not is_encoded:
+            attr_name = attr_name.lower()
             self.lines.append(f'has_attribute({event_name.lower()}, {attr_name}).')
             self.values_assignment.append(f'has_attribute({event_name.lower()}, {attr_name}).')
         else:
@@ -39,27 +38,21 @@ class ASPModel:
             self.values_assignment.append(f'has_attribute({event_name}, {attr_name}).')
 
     def set_attr_value(self, attr: str, value: dict, is_encoded: bool = True):
+        if not is_encoded:
+            attr = attr.lower()
         if value["value_type"] == DeclareModelAttributeType.INTEGER:
-            self.add_attribute_value_to_list(f'value({attr}, {value["value"]}).')
+            self.add_attribute_value_to_list(f'value({attr}, {self.scale_number2int(value["value"])}).')
         elif value["value_type"] == DeclareModelAttributeType.FLOAT:
-            self.add_attribute_value_to_list(f'value({attr}, {value["value"]}).')
+            self.add_attribute_value_to_list(f'value({attr}, {self.scale_number2int(value["value"])}).')
         elif value["value_type"] == DeclareModelAttributeType.INTEGER_RANGE:
             frm, til = self.__parse_range_value(value["value"])
+            frm = self.scale_number2int(frm)
+            til = self.scale_number2int(til)
             self.add_attribute_value_to_list(f'value({attr}, {frm}..{til}).')
         elif value["value_type"] == DeclareModelAttributeType.FLOAT_RANGE:
             frm, til = self.__parse_range_value(value["value"])
-            # TODO: scale float values
-            eths = frm.split('.')
-            eths2 = til.split('.')
-            assert len(eths) == 2
-            assert len(eths2) == 2
-            eths = eths[1]
-            eths2 = eths2[1]
-            count_eths = len(eths)
-            count_eths2 = len(eths2)
-            max_eths = max(count_eths, count_eths2)
-            frm = int(float(frm) * 10**max_eths)
-            til = int(float(til) * 10**max_eths)
+            frm = self.scale_number2int(frm)
+            til = self.scale_number2int(til)
             self.add_attribute_value_to_list(f'value({attr}, {frm}..{til}).')
         elif value["value_type"] == DeclareModelAttributeType.ENUMERATION:
             val = value["value"].split(",")
@@ -69,6 +62,15 @@ class ASPModel:
                 val = [v.strip() for v in val]
             for s in val:
                 self.add_attribute_value_to_list(f'value({attr}, {s}).')
+
+    def scale_number2int(self, num: [int | float]) -> int:
+        # if isinstance(num, int) or isinstance(num, float):
+        if isinstance(num, str):
+            if num.__contains__('.'):
+                num = float(num)
+            else:
+                num = int(num)
+        return int(num * self.scale_number)
 
     def add_attribute_value_to_list(self, value: str):
         if value not in self.attributes_values:
@@ -86,7 +88,7 @@ class ASPModel:
 
     def add_template(self, name, ct: DeclareTemplateModalDict, idx: int, props: dict[str, dict]):
         self.templates_s.append(f"template({idx},\"{name}\").")
-        dc = DeclareModalConditionResolver()
+        dc = DeclareModalConditionResolver2ASP(self.scale_number, self.is_encoded)
         ls = dc.resolve_to_asp(ct, props, idx)
         if ls and len(ls) > 0:
             self.templates_s = self.templates_s + ls + ["\n"]
@@ -108,14 +110,17 @@ class ASPModel:
 class ASPInterpreter:
     asp_model: ASPModel
 
-    def __init__(self) -> None:
-        self.asp_model = ASPModel()
+    # def __init__(self) -> None:
+    #     pass
 
     def from_decl_model(self, model: DeclModel, use_encoding: bool = True) -> ASPModel:
         if use_encoding:
             keys = model.parsed_model.encode()
         else:
             keys = model.parsed_model
+        scalable_precision = self.get_float_biggest_precision(keys)
+        self.asp_model = ASPModel(10**(scalable_precision-1), use_encoding)
+
         for k in keys.events:
             event = keys.events[k]
             self.asp_model.define_predicate(event.name, event.event_type, use_encoding)
@@ -131,3 +136,25 @@ class ASPInterpreter:
             templates_idx = templates_idx + 1
         return self.asp_model
 
+    def get_float_biggest_precision(self, model: DeclareParsedModel) -> int:
+        attr_list = model.attributes_list
+        decimal_len_list = []
+        for attr in attr_list:
+            attr_dict = attr_list[attr]
+            if attr_dict["value_type"] == DeclareModelAttributeType.FLOAT_RANGE or attr_dict["value_type"] == DeclareModelAttributeType.INTEGER_RANGE:
+                v = attr_dict["value"].lower().replace("integer", "") \
+                    .replace("float", "") \
+                    .replace("between", "") \
+                    .replace("and", "") \
+                    .replace("  ", " ") \
+                    .strip()
+                (frm, til) = v.split(" ")
+                precision = 1
+                frm = frm.split(".")  # 10.587
+                if len(frm) > 1:
+                    precision = len(frm[1])  # frm[1] = 587 and length would be 3
+                til = til.split(".")
+                if len(til) > 1:
+                    precision = max(len(til[1]), precision)
+                decimal_len_list.append(precision)
+        return max(decimal_len_list)

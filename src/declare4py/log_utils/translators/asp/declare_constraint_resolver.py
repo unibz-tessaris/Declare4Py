@@ -7,7 +7,11 @@ import boolean
 from src.declare4py.log_utils.parsers.declare.decl_model import DeclareTemplateModalDict, DeclareModelAttributeType
 
 
-class DeclareModalConditionResolver:
+class DeclareModalConditionResolver2ASP:
+
+    def __init__(self, scale_num: int, is_encoded: bool = False):
+        self.number_scaler = scale_num
+        self.is_encoded = is_encoded
 
     def resolve_to_asp(self, ct: DeclareTemplateModalDict, attrs: dict, idx: int = 0):
         ls = []
@@ -17,7 +21,11 @@ class DeclareModalConditionResolver:
             exp, n2c, c2n = self.parsed_condition('activation', activation)
             conditions = set(n2c.keys())
             if exp.isliteral:
-                ls.append('activation_condition({},T):- {}({},T).'.format(idx, str(exp), idx))
+                nm = str(exp).strip()
+                if len(nm) == 0:
+                    ls.append('activation_condition({},T).'.format(idx))
+                else:
+                    ls.append('activation_condition({},T):- {}({},T).'.format(idx, nm, idx))
             s = self.tree_conditions_to_asp("activation", exp, "activation_condition", idx, conditions)
             if s and len(s) > 0:
                 ls = ls + s
@@ -60,18 +68,35 @@ class DeclareModalConditionResolver:
             if value_typ == DeclareModelAttributeType.ENUMERATION:  # ["is_range_typ"]:  # Enumeration
                 cond_type = cond.split(' ')[1]
                 if cond_type == 'is':
-                    s = 'assigned_value({},{},T)'.format(attr, string.split(' ')[2])
+                    v = string.split(' ')[2]
+                    if not self.is_encoded:
+                        v = v.lower()
+                        attr = attr.lower()
+                    s = 'assigned_value({},{},T)'.format(attr, v)
                     ls.append('{} :- {}.'.format(name, s))
                 elif cond_type == 'is_not':
-                    s = 'time(T), not assigned_value({},{},T)'.format(attr, string.split(' ')[2])
+                    v = string.split(' ')[2]
+                    if not self.is_encoded:
+                        v = v.lower()
+                        attr = attr.lower()
+                    s = 'time(T), not assigned_value({},{},T)'.format(attr, v)
                     ls.append('{} :- {}.'.format(name, s))
                 elif cond_type == 'in':
                     for value in string.split(' ')[2][1:-1].split(','):
-                        asp_cond = 'assigned_value({},{},T)'.format(attr, value)
+                        v = value
+                        if not self.is_encoded:
+                            v = v.lower()
+                            attr = attr.lower()
+                        asp_cond = 'assigned_value({},{},T)'.format(attr, v)
                         ls.append('{} :- {}.'.format(name, asp_cond))
+                # TODO:
                 else:
                     asp_cond = 'time(T),'
+                    if not self.is_encoded:
+                        attr = attr.lower()
                     for value in cond.split(' ')[2][1:-1].split(','):
+                        if not self.is_encoded:
+                            value = value.lower()
                         asp_cond = asp_cond + 'not assigned_value({},{},T),'.format(attr, value)
                     asp_cond = asp_cond[:-1]
                     ls.append('{} :- {}.'.format(name, asp_cond))
@@ -82,7 +107,8 @@ class DeclareModalConditionResolver:
                 for rel in relations:
                     if rel in cond:
                         value = string.split(rel)[1]
-                        ls.append('{} :- assigned_value({},V,T),V{}{}.'.format(name, attr, rel, value))
+                        value = self.scale_number2int(value)
+                        ls.append('{} :- assigned_value({},V,T),V{}{}.'.format(name, attr, rel, str(value)))
                         break
         return ls
 
@@ -215,10 +241,10 @@ class DeclareModalConditionResolver:
             else:
                 form_string = form_string + el + ' '
         algebra = boolean.BooleanAlgebra()
-        print("form_list", form_list)
-        print("form_string", form_string)
-        print("condition", condition)
-        print("str", string)
+        # print("form_list", form_list)
+        # print("form_string", form_string)
+        # print("condition", condition)
+        # print("str", string)
         expression = algebra.parse(form_string, simplify=True)
         return expression, name_to_cond, cond_to_name
 
@@ -256,6 +282,7 @@ class DeclareModalConditionResolver:
             args_name = ''
             for arg in formula_args:
                 arg_name = expression_to_name(arg)
+                args_name = args_name + arg_name + ','
             args_name = args_name[:-1]  # remove last comma
             lp_st.append('{} :- {}.'.format(cond_name, args_name))
             for arg in formula_args:
@@ -263,3 +290,11 @@ class DeclareModalConditionResolver:
                 self.tree_conditions_to_asp(condition, arg, no_params(arg_name), i, lp_st)
         return lp_st
 
+    def scale_number2int(self, num: [int | float]) -> int:
+        # if isinstance(num, int) or isinstance(num, float):
+        if isinstance(num, str):
+            if num.__contains__('.'):
+                num = float(num)
+            else:
+                num = int(num)
+        return int(num * self.number_scaler)
