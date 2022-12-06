@@ -1,9 +1,8 @@
+from __future__ import annotations
+
 from src.declare4py.checker_result import CheckerResult
 
-try:
-    from future import annotations
-except:
-    pass
+
 """
 Initializes class ConformanceCheckingResults
 

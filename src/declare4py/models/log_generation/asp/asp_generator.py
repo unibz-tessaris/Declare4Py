@@ -153,6 +153,9 @@ class AspGenerator(LogGenerator):
         self.traces_length = {}
         self.lp_model: ASPModel = None
         self.encode_decl_model = encode_decl_model
+        self.py_logger.debug(f"Distribution for traces {self.distributor_type}")
+        self.py_logger.debug(f"traces length: {num_traces}, events can have a trace min({self.min_events})"
+                             f" max({self.max_events})")
         self.compute_distribution()
 
     def compute_distribution(self):
@@ -177,21 +180,28 @@ class AspGenerator(LogGenerator):
         self.py_logger.info(f"Distribution result {self.traces_length}")
 
     def generate_asp_from_decl_model(self, encode: bool = True) -> str:
+        self.py_logger.debug("Starting translate declare model to ASP")
         self.lp_model = ASPInterpreter().from_decl_model(self.decl_model, encode)
         lp = self.lp_model.to_str()
+        self.py_logger.debug(f"Declare model translated to ASP. Total Facts {len(self.lp_model.fact_names)}")
         self.asp_encoding = ASPEncoding().get_alp_encoding(self.lp_model.fact_names)
+        self.py_logger.debug("ASP encoding generated")
         return lp
 
     def run(self):
+        self.py_logger.debug("Starting RUN method")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model)
-        # TODO: remove the follow file
-        with open("gen_lp.lp", "w+") as f:
-            f.write(lp)
         self.clingo_output = []
+        self.py_logger.debug("Start generating traces")
         for events, traces in self.traces_length.items():
             random_seed = randrange(0, 2 ** 32 - 1)
+            self.py_logger.debug(f"Total trace to generate and events: Traces:{traces}, Events: {events},"
+                                 f" RandomSeed:{random_seed}, RandFrequency: 0.9")
             self.__generate_asp_trace(lp, events, traces, random_seed)
+        self.py_logger.debug(f"Traces generated")
+        self.py_logger.debug(f"Parsing Trace results")
         self.__format_to_custom_asp_structure()
+        self.py_logger.debug(f"Trace results parsed")
         self.__pm4py_log()
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int,
@@ -217,7 +227,7 @@ class AspGenerator(LogGenerator):
         self.clingo_output.append(symbols)
 
     def __pm4py_log(self):
-        self.py_logger.info("")
+        self.py_logger.debug(f"Generating Pm4py log")
         self.log_analyzer.log = lg.EventLog()
         decl_encoded_model: DeclareParsedModel = self.decl_model.parsed_model
         attr_list = decl_encoded_model.attributes_list
@@ -258,6 +268,7 @@ class AspGenerator(LogGenerator):
                 event["time:timestamp"] = datetime.now().timestamp()  # + timedelta(hours=c).datetime
                 trace_gen.append(event)
             self.log_analyzer.log.append(trace_gen)
+        self.py_logger.debug(f"Pm4py generated but not saved btw")
 
     def to_xes(self, output_fn: str):
         if self.log_analyzer.log is None:

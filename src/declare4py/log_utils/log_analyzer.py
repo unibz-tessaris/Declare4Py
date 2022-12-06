@@ -1,7 +1,5 @@
-try:
-    from future import annotations
-except:
-    pass
+from __future__ import annotations
+
 
 import pandas as pd
 import pm4py
