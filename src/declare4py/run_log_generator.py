@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from boolean import boolean
 import logging
-from src.declare4py.log_utils.log_analyzer import LogAnalyzer
-from src.declare4py.log_utils.parsers.declare.declare_parsers import DeclareParser
-from src.declare4py.models.log_generation.asp.asp_generator import AspGenerator
+from src.declare4py.models.decl_model import DeclareParser
+from src.declare4py.log_generation.asp.asp_generator import AspGenerator
 
 logging.basicConfig(level=logging.DEBUG)
 

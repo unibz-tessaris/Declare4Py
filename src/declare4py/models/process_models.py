@@ -1,3 +1,25 @@
+from __future__ import annotations
 
-class ProcessModel:
-    pass
+from abc import abstractmethod
+from typing import TypeVar, Generic
+
+T = TypeVar("T")
+
+
+class ProcessModel(Generic[T]):
+
+    def __init__(self, lines: str | None = None):
+        self.lines: [str] = lines
+
+    # @abstractmethod
+    # def parse_from_file(self, filename: str) -> T:
+    #     pass
+    #
+    # @abstractmethod
+    # def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> T:
+    #     pass
+    #
+    # @abstractmethod
+    # def parse(self) -> T:
+    #     pass
+
