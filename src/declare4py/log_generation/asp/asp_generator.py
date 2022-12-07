@@ -101,8 +101,6 @@ class ASPCustomTraceModel:
 
 
 class AspCustomLogModel:
-    traces: [ASPCustomTraceModel] = []
-
     def __init__(self):
         self.traces: [ASPCustomTraceModel] = []
 

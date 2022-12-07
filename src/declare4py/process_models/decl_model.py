@@ -1075,15 +1075,11 @@ class DeclareModelAttributeType(str, Enum):
 
 
 class DeclareModelEvent(DeclareModelCustomDict):
-    name: str
-    event_type: str
-    attributes: dict[str, dict]
-
     def __init__(self):
         super().__init__()
-        self.name = ""
-        self.event_type = ""
-        self.attributes = {}
+        self.name: str = ""
+        self.event_type: str = ""
+        self.attributes: dict[str, dict] = {}
         self.update_props()
 
     def update_props(self):
@@ -1182,20 +1178,14 @@ class DeclareTemplateModalDict(DeclareModelCustomDict):
 
 
 class DeclareParsedModel(DeclareModelCustomDict):
-    attributes_list: dict[str, dict] = []
-    events: dict[str, DeclareModelEvent] = {}
-    template_constraints = {}
-    templates: [DeclareTemplateModalDict] = []
-    encoder: DeclareParsedModelEncoder
-    encoded_model: DeclareParsedModelEncoder
-
     def __init__(self):
         super().__init__()
-        self.events = {}
-        self.attributes_list = {}
+        self.events: dict[str, DeclareModelEvent] = {}
+        self.attributes_list: dict[str, dict] = {}
         self.template_constraints = {}
-        self.templates = []
-        self.encoded_model = None
+        self.templates: [DeclareTemplateModalDict] = []
+        self.encoded_model: DeclareParsedModelEncoder = None
+        self.encoder: DeclareParsedModelEncoder = None
         self.update_props()
 
     def add_event(self, name: str, event_type: str) -> None:
@@ -1324,8 +1314,9 @@ class DeclareParsedModel(DeclareModelCustomDict):
 
 
 class DeclareParsedModelEncoder:
-    encoded_dict = {}
-    model: DeclareParsedModel
+    def __init__(self):
+        self.encoded_dict: dict = {}
+        self.model: DeclareParsedModel
 
     def encode(self, dpm_orig: DeclareParsedModel) -> DeclareParsedModel:
         self.encoded_dict = {}

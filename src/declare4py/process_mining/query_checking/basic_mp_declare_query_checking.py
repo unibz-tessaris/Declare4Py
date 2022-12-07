@@ -9,6 +9,7 @@ from numpy import product, ceil
 from src.declare4py.process_mining.query_checking.query_checking import QueryChecking
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
 from src.declare4py.process_models.decl_model import DeclModel, DeclareTemplate, TraceState
+from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
 """
 Initializes class QueryCheckingResults
@@ -61,6 +62,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
         self.time_cond: str | None = time_cond
         self.min_support: float = min_support  # or 1.0
         self.max_declare_cardinality: int = max_declare_cardinality
+        self.constraint_checker = ConstraintCheck(consider_vacuity)
 
     def run(self, consider_vacuity: bool, template_str: str = None, max_declare_cardinality: int = 1,
             activation: str = None, target: str = None, act_cond: str = None,

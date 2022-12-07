@@ -13,6 +13,10 @@ Abductive logic programming (ALP) is a high-level knowledge-representation frame
 
 
 class ASPModel:
+    """
+        ASP model contains the translated code of declare model. The ASP code in this model describe the problem
+        representation in ASP.
+    """
     def __init__(self, scale_number: int, is_encoded: bool):
         self.lines: [str] = []
         self.values_assignment: [str] = []
@@ -110,7 +114,9 @@ class ASPModel:
 
 
 class ASPInterpreter:
-
+    """
+    ASP interpreter reads the data from the decl_model and converts it into ASP, as defining the problem
+    """
     def __init__(self) -> None:
         self.asp_model: ASPModel
 

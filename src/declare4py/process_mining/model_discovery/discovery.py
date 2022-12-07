@@ -30,16 +30,7 @@ Attributes
 
 class Discovery(PMTask, ABC):
 
-    def __init__(self, consider_vacuity: bool, support: float, max_declare_cardinality: int,
-                 log: LogAnalyzer | None, model: ProcessModel):
+    def __init__(self, consider_vacuity: bool, log: LogAnalyzer | None, model: ProcessModel):
         self.consider_vacuity = consider_vacuity
-        self.constraint_checker = ConstraintCheck(consider_vacuity)
-        self.support: float = support
-        self.max_declare_cardinality: int | None = max_declare_cardinality
-        self.basic_discovery_results: BasicDiscoveryResults | None = None
         super().__init__(log, model)
-        self.init_discovery_result_instance()
-
-    def init_discovery_result_instance(self):
-        self.basic_discovery_results: BasicDiscoveryResults = BasicDiscoveryResults()
 

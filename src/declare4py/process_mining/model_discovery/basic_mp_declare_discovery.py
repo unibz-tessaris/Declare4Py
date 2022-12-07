@@ -7,7 +7,7 @@ from src.declare4py.utility.template_checkers.checker_result import CheckerResul
 from src.declare4py.process_mining.model_discovery.discovery import Discovery
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
 from src.declare4py.process_models.decl_model import DeclModel, DeclareTemplate, TraceState
-
+from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
 """
 
@@ -45,6 +45,14 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
     def __init__(self, consider_vacuity: bool, support: float, max_declare_cardinality: int,
                  log: LogAnalyzer | None, ltl_model: LTLModel):
         super().__init__(consider_vacuity, support, max_declare_cardinality, log, ltl_model)
+        self.init_discovery_result_instance()
+        self.constraint_checker = ConstraintCheck(consider_vacuity)
+        self.support: float = support
+        self.max_declare_cardinality: int | None = max_declare_cardinality
+        self.basic_discovery_results: BasicDiscoveryResults | None = None
+
+    def init_discovery_result_instance(self):
+        self.basic_discovery_results: BasicDiscoveryResults = BasicDiscoveryResults()
 
     def run(self, consider_vacuity: bool, max_declare_cardinality: int = 3, output_path: str = None) \
             -> BasicDiscoveryResults:

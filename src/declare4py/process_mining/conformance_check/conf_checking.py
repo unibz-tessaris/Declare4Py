@@ -24,6 +24,5 @@ class ConformanceChecking(PMTask, ABC):
 
     def __init__(self, consider_vacuity: bool, log: LogAnalyzer, process_model: ProcessModel):
         self.consider_vacuity = consider_vacuity
-        self.constraint_checker = ConstraintCheck(consider_vacuity)
         super().__init__(log, process_model)
 

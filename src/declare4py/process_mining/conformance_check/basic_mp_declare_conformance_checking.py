@@ -5,7 +5,7 @@ from src.declare4py.process_mining.conformance_check.conf_checking import Confor
 from src.declare4py.process_mining.conformance_check.basic_conformance_checking_results \
     import BasicConformanceCheckingResults
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
-
+from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
 """
 Provides basic conformance checking functionalities
@@ -25,6 +25,7 @@ class BasicMPDeclareConformanceChecking(ConformanceChecking):
         self.time_cond: str | None = time_cond
         self.min_support: float = min_support  # or 1.0
         self.max_declare_cardinality: int = max_declare_cardinality
+        self.constraint_checker = ConstraintCheck(consider_vacuity)
         super().__init__(consider_vacuity, log, ltl_model)
         self.basic_conformance_checking_results: BasicConformanceCheckingResults | None = None
 

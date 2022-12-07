@@ -4,7 +4,6 @@ from abc import ABC
 
 from src.declare4py.pm_tasks.pm_task import PMTask
 from src.declare4py.process_models.ltl_model import LTLModel
-from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
 
 """
@@ -51,5 +50,4 @@ class QueryChecking(PMTask, ABC):
                  log: LogAnalyzer, ltl_model: LTLModel):
         super().__init__(log, ltl_model)
         self.consider_vacuity = consider_vacuity
-        self.constraint_checker = ConstraintCheck(consider_vacuity)
 
