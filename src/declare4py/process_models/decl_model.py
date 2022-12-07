@@ -10,7 +10,7 @@ import warnings
 from enum import Enum
 import uuid
 
-from src.declare4py.models.ltl_model import LTLModel
+from src.declare4py.process_models.ltl_model import LTLModel
 
 try:
     """
@@ -18,7 +18,7 @@ try:
         To understand a condition, represented in form of a graph would make little easy.
     """
     import graphviz
-except:
+except ImportError:
     raise warnings.warn("Unable to load graphviz library. Declare model Constraint"
                         " condition will will not generate the tree views")
 
@@ -83,7 +83,7 @@ class DeclareTemplate(str, Enum):
         return "<Template." + str(self.templ_str) + ": " + str(self.value) + " >"
 
     def __repr__(self):
-        return "\""+str(self.__str__())+"\""
+        return "\"" + str(self.__str__()) + "\""
 
 
 class TraceState(str, Enum):
@@ -93,60 +93,11 @@ class TraceState(str, Enum):
     POSSIBLY_SATISFIED = "Possibly Satisfied"
 
 
-class CONDITION_NODE_TYPE(Enum):
+class ConditionNodeType(Enum):
     PARENTHESIS = "PARENTHESIS"
     AND = "AND"
     OR = "OR"
     VALUE = "VALUE"
-
-
-class DECLARE_LOGIC_OP(str, Enum):
-
-    def __new__(cls, *args, **kwds):
-        value = len(cls.__members__) + 1
-        obj = str.__new__(cls)
-        obj._value_ = value
-        return obj
-
-    def __init__(self, operator_name: str, token: str, symbol: str):
-        self.operator = operator_name
-        self.token = token
-        self.symbol = symbol
-    # logical operators
-    AND = "and", "AND", "and"  # TODO: don't yet whether declare model can have && sybmol as and
-    OR = "or", "OR", "or"  # TODO: don't yet whether declare model can have || sybmol as or
-    # numerical operations
-    GT = "greater_then", "GT", ">"
-    GEQ = "greater_eq", "GEQ", ">="
-    LT = "less_then", "LT", "<"
-    LEQ = "less_eq", "LEQ", "<="
-    EQ = "equal", "EQ", "="  # TODO: would be converted in "is"
-    NEQ = "not_equal", "NEQ", "!="  # TODO: should convert into  is not
-    # enum operation
-    IS = "is", "IS", "is"
-    IS_NOT = "is not", "IS_NOT", "is not"
-    IN = "in", "IN", "in"
-    IN_NOT = "not in", "NOT_IN", "not in"
-    # bohhh. As I know, same and different keywords are used only in target conditions
-    SAME = "same", "SAME", "same"  # TODO: not implemented yet
-    different = "different", "DIFFERENT", "different"  # TODO: not implemented yet
-    exist = "exist", "EXIST", "exist"  # TODO: not implemented yet
-
-    @classmethod
-    def get_logic_op_from_string(cls, name):
-        return next(filter(lambda t: t.operator == name, DECLARE_LOGIC_OP), None)
-
-    @classmethod
-    def get_token(cls, token: str):
-        token = re.sub(" +", " ", token)
-        token = re.sub(" ", "_", token)
-        return tuple(filter(lambda t: t.token.lower() == token.lower(), DECLARE_LOGIC_OP))
-
-    def __str__(self):
-        return "<LOGIC_OP:" + str(self.operator) + ": " + str(self.value) + " >"
-
-    def __repr__(self):
-        return "\"" + str(self.__str__()) + "\""
 
 
 class ConditionNode:
@@ -249,12 +200,12 @@ class ConditionNode:
 
     def node_type(self) -> str:
         if self.value == "(" or self.value == ")":
-            return CONDITION_NODE_TYPE.PARENTHESIS.value
+            return ConditionNodeType.PARENTHESIS.value
         if self.value.lower() == "and":
-            return CONDITION_NODE_TYPE.AND.value
+            return ConditionNodeType.AND.value
         if self.value.lower() == "or":
-            return CONDITION_NODE_TYPE.OR.value
-        return CONDITION_NODE_TYPE.VALUE.value
+            return ConditionNodeType.OR.value
+        return ConditionNodeType.VALUE.value
 
     def is_root(self) -> bool:
         return self.parent is None
@@ -952,7 +903,7 @@ class DeclareParser:
     def __init__(self):
         super().__init__()
         self.model: DeclModel | None = None
-        self.dp_utilty = DeclareParserUtility()
+        self.declare_parser_utility = DeclareParserUtility()
 
     def parse_decl_model(self, model_path) -> None:
         """
@@ -966,10 +917,10 @@ class DeclareParser:
         self.model = self.parse_decl_from_file(model_path)
 
     def parse_data_cond(self, cond: str):
-        return self.dp_utilty.parse_data_cond(cond)
+        return self.declare_parser_utility.parse_data_cond(cond)
 
     def parse_time_cond(self, condition: str):
-        return self.dp_utilty.parse_data_cond(condition)
+        return self.declare_parser_utility.parse_data_cond(condition)
 
     def parse_decl_from_file(self, path: str) -> DeclModel:
         return self.parse_from_file(path)
@@ -1061,6 +1012,7 @@ class DeclareModelCustomDict(dict, ABC):
     """
     Custom DICT helper class: printable and serializable object
     """
+
     def __init__(self, *args, **kw):
         super().__init__()
         self.key_value = dict(*args, **kw)
@@ -1119,7 +1071,7 @@ class DeclareModelAttributeType(str, Enum):
         return self.value
 
     def __repr__(self):
-        return "\""+self.__str__()+"\""
+        return "\"" + self.__str__() + "\""
 
 
 class DeclareModelEvent(DeclareModelCustomDict):
@@ -1286,7 +1238,8 @@ class DeclareParsedModel(DeclareModelCustomDict):
             attrs = {}
             dme.attributes = attrs
         if attr_name in self.attributes_list:
-            attrs[attr_name] = self.attributes_list[attr_name]  # saving the same reference. Same attr cannot have two values
+            attrs[attr_name] = self.attributes_list[
+                attr_name]  # saving the same reference. Same attr cannot have two values
         else:
             attrs[attr_name] = {"value": "", "value_type": ""}
 
@@ -1467,7 +1420,8 @@ class DeclareParsedModelEncoder:
             elif cond_chunk.lower() == "not_in":
                 form_list[idx - 1] = "not in"
             elif re.match(r'^[AaTt]\.', cond_chunk):  # A.grade>10
-                found = re.findall(r"([AaTt]\.([\w:,]+))", cond_chunk, flags=re.UNICODE | re.MULTILINE)  # finds from A.grade>10 => A.grade and grade
+                found = re.findall(r"([AaTt]\.([\w:,]+))", cond_chunk,
+                                   flags=re.UNICODE | re.MULTILINE)  # finds from A.grade>10 => A.grade and grade
                 if found:  # [('A.grade', 'grade'), ('A.mark', 'mark')]
                     for f in found:
                         act_tar_cond, attr = f
@@ -1575,8 +1529,6 @@ class DeclareParsedModelEncoder:
 
 
 class DeclModel(LTLModel):
-    parsed_model: DeclareParsedModel
-
     def __init__(self):
         super().__init__()
         self.activities = []

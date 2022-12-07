@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.declare4py.models.ltl_model import LTLModel
+from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.process_mining.conformance_check.conf_checking import ConformanceChecking
 from src.declare4py.process_mining.conformance_check.basic_conformance_checking_results \
     import BasicConformanceCheckingResults
@@ -47,11 +47,11 @@ class BasicMPDeclareConformanceChecking(ConformanceChecking):
         """
         if self.log_analyzer is None:
             raise RuntimeError("You must load the log before checking the model.")
-        if self.ltl_model is None:
+        if self.process_model is None:
             raise RuntimeError("You must load the DECLARE model before checking the model.")
 
         self.basic_conformance_checking_results = BasicConformanceCheckingResults({})
         for i, trace in enumerate(self.log_analyzer.log):
-            trc_res = self.check_trace_conformance(trace, self.ltl_model, consider_vacuity)
+            trc_res = self.constraint_checker.check_trace_conformance(trace, self.process_model, consider_vacuity)
             self.basic_conformance_checking_results[(i, trace.attributes["concept:name"])] = trc_res
         return self.basic_conformance_checking_results

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from abc import ABC
 
-from src.declare4py.models.ltl_model import LTLModel
-from src.declare4py.process_mining.checkers.constraint_checker import ConstraintCheck
+from src.declare4py.pm_tasks.pm_task import PMTask
+from src.declare4py.process_models.process_model import ProcessModel
+from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
 from src.declare4py.process_mining.model_discovery.basic_mp_declare_discovery import BasicDiscoveryResults
 
@@ -27,14 +28,16 @@ Attributes
 """
 
 
-class Discovery(ConstraintCheck, ABC):
+class Discovery(PMTask, ABC):
 
     def __init__(self, consider_vacuity: bool, support: float, max_declare_cardinality: int,
-                 log: LogAnalyzer | None, ltl_model: LTLModel):
-        super().__init__(consider_vacuity, log, ltl_model)
+                 log: LogAnalyzer | None, model: ProcessModel):
+        self.consider_vacuity = consider_vacuity
+        self.constraint_checker = ConstraintCheck(consider_vacuity)
         self.support: float = support
         self.max_declare_cardinality: int | None = max_declare_cardinality
         self.basic_discovery_results: BasicDiscoveryResults | None = None
+        super().__init__(log, model)
         self.init_discovery_result_instance()
 
     def init_discovery_result_instance(self):

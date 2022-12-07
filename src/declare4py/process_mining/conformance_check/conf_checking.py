@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from abc import ABC
 
-from src.declare4py.models.ltl_model import LTLModel
-from src.declare4py.process_mining.checkers.constraint_checker import ConstraintCheck
+from src.declare4py.pm_tasks.pm_task import PMTask
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
+from src.declare4py.process_models.process_model import ProcessModel
+from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
 """
 
@@ -19,8 +20,10 @@ Parameters
 """
 
 
-class ConformanceChecking(ConstraintCheck, ABC):
+class ConformanceChecking(PMTask, ABC):
 
-    def __init__(self, consider_vacuity: bool, log: LogAnalyzer, ltl_model: LTLModel):
-        super().__init__(consider_vacuity, log, ltl_model)
+    def __init__(self, consider_vacuity: bool, log: LogAnalyzer, process_model: ProcessModel):
+        self.consider_vacuity = consider_vacuity
+        self.constraint_checker = ConstraintCheck(consider_vacuity)
+        super().__init__(log, process_model)
 

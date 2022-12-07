@@ -2,20 +2,17 @@ from __future__ import annotations
 
 from abc import ABC
 
-from src.declare4py.models.ltl_model import LTLModel
-from src.declare4py.process_mining.checkers.checker_result import CheckerResult
+from src.declare4py.process_models.ltl_model import LTLModel
+from src.declare4py.utility.template_checkers.checker_result import CheckerResult
 from src.declare4py.process_mining.model_discovery.discovery import Discovery
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
-from src.declare4py.models.decl_model import DeclModel, DeclareTemplate, TraceState
+from src.declare4py.process_models.decl_model import DeclModel, DeclareTemplate, TraceState
 
 
 """
-Initializes class BasicDiscoveryResults
 
-Attributes
--------
-    dict_results : dict
-        dictionary of conformance checking results
+Dictionary type object to save some value
+
 """
 
 
@@ -82,7 +79,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
             raise RuntimeError("Cardinality must be greater than 0.")
         self.init_discovery_result_instance()
 
-        for item_set in self.log_analyzer.frequent_item_sets['itemsets']:  # TODO: improve this
+        for item_set in self.log_analyzer.frequent_item_sets['itemsets']:  # TODO: improve this key name?
             length = len(item_set)
             if length == 1:
                 for templ in DeclareTemplate.get_unary_templates():
@@ -155,7 +152,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
         model.constraints.append(constraint)
         discovery_res: BasicDiscoveryResults = {}
         for i, trace in enumerate(log.log):
-            trc_res = self.check_trace_conformance(trace, model, consider_vacuity)
+            trc_res = self.constraint_checker.check_trace_conformance(trace, model, consider_vacuity)
             if not trc_res:  # Occurring when constraint data conditions are formatted bad
                 break
             constraint_str, checker_res = next(iter(trc_res.items()))  # trc_res will always have only one element

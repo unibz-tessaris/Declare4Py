@@ -2,29 +2,24 @@ from __future__ import annotations
 
 import typing
 from abc import abstractmethod
-from src.declare4py.models.ltl_model import LTLModel
-from src.declare4py.models.process_models import ProcessModel
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
+from src.declare4py.process_models.process_model import ProcessModel
 
 """
-Initializes super class PMTask
 
-Attributes
--------
-    log_analyzer : LogAnalyzer
-    decl_model : LTLModel
+An abstract class for process tasking
     
 """
 
 
-class PMTask(ProcessModel):
+class PMTask:
 
-    def __init__(self, log: LogAnalyzer | None, ltl_model: LTLModel):
+    def __init__(self, log: LogAnalyzer | None, p_model: ProcessModel):
         super().__init__()
         if log is None:
             log = LogAnalyzer()
         self.log_analyzer: LogAnalyzer = log
-        self.ltl_model: LTLModel = ltl_model
+        self.process_model: ProcessModel = p_model
 
     @abstractmethod
     def run(self, *args, **kwargs) -> typing.Any:

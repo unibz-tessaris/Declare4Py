@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from src.declare4py.models.decl_model import DeclareParser
+from src.declare4py.process_models.decl_model import DeclareParser
 from src.declare4py.log_generation.asp.asp_generator import AspGenerator
 
 logging.basicConfig(level=logging.DEBUG)

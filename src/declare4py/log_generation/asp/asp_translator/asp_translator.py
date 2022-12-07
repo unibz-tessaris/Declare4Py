@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from src.declare4py.log_generation.asp.asp_translator.declare_constraint_resolver import \
     DeclareModalConditionResolver2ASP
-from src.declare4py.models.decl_model import DeclareModelAttributeType, DeclareTemplateModalDict, \
+from src.declare4py.process_models.decl_model import DeclareModelAttributeType, DeclareTemplateModalDict, \
     DeclModel, DeclareParsedModel
 
 """
@@ -110,10 +110,9 @@ class ASPModel:
 
 
 class ASPInterpreter:
-    asp_model: ASPModel
 
-    # def __init__(self) -> None:
-    #     pass
+    def __init__(self) -> None:
+        self.asp_model: ASPModel
 
     def from_decl_model(self, model: DeclModel, use_encoding: bool = True) -> ASPModel:
         if use_encoding:

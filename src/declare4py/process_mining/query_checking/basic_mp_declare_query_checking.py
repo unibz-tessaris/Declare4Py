@@ -8,8 +8,7 @@ from numpy import product, ceil
 
 from src.declare4py.process_mining.query_checking.query_checking import QueryChecking
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
-from src.declare4py.models.decl_model import DeclModel, DeclareTemplate, TraceState
-
+from src.declare4py.process_models.decl_model import DeclModel, DeclareTemplate, TraceState
 
 """
 Initializes class QueryCheckingResults
@@ -52,9 +51,16 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
 
     def __init__(self, consider_vacuity, template_str, max_declare_cardinality, activation,
                  target, act_cond, trg_cond, time_cond, min_support):
-        super().__init__(template_str, activation, target, act_cond, trg_cond, time_cond, min_support,
-                         max_declare_cardinality, consider_vacuity, None, None)  # TODO: create/pass logAnalyzer
+        super().__init__(consider_vacuity, None, None)  # TODO: create/pass logAnalyzer?
         self.basic_query_checking_results: BasicQueryCheckingResults | None = None
+        self.template_str: str | None = template_str
+        self.activation: str | None = activation
+        self.target: str | None = target
+        self.act_cond: str | None = act_cond
+        self.trg_cond: str | None = trg_cond
+        self.time_cond: str | None = time_cond
+        self.min_support: float = min_support  # or 1.0
+        self.max_declare_cardinality: int = max_declare_cardinality
 
     def run(self, consider_vacuity: bool, template_str: str = None, max_declare_cardinality: int = 1,
             activation: str = None, target: str = None, act_cond: str = None,
@@ -219,7 +225,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
         model.constraints.append(constraint)
         sat_ctr = 0
         for i, trace in enumerate(log.log):
-            trc_res = self.check_trace_conformance(trace, model, consider_vacuity)
+            trc_res = self.constraint_checker.check_trace_conformance(trace, model, consider_vacuity)
             if not trc_res:  # Occurring when constraint data conditions are formatted bad
                 break
 

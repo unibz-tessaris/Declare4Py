@@ -15,7 +15,7 @@ from pm4py.objects.log.exporter.xes import exporter
 
 from src.declare4py.log_generation.asp.asp_translator.asp_translator import ASPModel, ASPInterpreter
 from src.declare4py.log_generation.log_generator import LogGenerator
-from src.declare4py.models.decl_model import DeclModel, DeclareParsedModel, DeclareModelAttributeType
+from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedModel, DeclareModelAttributeType
 from src.declare4py.log_generation.asp.asp_utils.asp_encoding import ASPEncoding
 from src.declare4py.log_generation.asp.asp_utils.asp_template import ASPTemplate
 from src.declare4py.log_generation.asp.asp_utils.distribution import Distributor
@@ -180,7 +180,7 @@ class AspGenerator(LogGenerator):
 
     def generate_asp_from_decl_model(self, encode: bool = True) -> str:
         self.py_logger.debug("Starting translate declare model to ASP")
-        self.lp_model = ASPInterpreter().from_decl_model(self.ltl_model, encode)
+        self.lp_model = ASPInterpreter().from_decl_model(self.process_model, encode)
         lp = self.lp_model.to_str()
         self.py_logger.debug(f"Declare model translated to ASP. Total Facts {len(self.lp_model.fact_names)}")
         self.asp_encoding = ASPEncoding().get_alp_encoding(self.lp_model.fact_names)
@@ -228,7 +228,7 @@ class AspGenerator(LogGenerator):
     def __pm4py_log(self):
         self.py_logger.debug(f"Generating Pm4py log")
         self.log_analyzer.log = lg.EventLog()
-        decl_encoded_model: DeclareParsedModel = self.ltl_model.parsed_model
+        decl_encoded_model: DeclareParsedModel = self.process_model.parsed_model
         attr_list = decl_encoded_model.attributes_list
         for trace in self.asp_custom_structure.traces:
             trace_gen = lg.Trace()

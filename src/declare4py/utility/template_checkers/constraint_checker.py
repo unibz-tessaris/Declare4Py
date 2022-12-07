@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-
-from src.declare4py.models.decl_model import DeclModel
-from src.declare4py.models.ltl_model import LTLModel
-from src.declare4py.models.pm_task import PMTask
-from src.declare4py.process_mining.checkers.template_checker import TemplateCheckers
+from src.declare4py.process_models.decl_model import DeclModel
+from src.declare4py.process_models.ltl_model import LTLModel
+from src.declare4py.process_models.process_model import ProcessModel
+from src.declare4py.utility.template_checkers.template_checker import TemplateCheckers
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
 
 
-class ConstraintCheck(PMTask, ABC):
+class ConstraintCheck:
 
-    def __init__(self, consider_vacuity: bool, log: LogAnalyzer, ltl_model: LTLModel):
+    def __init__(self, consider_vacuity: bool | None):
         """
         Checks whether the constraints are fulfillment, violation, pendings, activations etc
 
@@ -23,14 +21,13 @@ class ConstraintCheck(PMTask, ABC):
         :param LTLModel ltl_model: Process mining model
 
         """
-        super().__init__(log, ltl_model)
-        self.consider_vacuity: bool = consider_vacuity
+        self.consider_vacuity: bool = consider_vacuity | False
 
-    def check_trace_conformance(self, trace: dict, model: DeclModel | LTLModel = None, consider_vacuity: bool = None) -> dict:
+    def check_trace_conformance(self, trace: dict, p_model: ProcessModel, consider_vacuity: bool = None) -> dict:
         # Set containing all constraints that raised SyntaxError in checker functions
         rules = {"vacuous_satisfaction": consider_vacuity | self.consider_vacuity}
-        model |= self.ltl_model
         error_constraint_set = set()
+        model: DeclModel = p_model
         trace_results = {}
         for idx, constraint in enumerate(model.constraints):
             constraint_str = model.serialized_constraints[idx]
