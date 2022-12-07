@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing
 from abc import abstractmethod
 from src.declare4py.models.ltl_model import LTLModel
 from src.declare4py.models.process_models import ProcessModel
@@ -26,5 +27,5 @@ class PMTask(ProcessModel):
         self.ltl_model: LTLModel = ltl_model
 
     @abstractmethod
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs) -> typing.Any:
         pass

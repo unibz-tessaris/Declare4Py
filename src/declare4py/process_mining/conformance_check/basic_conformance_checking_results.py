@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.declare4py.process_mining.model_checking.checker_result import CheckerResult
+from src.declare4py.process_mining.checkers.checker_result import CheckerResult
 
 
 """

@@ -6,11 +6,27 @@ from abc import ABC
 
 from numpy import product, ceil
 
-from src.declare4py.process_mining.conformance_check.api_functions import check_trace_conformance
-from src.declare4py.process_mining.model_checking.query_checking import QueryChecking
+from src.declare4py.process_mining.query_checking.query_checking import QueryChecking
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
 from src.declare4py.models.decl_model import DeclModel, DeclareTemplate, TraceState
-from src.declare4py.process_mining.model_checking.basic_query_checking_results import BasicQueryCheckingResults
+
+
+"""
+Initializes class QueryCheckingResults
+
+Attributes
+--------
+    dict_results : dict
+        dictionary of conformance checking results
+
+"""
+
+
+class BasicQueryCheckingResults(dict):
+
+    def __init__(self, **kwargs):
+        super().__init__(kwargs)
+
 
 """
 Class used to provide basic query checking functionalities
@@ -34,15 +50,15 @@ Attributes
 
 class BasicMPDeclareQueryChecking(QueryChecking, ABC):
 
-    def __init__(self, consider_vacuity, template_str, max_declare_cardinality, activation, target, act_cond, trg_cond, time_cond, min_support):
-        super().__init__(consider_vacuity, template_str, max_declare_cardinality, activation, target, act_cond, trg_cond, time_cond, min_support)
-        self.basic_query_checking_results: dict = None
+    def __init__(self, consider_vacuity, template_str, max_declare_cardinality, activation,
+                 target, act_cond, trg_cond, time_cond, min_support):
+        super().__init__(template_str, activation, target, act_cond, trg_cond, time_cond, min_support,
+                         max_declare_cardinality, consider_vacuity, None, None)  # TODO: create/pass logAnalyzer
+        self.basic_query_checking_results: BasicQueryCheckingResults | None = None
 
-    def run(self, consider_vacuity: bool,
-                       template_str: str = None, max_declare_cardinality: int = 1,
-                       activation: str = None, target: str = None,
-                       act_cond: str = None, trg_cond: str = None, time_cond: str = None,
-                       min_support: float = 1.0) -> BasicQueryCheckingResults:
+    def run(self, consider_vacuity: bool, template_str: str = None, max_declare_cardinality: int = 1,
+            activation: str = None, target: str = None, act_cond: str = None,
+            trg_cond: str = None, time_cond: str = None, min_support: float = 1.0) -> BasicQueryCheckingResults:
         """
         Performs query checking for a (list of) template, activation activity and target activity. Optional
         activation, target and time conditions can be specified.
@@ -85,7 +101,6 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
             dictionary with keys the DECLARE constraints satisfying the assignments. The values are a structured
             representations of these constraints.
         """
-        print("Computing query checking ...")
 
         is_template_given = bool(template_str)
         is_activation_given = bool(activation)
@@ -109,7 +124,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
             raise RuntimeError("Min. support must be in range [0, 1].")
         if max_declare_cardinality <= 0:
             raise RuntimeError("Cardinality must be greater than 0.")
-        if self.log is None:
+        if self.log_analyzer is None:
             raise RuntimeError("You must load a log before.")
 
         templates_to_check = list()
@@ -125,12 +140,11 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
                     else:
                         templates_to_check.append(template.templ_str)
 
-        activations_to_check = self.get_log_alphabet_activities() if activation is None else [activation]
-        targets_to_check = self.get_log_alphabet_activities() if target is None else [target]
+        activations_to_check = self.log_analyzer.get_log_alphabet_activities() if activation is None else [activation]
+        targets_to_check = self.log_analyzer.get_log_alphabet_activities() if target is None else [target]
         activity_combos = tuple(filter(lambda c: c[0] != c[1], product(activations_to_check, targets_to_check)))
 
-        self.basic_query_checking_results = {}
-
+        self.basic_query_checking_results: BasicQueryCheckingResults = BasicQueryCheckingResults()
         for template_str in templates_to_check:
             template_str, cardinality = re.search(r'(^.+?)(\d*$)', template_str).groups()
             template = DeclareTemplate.get_template_from_string(template_str)
@@ -144,7 +158,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
                 for couple in activity_combos:
                     constraint['activities'] = ', '.join(couple)
 
-                    constraint_str = self.query_constraint(self.log, constraint, consider_vacuity, min_support)
+                    constraint_str = self.query_constraint(self.log_analyzer, constraint, consider_vacuity, min_support)
                     if constraint_str:
                         res_value = {
                             "template": template_str, "activation": couple[0], "target": couple[1],
@@ -157,14 +171,13 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
                 for activity in activations_to_check:
                     constraint['activities'] = activity
 
-                    constraint_str = self.query_constraint(self.log, constraint, consider_vacuity, min_support)
+                    constraint_str = self.query_constraint(self.log_analyzer, constraint, consider_vacuity, min_support)
                     if constraint_str:
                         res_value = {
                             "template": template_str, "activation": activity,
                             "act_cond": act_cond, "time_cond": time_cond
                         }
                         self.basic_query_checking_results[constraint_str] = res_value
-
         return self.basic_query_checking_results
 
     def filter_query_checking(self, queries) -> list[list[str]]:
@@ -200,14 +213,13 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
             assignments.append(tmp_answer)
         return assignments
 
-    def query_constraint(self, log: LogAnalyzer, constraint: str, consider_vacuity: bool, min_support: int):
+    def query_constraint(self, log: LogAnalyzer, constraint: dict, consider_vacuity: bool, min_support: float):
         # Fake model composed by a single constraint
         model = DeclModel()
         model.constraints.append(constraint)
-
         sat_ctr = 0
-        for i, trace in enumerate(log):
-            trc_res = check_trace_conformance(trace, model, consider_vacuity)
+        for i, trace in enumerate(log.log):
+            trc_res = self.check_trace_conformance(trace, model, consider_vacuity)
             if not trc_res:  # Occurring when constraint data conditions are formatted bad
                 break
 
@@ -216,10 +228,10 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
             if checker_res.state == TraceState.SATISFIED:
                 sat_ctr += 1
                 # If the constraint is already above the minimum support, return it directly
-                if sat_ctr / len(log) >= min_support:
+                if sat_ctr / len(log.log) >= min_support:
                     return constraint_str
             # If there aren't enough more traces to reach the minimum support, return nothing
-            if len(log) - (i + 1) < ceil(len(log) * min_support) - sat_ctr:
+            if len(log.log) - (i + 1) < ceil(len(log.log) * min_support) - sat_ctr:
                 return None
 
         return None

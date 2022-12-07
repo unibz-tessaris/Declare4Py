@@ -1,28 +1,30 @@
 from __future__ import annotations
 
 from src.declare4py.models.ltl_model import LTLModel
-from src.declare4py.process_mining.conformance_check.api_functions import check_trace_conformance
 from src.declare4py.process_mining.conformance_check.conf_checking import ConformanceChecking
 from src.declare4py.process_mining.conformance_check.basic_conformance_checking_results \
     import BasicConformanceCheckingResults
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
 
+
 """
 Provides basic conformance checking functionalities
-
-Parameters
---------
-    conformance_checking_results : dict
-        return type for this class
-        
-    ConformanceChecking
-        inheriting init function
 """
 
 
 class BasicMPDeclareConformanceChecking(ConformanceChecking):
 
-    def __init__(self, consider_vacuity, log: LogAnalyzer, ltl_model: LTLModel):
+    def __init__(self, template_str: str, max_declare_cardinality: int, activation: str, target: str,
+                 act_cond: str, trg_cond: str, time_cond: str, min_support: float,
+                 consider_vacuity: bool, log: LogAnalyzer, ltl_model: LTLModel):
+        self.template_str: str | None = template_str
+        self.activation: str | None = activation
+        self.target: str | None = target
+        self.act_cond: str | None = act_cond
+        self.trg_cond: str | None = trg_cond
+        self.time_cond: str | None = time_cond
+        self.min_support: float = min_support  # or 1.0
+        self.max_declare_cardinality: int = max_declare_cardinality
         super().__init__(consider_vacuity, log, ltl_model)
         self.basic_conformance_checking_results: BasicConformanceCheckingResults | None = None
 
@@ -49,7 +51,7 @@ class BasicMPDeclareConformanceChecking(ConformanceChecking):
             raise RuntimeError("You must load the DECLARE model before checking the model.")
 
         self.basic_conformance_checking_results = BasicConformanceCheckingResults({})
-        for i, trace in enumerate(self.log_analyzer):  # TODO: why enumerate log analyzer? it isn't even iteratable object
-            trc_res = check_trace_conformance(trace, self.ltl_model, consider_vacuity)
+        for i, trace in enumerate(self.log_analyzer.log):
+            trc_res = self.check_trace_conformance(trace, self.ltl_model, consider_vacuity)
             self.basic_conformance_checking_results[(i, trace.attributes["concept:name"])] = trc_res
         return self.basic_conformance_checking_results

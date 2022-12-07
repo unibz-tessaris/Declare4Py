@@ -23,7 +23,6 @@ except:
                         " condition will will not generate the tree views")
 
 
-
 class DeclareTemplate(str, Enum):
 
     def __new__(cls, *args, **kwds):

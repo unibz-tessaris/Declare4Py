@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from abc import abstractmethod, ABC
 
+from src.declare4py.models.ltl_model import LTLModel
 from src.declare4py.models.pm_task import PMTask
+from src.declare4py.process_mining.checkers.constraint_checker import ConstraintCheck
+from src.declare4py.process_mining.log_analyzer import LogAnalyzer
 
 """
 Initializes class QueryChecking, inheriting from class PMTask
 
-Parameters
--------
-    PMTask
-        inheriting from PMTask
 
 Attributes
 -------
@@ -46,17 +45,19 @@ Attributes
 """
 
 
-class QueryChecking(PMTask, ABC):
+class QueryChecking(ConstraintCheck, ABC):
 
-    def __init__(self, log, ltl_model):
-        self.template_str: str | None = None
-        self.activation: str | None = None
-        self.target: str | None = None
-        self.act_cond: str | None = None
-        self.trg_cond: str | None = None
-        self.time_cond: str | None = None
-        self.max_declare_cardinality: int = 1
-        self.consider_vacuity: bool = False
-        self.min_support: float = 1.0
-        super().__init__(log, ltl_model)
+    def __init__(self, template_str: str, activation: str, target: str,
+                 act_cond: str, trg_cond: str, time_cond: str, min_support: float,
+                 max_declare_cardinality: int, consider_vacuity: bool,
+                 log: LogAnalyzer, ltl_model: LTLModel):
+        self.template_str: str | None = template_str
+        self.activation: str | None = activation
+        self.target: str | None = target
+        self.act_cond: str | None = act_cond
+        self.trg_cond: str | None = trg_cond
+        self.time_cond: str | None = time_cond
+        self.min_support: float = min_support  # or 1.0
+        self.max_declare_cardinality: int = max_declare_cardinality
+        super().__init__(consider_vacuity, log, ltl_model)
 
