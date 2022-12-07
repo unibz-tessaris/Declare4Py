@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import math
-from typing import *
-import numpy as np
 import collections
+from typing import *
+
+import numpy as np
 
 
 class Distributor:

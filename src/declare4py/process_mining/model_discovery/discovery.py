@@ -3,10 +3,8 @@ from __future__ import annotations
 from abc import ABC
 
 from src.declare4py.pm_tasks.pm_task import PMTask
-from src.declare4py.process_models.process_model import ProcessModel
-from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
-from src.declare4py.process_mining.model_discovery.basic_mp_declare_discovery import BasicDiscoveryResults
+from src.declare4py.process_models.process_model import ProcessModel
 
 """
 Initializes class Discovery, inheriting from class PMTask

@@ -1,14 +1,14 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
 
-import json
 import base64
 import copy
+import json
 import re
 import typing
-import warnings
-from enum import Enum
 import uuid
+import warnings
+from abc import ABC, abstractmethod
+from enum import Enum
 
 from src.declare4py.process_models.ltl_model import LTLModel
 
@@ -898,116 +898,6 @@ class DeclareParseDetector:
             return DeclareModelAttributeType.ENUMERATION
 
 
-class DeclareParser:
-
-    def __init__(self):
-        super().__init__()
-        self.model: DeclModel | None = None
-        self.declare_parser_utility = DeclareParserUtility()
-
-    def parse_decl_model(self, model_path) -> None:
-        """
-        Parse the input DECLARE model.
-
-        Parameters
-        ----------
-        model_path : str
-            File path where the DECLARE model is stored.
-        """
-        self.model = self.parse_decl_from_file(model_path)
-
-    def parse_data_cond(self, cond: str):
-        return self.declare_parser_utility.parse_data_cond(cond)
-
-    def parse_time_cond(self, condition: str):
-        return self.declare_parser_utility.parse_data_cond(condition)
-
-    def parse_decl_from_file(self, path: str) -> DeclModel:
-        return self.parse_from_file(path)
-
-    def parse_decl_from_string(self, decl_string: str) -> DeclModel:
-        return self.parse_from_string(decl_string)
-
-    def parse_from_file(self, filename: str) -> DeclModel:
-        with open(filename, "r+") as file:
-            self.lines = file.readlines()
-        model: DeclModel = self.parse()
-        return model
-
-    def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> DeclModel:
-        self.lines = content.split(new_line_ctrl)
-        model: DeclModel = self.parse()
-        return model
-
-    def parse(self) -> DeclModel:
-        return self.parse_decl(self.lines)
-
-    def parse_decl(self, lines) -> DeclModel:
-        decl_model = DeclModel()
-        dpm = DeclareParsedModel()
-        decl_model.parsed_model = dpm
-        for line in lines:
-            line = line.strip()
-            if len(line) <= 1 or line.startswith("#"):  # line starting with # considered a comment line
-                continue
-            if DeclareParseDetector.is_event_name_definition(line):  # split[0].strip() == 'activity':
-                split = line.split(maxsplit=1)
-                decl_model.activities.append(split[1].strip())
-                dpm.add_event(split[1], split[0])
-            elif DeclareParseDetector.is_event_attributes_definition(line):
-                split = line.split(": ", maxsplit=1)  # Assume complex "bind act3: categorical, integer, org:group"
-                event_name = split[0].split(" ", maxsplit=1)[1].strip()
-                attrs = split[1].strip().split(",", )
-                for attr in attrs:
-                    dpm.add_attribute(event_name, attr.strip())
-            elif DeclareParseDetector.is_events_attrs_value_definition(line):
-                """
-                SOME OF Possible lines for assigning values to attribute
-
-                categorical: c1, c2, c3
-                categorical: group1:v1, group1:v2, group3:v1 
-                cat1, cat2: group1:v1, group1:v2, group3:v1 
-                price:art1, price:art2, cat2: group1:v1, group1:v2, group3:v1 
-                integer: integer between 0 and 100
-                org:resource: 10
-                org:resource, org:vote: 10
-                org:vote, grade: 9
-                org:categorical: integer between 0 and 100
-                categorical: integer between 0 and 100
-                base, mark: integer between -30 and 100
-                org:res, grade, concept:name: integer between 0 and 100
-                """
-                # consider this complex line: price:art1, price:art2, cat2: group1:v1, group1:v2, group3:v1
-                split = line.split(": ", maxsplit=1)
-                attributes_list = split[0]  # price:art1, price:art2, cat2
-                attributes_list = attributes_list.strip().split(",")
-                value = split[1].strip()
-                typ = DeclareParseDetector.detect_declare_attr_value_type(value)
-                for attr in attributes_list:
-                    dpm.add_attribute_value(attr, typ, value)
-            elif DeclareParseDetector.is_constraint_template_definition(line):
-                split = line.split("[", 1)
-                template_search = re.search(r'(^.+?)(\d*$)', split[0])
-                if template_search is not None:
-                    template_str, cardinality = template_search.groups()
-                    template = DeclareTemplate.get_template_from_string(template_str)
-                    if template is not None:
-                        activities = split[1].split("]")[0]
-                        tmp = {
-                            "template": template,
-                            "activities": activities,
-                            "condition": re.split(r'\s+\|', line)[1:]
-                        }
-                        if template.supports_cardinality:
-                            tmp['n'] = 1 if not cardinality else int(cardinality)
-                            cardinality = tmp['n']
-                        decl_model.constraints.append(tmp)
-                        dpm.add_template(line.strip(), template, cardinality)
-        decl_model.set_constraints()
-        dpm.template_constraints = decl_model.constraints
-        return decl_model
-
-
 class DeclareModelCustomDict(dict, ABC):
     """
     Custom DICT helper class: printable and serializable object
@@ -1089,19 +979,15 @@ class DeclareModelEvent(DeclareModelCustomDict):
 
 
 class DeclareTemplateModalDict(DeclareModelCustomDict):
-    template: DeclareTemplate | None
-    template_name: str | None
-    activities: str | None
-    condition: [str] | None
-    template_line: str | None
-    condition_line: str | None  # |A.grade < 2  | T.mark > 2|1,5,s
 
     def __init__(self):
         super().__init__()
-        self.template = None
-        self.activities = None
-        self.condition = None
-        self.template_name = None
+        self.template: DeclareTemplate | None = None
+        self.activities: str | None = None
+        self.condition: [str] | None = None
+        self.template_name: str | None = None
+        template_line: str | None
+        condition_line: str | None  # |A.grade < 2  | T.mark > 2|1,5,s
 
     def get_conditions(self):
         return self.get_active_condition(), self.get_target_condition(), self.get_time_condition()
@@ -1520,6 +1406,7 @@ class DeclareParsedModelEncoder:
 
 
 class DeclModel(LTLModel):
+
     def __init__(self):
         super().__init__()
         self.activities = []
@@ -1539,6 +1426,83 @@ class DeclModel(LTLModel):
 
     def get_decl_model_constraints(self):
         return self.serialized_constraints
+
+    def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> DeclModel:
+        lines = content.split(new_line_ctrl)
+        self.parse(lines)
+        return self
+
+    def parse_from_file(self, filename: str) -> DeclModel:
+        lines = []
+        with open(filename, "r+") as file:
+            lines = file.readlines()
+        self.parse(lines)
+        return self
+        # return model
+        # self.parse(lines)
+
+    def parse_model(self, model_path: str, **kwargs) -> DeclModel:
+        self.parse_from_file(model_path)
+        return self
+
+    def parse(self, lines: [str]):
+        dpm = self.parsed_model
+        for line in lines:
+            line = line.strip()
+            if len(line) <= 1 or line.startswith("#"):  # line starting with # considered a comment line
+                continue
+            if DeclareParseDetector.is_event_name_definition(line):  # split[0].strip() == 'activity':
+                split = line.split(maxsplit=1)
+                self.activities.append(split[1].strip())
+                dpm.add_event(split[1], split[0])
+            elif DeclareParseDetector.is_event_attributes_definition(line):
+                split = line.split(": ", maxsplit=1)  # Assume complex "bind act3: categorical, integer, org:group"
+                event_name = split[0].split(" ", maxsplit=1)[1].strip()
+                attrs = split[1].strip().split(",", )
+                for attr in attrs:
+                    dpm.add_attribute(event_name, attr.strip())
+            elif DeclareParseDetector.is_events_attrs_value_definition(line):
+                """
+                SOME OF Possible lines for assigning values to attribute
+
+                categorical: c1, c2, c3
+                categorical: group1:v1, group1:v2, group3:v1 
+                cat1, cat2: group1:v1, group1:v2, group3:v1 
+                price:art1, price:art2, cat2: group1:v1, group1:v2, group3:v1 
+                integer: integer between 0 and 100
+                org:resource: 10
+                org:resource, org:vote: 10
+                org:vote, grade: 9
+                org:categorical: integer between 0 and 100
+                categorical: integer between 0 and 100
+                base, mark: integer between -30 and 100
+                org:res, grade, concept:name: integer between 0 and 100
+                """
+                # consider this complex line: price:art1, price:art2, cat2: group1:v1, group1:v2, group3:v1
+                split = line.split(": ", maxsplit=1)
+                attributes_list = split[0]  # price:art1, price:art2, cat2
+                attributes_list = attributes_list.strip().split(",")
+                value = split[1].strip()
+                typ = DeclareParseDetector.detect_declare_attr_value_type(value)
+                for attr in attributes_list:
+                    dpm.add_attribute_value(attr, typ, value)
+            elif DeclareParseDetector.is_constraint_template_definition(line):
+                split = line.split("[", 1)
+                template_search = re.search(r'(^.+?)(\d*$)', split[0])
+                if template_search is not None:
+                    template_str, cardinality = template_search.groups()
+                    template = DeclareTemplate.get_template_from_string(template_str)
+                    if template is not None:
+                        activities = split[1].split("]")[0]
+                        tmp = {"template": template, "activities": activities,
+                               "condition": re.split(r'\s+\|', line)[1:]}
+                        if template.supports_cardinality:
+                            tmp['n'] = 1 if not cardinality else int(cardinality)
+                            cardinality = tmp['n']
+                        self.constraints.append(tmp)
+                        dpm.add_template(line.strip(), template, cardinality)
+        self.set_constraints()
+        dpm.template_constraints = self.constraints
 
     def __str__(self):
         st = f"""{{"activities": {self.activities}, "serialized_constraints": {self.serialized_constraints},\

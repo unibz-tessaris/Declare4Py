@@ -3,67 +3,23 @@
 	<trace>
 		<string key="concept:name" value="trace_0" />
 		<event>
-			<string key="concept:name" value="IV Antibiotics" />
-			<string key="org:group" value="Y" />
-			<float key="time:timestamp" value="1670429773.423846" />
-		</event>
-		<event>
-			<string key="concept:name" value="LacticAcid" />
-			<string key="org:group" value="?" />
-			<string key="LacticAcid" value="14.9" />
-			<float key="time:timestamp" value="1670429773.423846" />
-		</event>
-	</trace>
-	<trace>
-		<string key="concept:name" value="trace_1" />
-		<event>
-			<string key="concept:name" value="IV Antibiotics" />
-			<string key="org:group" value="X" />
-			<float key="time:timestamp" value="1670429773.423846" />
-		</event>
-		<event>
-			<string key="concept:name" value="LacticAcid" />
-			<string key="org:group" value="?" />
-			<string key="LacticAcid" value="14.9" />
-			<float key="time:timestamp" value="1670429773.423846" />
-		</event>
-	</trace>
-	<trace>
-		<string key="concept:name" value="trace_2" />
-		<event>
-			<string key="concept:name" value="ER Registration" />
+			<string key="concept:name" value="CRP" />
 			<string key="org:group" value="?" />
 			<string key="Diagnose" value="HE" />
 			<string key="Age" value="45" />
-			<string key="InfectionSuspected" value="false" />
-			<string key="DiagnosticBlood" value="false" />
-			<string key="DisfuncOrg" value="false" />
-			<string key="SIRSCritTachypnea" value="false" />
-			<string key="Hypotensie" value="false" />
-			<string key="SIRSCritHeartRate" value="true" />
-			<string key="Infusion" value="false" />
-			<string key="DiagnosticArtAstrup" value="false" />
-			<string key="DiagnosticIC" value="false" />
-			<string key="DiagnosticSputum" value="true" />
-			<string key="DiagnosticLiquor" value="true" />
-			<string key="DiagnosticOther" value="true" />
-			<string key="SIRSCriteria2OrMore" value="false" />
-			<string key="DiagnosticXthorax" value="false" />
-			<string key="SIRSCritTemperature" value="false" />
-			<string key="DiagnosticUrinaryCulture" value="false" />
-			<string key="SIRSCritLeucos" value="true" />
-			<string key="Oligurie" value="true" />
-			<string key="DiagnosticLacticAcid" value="false" />
-			<string key="Hypoxie" value="true" />
-			<string key="DiagnosticUrinarySediment" value="false" />
-			<string key="DiagnosticECG" value="false" />
-			<float key="time:timestamp" value="1670429773.424847" />
+			<string key="CRP" value="546.9" />
+			<float key="time:timestamp" value="1670453357.622147" />
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER" />
+			<string key="org:group" value="?" />
+			<float key="time:timestamp" value="1670453357.622174" />
 		</event>
 		<event>
 			<string key="concept:name" value="ER Registration" />
 			<string key="org:group" value="?" />
 			<string key="Diagnose" value="HE" />
-			<string key="Age" value="45" />
+			<string key="Age" value="44" />
 			<string key="InfectionSuspected" value="true" />
 			<string key="DiagnosticBlood" value="true" />
 			<string key="DisfuncOrg" value="false" />
@@ -86,12 +42,48 @@
 			<string key="Hypoxie" value="true" />
 			<string key="DiagnosticUrinarySediment" value="false" />
 			<string key="DiagnosticECG" value="true" />
-			<float key="time:timestamp" value="1670429773.424847" />
+			<float key="time:timestamp" value="1670453357.622698" />
 		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_1" />
 		<event>
 			<string key="concept:name" value="IV Antibiotics" />
 			<string key="org:group" value="?" />
-			<float key="time:timestamp" value="1670429773.424847" />
+			<float key="time:timestamp" value="1670453357.622723" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="?" />
+			<string key="Diagnose" value="HE" />
+			<string key="Age" value="89" />
+			<string key="CRP" value="573.6" />
+			<float key="time:timestamp" value="1670453357.62281" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_2" />
+		<event>
+			<string key="concept:name" value="Admission IC" />
+			<string key="org:group" value="?" />
+			<float key="time:timestamp" value="1670453357.622835" />
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER" />
+			<string key="org:group" value="?" />
+			<float key="time:timestamp" value="1670453357.622852" />
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage" />
+			<string key="org:group" value="?" />
+			<string key="Diagnose" value="HE" />
+			<string key="Age" value="44" />
+			<float key="time:timestamp" value="1670453357.62292" />
+		</event>
+		<event>
+			<string key="concept:name" value="Release A" />
+			<string key="org:group" value="?" />
+			<float key="time:timestamp" value="1670453357.62294" />
 		</event>
 	</trace>
 </log>

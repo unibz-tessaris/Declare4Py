@@ -2,35 +2,33 @@ from __future__ import annotations
 
 import collections
 import json
+import logging
 import re
 import typing
+from datetime import datetime
 from random import randrange
 
 import clingo
-import logging
 from clingo import SymbolType
-
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
 
 from src.declare4py.log_generation.asp.asp_translator.asp_translator import ASPModel, ASPInterpreter
-from src.declare4py.log_generation.log_generator import LogGenerator
-from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedModel, DeclareModelAttributeType
 from src.declare4py.log_generation.asp.asp_utils.asp_encoding import ASPEncoding
 from src.declare4py.log_generation.asp.asp_utils.asp_template import ASPTemplate
 from src.declare4py.log_generation.asp.asp_utils.distribution import Distributor
-from datetime import datetime
+from src.declare4py.log_generation.log_generator import LogGenerator
+from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedModel, DeclareModelAttributeType
 
 
 class ASPCustomEventModel:
-    name: str
-    pos: int
-    resource: {str, str} = {}
 
     def __init__(self, fact_symbol: [clingo.symbol.Symbol]):
+        self.name: str
+        self.pos: int
+        self.resource: {str, str} = {}
         self.fact_symbol = fact_symbol
         self.parse_clingo_event()
-        self.resource = {}
 
     def parse_clingo_event(self):
         for symbols in self.fact_symbol:
@@ -48,13 +46,10 @@ class ASPCustomEventModel:
 
 
 class ASPCustomTraceModel:
-    name: str
-    events: [ASPCustomEventModel] = []
-
     def __init__(self, trace_name: str, model: [clingo.solving.Model], scale_down: int):
         self.model = model
-        self.name = trace_name
-        self.events = []
+        self.name: str = trace_name
+        self.events: [ASPCustomEventModel] = []
         # ASP/clingo doesn't handle floats, thus we scaling up the number values and now, we have to scale down back
         # after result
         self.scale_down_number = scale_down
@@ -102,7 +97,7 @@ class ASPCustomTraceModel:
 
 class AspCustomLogModel:
     def __init__(self):
-        self.traces: [ASPCustomTraceModel] = []
+        self.traces: typing.List[ASPCustomTraceModel] = []
 
     def __str__(self):
         return str(self.traces)

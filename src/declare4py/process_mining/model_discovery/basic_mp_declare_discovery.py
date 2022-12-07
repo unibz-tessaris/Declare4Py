@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from abc import ABC
 
+from src.declare4py.process_mining.log_analyzer import LogAnalyzer
+from src.declare4py.process_mining.model_discovery.discovery import Discovery
+from src.declare4py.process_models.decl_model import DeclModel, DeclareTemplate, TraceState
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.utility.template_checkers.checker_result import CheckerResult
-from src.declare4py.process_mining.model_discovery.discovery import Discovery
-from src.declare4py.process_mining.log_analyzer import LogAnalyzer
-from src.declare4py.process_models.decl_model import DeclModel, DeclareTemplate, TraceState
 from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
 """

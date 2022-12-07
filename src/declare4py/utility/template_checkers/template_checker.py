@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-
-from src.declare4py.process_models.decl_model import DeclareParserUtility, TraceState, DeclareTemplate
 from datetime import timedelta
 
+from src.declare4py.process_models.decl_model import DeclareParserUtility, TraceState, DeclareTemplate
 from src.declare4py.utility.template_checkers.checker_result import CheckerResult
 
 glob = {'__builtins__': None}
@@ -102,7 +101,6 @@ class MPExistence(TemplateConstraintChecker):
             state = TraceState.VIOLATED
         elif num_activations >= n:
             state = TraceState.SATISFIED
-
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
                              state=state)
 

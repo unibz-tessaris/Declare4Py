@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 from src.declare4py.log_generation.asp.asp_translator.declare_constraint_resolver import \
     DeclareModalConditionResolver2ASP
 from src.declare4py.process_models.decl_model import DeclareModelAttributeType, DeclareTemplateModalDict, \

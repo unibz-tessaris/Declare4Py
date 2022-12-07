@@ -3,8 +3,8 @@ from __future__ import annotations
 from abc import ABC
 
 from src.declare4py.pm_tasks.pm_task import PMTask
-from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.process_mining.log_analyzer import LogAnalyzer
+from src.declare4py.process_models.ltl_model import LTLModel
 
 """
 Initializes class QueryChecking, inheriting from class PMTask

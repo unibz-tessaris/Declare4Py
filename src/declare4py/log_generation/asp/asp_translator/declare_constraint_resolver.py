@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import typing
+
 import boolean
 
 from src.declare4py.process_models.decl_model import DeclareTemplateModalDict, DeclareModelAttributeType
