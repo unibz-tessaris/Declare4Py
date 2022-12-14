@@ -166,7 +166,12 @@ Chain Precedence[ER Registration, ER Triage] |A.org:group is C |(T.InfectionSusp
 # model = dp.parse_from_string(decl)
 # dp = DeclModel().parse_from_file("...")
 model: DeclModel = DeclModel().parse_from_string(decl)
+model.violate_constraints([
+# "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
+# "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
+])
 # print(d.parsed_model)
+
 num_of_traces = 3
 num_min_events = 2
 num_max_events = 4

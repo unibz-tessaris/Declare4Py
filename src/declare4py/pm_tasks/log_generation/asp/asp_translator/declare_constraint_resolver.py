@@ -48,6 +48,10 @@ class DeclareModalConditionResolver2ASP:
                 s = self.condition_to_asp(n, c, idx, attrs)
                 if s and len(s) > 0:
                     ls = ls + s
+        if ct.violate:
+            ls.append(f"unsat({idx}).")
+        else:
+            ls.append(f"sat({idx}).")
         return ls
 
     def condition_to_asp(self, name, cond, i, attrs):

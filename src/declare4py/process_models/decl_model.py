@@ -226,8 +226,9 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
         self.activities: str | None = None
         self.condition: [str] | None = None
         self.template_name: str | None = None
-        template_line: str | None
-        condition_line: str | None  # |A.grade < 2  | T.mark > 2|1,5,s
+        self.template_line: str | None  # Constraint lines
+        self.condition_line: str | None  # |A.grade < 2  | T.mark > 2|1,5,s
+        self.violate: bool = False
 
     def get_conditions(self):
         return self.get_active_condition(), self.get_target_condition(), self.get_time_condition()
@@ -299,7 +300,8 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
         self.key_value["activities"] = self.activities
         self.key_value["condition"] = self.condition
         self.key_value["template_name"] = self.template_name
-        self.key_value["template_line"] = self.template_line
+        self.key_value["template_name"] = self.template_name
+        self.key_value["violate"] = self.violate
         self.key_value["condition_line"] = self.condition_line
 
 
@@ -491,6 +493,7 @@ class DeclareModelCoder:
             if tm is not None:
                 encoded_conditions.append(tm)
             template.condition = encoded_conditions
+            template.violate = tmpl.violate
             template.condition_line = "| " + " | ".join(encoded_conditions)
             a = ", ".join(template.activities)
             template.template_line = f"{template.template_name}[{a}] {template.condition_line}"
@@ -660,6 +663,8 @@ class DeclModel(LTLModel):
         self.serialized_constraints = []
         self.constraints = []
         self.parsed_model = DeclareParsedDataModel()
+        self.declare_model_lines: [str] = []
+        self.declare_model_violate_constraints: [str] = []
 
     def set_constraints(self):
         constraint_str = ''
@@ -676,6 +681,7 @@ class DeclModel(LTLModel):
 
     def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> DeclModel:
         lines = content.split(new_line_ctrl)
+        self.declare_model_lines = lines
         self.parse(lines)
         return self
 
@@ -683,6 +689,7 @@ class DeclModel(LTLModel):
         lines = []
         with open(filename, "r+") as file:
             lines = file.readlines()
+        self.declare_model_lines = lines
         self.parse(lines)
         return self
         # return model
@@ -743,9 +750,17 @@ class DeclModel(LTLModel):
                             tmp['n'] = 1 if not cardinality else int(cardinality)
                             cardinality = tmp['n']
                         self.constraints.append(tmp)
-                        dpm.add_template(line.strip(), template, cardinality)
+                        dpm.add_template(line, template, cardinality)
         self.set_constraints()
         dpm.template_constraints = self.constraints
+
+    def violate_constraints(self, constraints_list: list[str]):
+        self.declare_model_violate_constraints = constraints_list
+        parsed_tmpl = self.parsed_model.templates
+        for cv in self.declare_model_violate_constraints:
+            for tmpl in parsed_tmpl:
+                if tmpl.template_line == cv:
+                    tmpl.violate = True
 
     @staticmethod
     def is_event_name_definition(line: str) -> bool:

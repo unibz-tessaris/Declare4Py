@@ -86,6 +86,8 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug("Starting translate declare model to ASP")
         self.lp_model = ASPTranslator().from_decl_model(self.process_model, encode)
         lp = self.lp_model.to_str()
+        with open('../generated.asp', 'w+') as f:
+            f.write(lp)
         self.py_logger.debug(f"Declare model translated to ASP. Total Facts {len(self.lp_model.fact_names)}")
         self.asp_encoding = ASPEncoding().get_alp_encoding(self.lp_model.fact_names)
         self.py_logger.debug("ASP encoding generated")
@@ -127,6 +129,7 @@ class AspGenerator(LogGenerator):
 
     def __handle_clingo_result(self, output: clingo.solving.Model):
         symbols = output.symbols(shown=True)
+        print("output", output)
         self.clingo_output.append(symbols)
 
     def __pm4py_log(self):
@@ -171,7 +174,7 @@ class AspGenerator(LogGenerator):
                 event["time:timestamp"] = datetime.now().timestamp()  # + timedelta(hours=c).datetime
                 trace_gen.append(event)
             self.log_analyzer.log.append(trace_gen)
-        self.py_logger.debug(f"Pm4py generated but not saved btw")
+        self.py_logger.debug(f"Pm4py generated but not saved yet")
 
     def to_xes(self, output_fn: str):
         if self.log_analyzer.log is None:
