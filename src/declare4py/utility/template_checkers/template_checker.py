@@ -3,8 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import timedelta
 
-from src.declare4py.process_models.decl_model import DeclareModelConditionParserUtility, TraceState, DeclareTemplate
+from src.declare4py.process_models.decl_model import DeclareModelConditionParserUtility, DeclareModelTemplate
 from src.declare4py.utility.template_checkers.checker_result import CheckerResult
+from src.declare4py.utility.trace_states import TraceState
 
 glob = {'__builtins__': None}
 
@@ -813,7 +814,7 @@ class MPNotChainPrecedence(TemplateConstraintChecker):
 
 class TemplateCheckers:
 
-    def get_template(self, template: DeclareTemplate, traces: dict,
+    def get_template(self, template: DeclareModelTemplate, traces: dict,
                      completed: bool, activities: [str], rules: dict) -> TemplateConstraintChecker:
         """
         We have the classes with each template constraint checker and we invoke them dynamically

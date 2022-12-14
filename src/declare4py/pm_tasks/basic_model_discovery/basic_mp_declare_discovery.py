@@ -4,7 +4,7 @@ from abc import ABC
 
 from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
 from src.declare4py.pm_tasks.discovery import Discovery
-from src.declare4py.process_models.decl_model import DeclModel, DeclareTemplate, TraceState
+from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate, TraceState
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.utility.template_checkers.checker_result import CheckerResult
 from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
@@ -90,7 +90,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
         for item_set in self.log_analyzer.frequent_item_sets['itemsets']:  # TODO: improve this key name?
             length = len(item_set)
             if length == 1:
-                for templ in DeclareTemplate.get_unary_templates():
+                for templ in DeclareModelTemplate.get_unary_templates():
                     constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "")}
                     if not templ.supports_cardinality:
                         self.basic_discovery_results |= self.discover_constraint(self.log_analyzer, constraint,
@@ -101,7 +101,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
                             self.basic_discovery_results |= self.discover_constraint(self.log_analyzer, constraint,
                                                                                      consider_vacuity)
             elif length == 2:
-                for templ in DeclareTemplate.get_binary_templates():
+                for templ in DeclareModelTemplate.get_binary_templates():
                     constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "", "")}
                     self.basic_discovery_results |= self.discover_constraint(self.log_analyzer, constraint,
                                                                              consider_vacuity)

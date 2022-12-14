@@ -2,29 +2,14 @@ from __future__ import annotations
 
 import base64
 import copy
-import json
 import re
-import typing
-import uuid
-import warnings
-from abc import ABC, abstractmethod
 from enum import Enum
 
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.utility.custom_utility_dict import CustomUtilityDict
 
-try:
-    """
-        This is an optional library used to draw the graphs in image.
-        To understand a condition, represented in form of a graph would make little easy.
-    """
-    import graphviz
-except ImportError:
-    raise warnings.warn("Unable to load graphviz library. Declare model Constraint"
-                        " condition will will not generate the tree views")
 
-
-class DeclareTemplate(str, Enum):
+class DeclareModelTemplate(str, Enum):
 
     def __new__(cls, *args, **kwds):
         value = len(cls.__members__) + 1
@@ -62,36 +47,29 @@ class DeclareTemplate(str, Enum):
 
     @classmethod
     def get_template_from_string(cls, template_str):
-        return next(filter(lambda t: t.templ_str == template_str, DeclareTemplate), None)
+        return next(filter(lambda t: t.templ_str == template_str, DeclareModelTemplate), None)
 
     @classmethod
     def get_unary_templates(cls):
-        return tuple(filter(lambda t: not t.is_binary, DeclareTemplate))
+        return tuple(filter(lambda t: not t.is_binary, DeclareModelTemplate))
 
     @classmethod
     def get_binary_templates(cls):
-        return tuple(filter(lambda t: t.is_binary, DeclareTemplate))
+        return tuple(filter(lambda t: t.is_binary, DeclareModelTemplate))
 
     @classmethod
     def get_positive_templates(cls):
-        return tuple(filter(lambda t: not t.is_negative, DeclareTemplate))
+        return tuple(filter(lambda t: not t.is_negative, DeclareModelTemplate))
 
     @classmethod
     def get_negative_templates(cls):
-        return tuple(filter(lambda t: t.is_negative, DeclareTemplate))
+        return tuple(filter(lambda t: t.is_negative, DeclareModelTemplate))
 
     def __str__(self):
         return "<Template." + str(self.templ_str) + ": " + str(self.value) + " >"
 
     def __repr__(self):
         return "\"" + str(self.__str__()) + "\""
-
-
-class TraceState(str, Enum):
-    VIOLATED = "Violated"
-    SATISFIED = "Satisfied"
-    POSSIBLY_VIOLATED = "Possibly Violated"
-    POSSIBLY_SATISFIED = "Possibly Satisfied"
 
 
 class DeclareModelConditionParserUtility:
@@ -244,7 +222,7 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
 
     def __init__(self):
         super().__init__()
-        self.template: DeclareTemplate | None = None
+        self.template: DeclareModelTemplate | None = None
         self.activities: str | None = None
         self.condition: [str] | None = None
         self.template_name: str | None = None
@@ -413,7 +391,7 @@ class DeclareParsedDataModel(CustomUtilityDict):
         attribute["value"] = attr_value
         attribute["value_type"] = attr_type
 
-    def add_template(self, line: str, template: DeclareTemplate, cardinality: str):
+    def add_template(self, line: str, template: DeclareModelTemplate, cardinality: str):
         templt = DeclareModelTemplateDataModel()
         self.templates.append(templt)
         templt.template = template
@@ -756,7 +734,7 @@ class DeclModel(LTLModel):
                 template_search = re.search(r'(^.+?)(\d*$)', split[0])
                 if template_search is not None:
                     template_str, cardinality = template_search.groups()
-                    template = DeclareTemplate.get_template_from_string(template_str)
+                    template = DeclareModelTemplate.get_template_from_string(template_str)
                     if template is not None:
                         activities = split[1].split("]")[0]
                         tmp = {"template": template, "activities": activities,

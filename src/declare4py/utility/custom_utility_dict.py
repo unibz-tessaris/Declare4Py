@@ -2,10 +2,10 @@ import json
 from abc import ABC, abstractmethod
 
 """
-An utility or helper abstract class with some default methods
-to print nested dictionaries in Models/Objects
 
-A class which implementing this 
+An utility or helper abstract class with some default methods
+to print nested dictionaries in Models/Objects. Sometimes the nested data models are not printed and can not be produce
+json. 
 
 """
 

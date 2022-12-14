@@ -11,11 +11,13 @@ Abductive logic programming (ALP) is a high-level knowledge-representation frame
 """
 
 
-class ASPModel:
-    """
-        ASP model contains the translated code of declare model. The ASP code in this model describe the problem
-        representation in ASP.
-    """
+"""
+    ASP model contains the translated code of declare model. The ASP code in this model describe the problem
+    representation in ASP.
+"""
+
+
+class TranslatedASPModel:
     def __init__(self, scale_number: int, is_encoded: bool):
         self.lines: [str] = []
         self.values_assignment: [str] = []
@@ -112,20 +114,20 @@ class ASPModel:
                f" \"values_assignment\": \"{len(self.values_assignment)}\" }}"
 
 
-class ASPInterpreter:
+class ASPTranslator:
     """
     ASP interpreter reads the data from the decl_model and converts it into ASP, as defining the problem
     """
     def __init__(self) -> None:
-        self.asp_model: ASPModel
+        self.asp_model: TranslatedASPModel
 
-    def from_decl_model(self, model: DeclModel, use_encoding: bool = True) -> ASPModel:
+    def from_decl_model(self, model: DeclModel, use_encoding: bool = True) -> TranslatedASPModel:
         if use_encoding:
             keys = model.parsed_model.encode()
         else:
             keys = model.parsed_model
         scalable_precision = self.get_float_biggest_precision(keys)
-        self.asp_model = ASPModel(10**(scalable_precision-1), use_encoding)
+        self.asp_model = TranslatedASPModel(10 ** (scalable_precision - 1), use_encoding)
 
         for k in keys.events:
             event = keys.events[k]
