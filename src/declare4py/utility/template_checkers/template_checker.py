@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import timedelta
 
-from src.declare4py.process_models.decl_model import DeclareParserUtility, TraceState, DeclareTemplate
+from src.declare4py.process_models.decl_model import DeclareModelConditionParserUtility, TraceState, DeclareTemplate
 from src.declare4py.utility.template_checkers.checker_result import CheckerResult
 
 glob = {'__builtins__': None}
@@ -12,7 +12,7 @@ glob = {'__builtins__': None}
 class TemplateConstraintChecker(ABC):
 
     def __init__(self, traces: dict, completed: bool, activities: [str], rules: dict):
-        self.declare_parser_utility = DeclareParserUtility()
+        self.declare_parser_utility = DeclareModelConditionParserUtility()
         self.traces: dict = traces
         self.completed: bool = completed
         self.activities: [str] = activities

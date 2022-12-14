@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 from abc import abstractmethod
 
-from src.declare4py.process_mining.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
 from src.declare4py.process_models.process_model import ProcessModel
 
 """

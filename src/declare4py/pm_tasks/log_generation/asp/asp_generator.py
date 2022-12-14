@@ -13,12 +13,12 @@ from clingo import SymbolType
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
 
-from src.declare4py.log_generation.asp.asp_translator.asp_translator import ASPModel, ASPInterpreter
-from src.declare4py.log_generation.asp.asp_utils.asp_encoding import ASPEncoding
-from src.declare4py.log_generation.asp.asp_utils.asp_template import ASPTemplate
-from src.declare4py.log_generation.asp.asp_utils.distribution import Distributor
-from src.declare4py.log_generation.log_generator import LogGenerator
-from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedModel, DeclareModelAttributeType
+from src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator import ASPModel, ASPInterpreter
+from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_encoding import ASPEncoding
+from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_template import ASPTemplate
+from src.declare4py.pm_tasks.log_generation.asp.asp_utils.distribution import Distributor
+from src.declare4py.pm_tasks.log_generation.log_generator import LogGenerator
+from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedDataModel, DeclareModelAttributeType
 
 
 class ASPCustomEventModel:
@@ -221,7 +221,7 @@ class AspGenerator(LogGenerator):
     def __pm4py_log(self):
         self.py_logger.debug(f"Generating Pm4py log")
         self.log_analyzer.log = lg.EventLog()
-        decl_encoded_model: DeclareParsedModel = self.process_model.parsed_model
+        decl_encoded_model: DeclareParsedDataModel = self.process_model.parsed_model
         attr_list = decl_encoded_model.attributes_list
         for trace in self.asp_custom_structure.traces:
             trace_gen = lg.Trace()

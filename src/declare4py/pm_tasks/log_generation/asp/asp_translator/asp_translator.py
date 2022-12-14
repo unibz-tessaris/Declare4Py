@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from src.declare4py.log_generation.asp.asp_translator.declare_constraint_resolver import \
+from src.declare4py.pm_tasks.log_generation.asp.asp_translator.declare_constraint_resolver import \
     DeclareModalConditionResolver2ASP
-from src.declare4py.process_models.decl_model import DeclareModelAttributeType, DeclareTemplateModalDict, \
-    DeclModel, DeclareParsedModel
+from src.declare4py.process_models.decl_model import DeclareModelAttributeType, DeclareModelTemplateDataModel, \
+    DeclModel, DeclareParsedDataModel
 
 """
 Abductive logic programming (ALP) is a high-level knowledge-representation framework that can be used to solve
@@ -91,7 +91,7 @@ class ASPModel:
         (frm, til) = v.split(" ")
         return frm, til
 
-    def add_template(self, name, ct: DeclareTemplateModalDict, idx: int, props: dict[str, dict]):
+    def add_template(self, name, ct: DeclareModelTemplateDataModel, idx: int, props: dict[str, dict]):
         self.templates_s.append(f"template({idx},\"{name}\").")
         dc = DeclareModalConditionResolver2ASP(self.scale_number, self.is_encoded)
         ls = dc.resolve_to_asp(ct, props, idx)
@@ -142,7 +142,7 @@ class ASPInterpreter:
             templates_idx = templates_idx + 1
         return self.asp_model
 
-    def get_float_biggest_precision(self, model: DeclareParsedModel) -> int:
+    def get_float_biggest_precision(self, model: DeclareParsedDataModel) -> int:
         attr_list = model.attributes_list
         decimal_len_list = []
         for attr in attr_list:

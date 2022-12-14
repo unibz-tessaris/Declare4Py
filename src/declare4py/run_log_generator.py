@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 # from src.declare4py.process_models.decl_model import DeclareParser, DeclModel
-from src.declare4py.log_generation.asp.asp_generator import AspGenerator
+from src.declare4py.pm_tasks.log_generation.asp.asp_generator import AspGenerator
 from src.declare4py.process_models.decl_model import DeclModel
 
 logging.basicConfig(level=logging.DEBUG)

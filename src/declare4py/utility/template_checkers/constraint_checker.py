@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.declare4py.process_mining.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
 from src.declare4py.process_models.decl_model import DeclModel
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.process_models.process_model import ProcessModel

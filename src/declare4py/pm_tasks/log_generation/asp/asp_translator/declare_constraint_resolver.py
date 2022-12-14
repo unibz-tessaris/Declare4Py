@@ -5,7 +5,7 @@ import typing
 
 import boolean
 
-from src.declare4py.process_models.decl_model import DeclareTemplateModalDict, DeclareModelAttributeType
+from src.declare4py.process_models.decl_model import DeclareModelTemplateDataModel, DeclareModelAttributeType
 
 
 class DeclareModalConditionResolver2ASP:
@@ -14,7 +14,7 @@ class DeclareModalConditionResolver2ASP:
         self.number_scaler = scale_num
         self.is_encoded = is_encoded
 
-    def resolve_to_asp(self, ct: DeclareTemplateModalDict, attrs: dict, idx: int = 0):
+    def resolve_to_asp(self, ct: DeclareModelTemplateDataModel, attrs: dict, idx: int = 0):
         ls = []
         activation, target_cond, time = ct.get_conditions()
         if activation:
