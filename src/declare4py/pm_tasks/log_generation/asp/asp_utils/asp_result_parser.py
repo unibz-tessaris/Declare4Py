@@ -11,11 +11,12 @@ class ASPResultEventModel:
         self.name: str
         self.pos: int
         self.resource: {str, str} = {}
-        self.fact_symbol = fact_symbol
+        self.fact_symbol: [clingo.symbol.Symbol] = fact_symbol
         self.parse_clingo_event()
 
     def parse_clingo_event(self):
         for symbols in self.fact_symbol:
+            # syb: clingo.symbol.Symbol = symbols
             if symbols.type == SymbolType.Function:
                 self.name = str(symbols.name)
             if symbols.type == SymbolType.Number:

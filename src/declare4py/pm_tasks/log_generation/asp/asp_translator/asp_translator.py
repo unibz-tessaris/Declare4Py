@@ -18,8 +18,10 @@ Abductive logic programming (ALP) is a high-level knowledge-representation frame
 
 
 class TranslatedASPModel:
+
     def __init__(self, scale_number: int, is_encoded: bool):
         self.lines: [str] = []
+        self.extra_asp_line: [str] = []
         self.values_assignment: [str] = []
         self.attributes_values: [str] = []
         self.templates_s: [str] = []
@@ -97,8 +99,12 @@ class TranslatedASPModel:
         self.templates_s.append(f"template({idx},\"{name}\").")
         dc = DeclareModalConditionResolver2ASP(self.scale_number, self.is_encoded)
         ls = dc.resolve_to_asp(ct, props, idx)
+
         if ls and len(ls) > 0:
             self.templates_s = self.templates_s + ls + ["\n"]
+
+    def add_asp_line(self, line: str):
+        self.extra_asp_line.append(line)
 
     def to_str(self):
         return self.__str__()
@@ -107,6 +113,7 @@ class TranslatedASPModel:
         line = "\n".join(self.lines)
         line = line + "\n\n" + "\n".join(self.attributes_values)
         line = line + "\n\n" + "\n".join(self.templates_s)
+        line = line + "\n\n" + "\n".join(self.extra_asp_line)
         return line
 
     def __repr__(self):
@@ -138,10 +145,27 @@ class ASPTranslator:
                 dopt = attrs[attr]
                 self.asp_model.set_attr_value(attr, dopt, use_encoding)
         templates_idx = 0
+        constraints_violate = {}
         for ct in keys.templates:
             self.asp_model.add_template(ct.template_name, ct, templates_idx, keys.attributes_list)
             # template_line.append(f"template({templates_idx},\"{tmp_name}\")")
+            constraints_violate[templates_idx] = ct.violate
             templates_idx = templates_idx + 1
+
+        if model.violate_constraints_all:
+            s = ":-"
+            for idx, val in constraints_violate.items():
+                if val:
+                    s = s + f'sat({idx}), '
+            s = s.strip().rstrip(',')
+            self.asp_model.add_asp_line(s + '.')
+        else:
+            for idx, violate in constraints_violate.items():
+                if violate:
+                    self.asp_model.add_asp_line(f"unsat({idx}).")
+                else:
+                    self.asp_model.add_asp_line(f"sat({idx}).")
+
         return self.asp_model
 
     def get_float_biggest_precision(self, model: DeclareParsedDataModel) -> int:
@@ -165,4 +189,6 @@ class ASPTranslator:
                 if len(til) > 1:
                     precision = max(len(til[1]), precision)
                 decimal_len_list.append(precision)
+        if len(decimal_len_list) == 0:
+            return 1
         return max(decimal_len_list)

@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 
-decl = """
+decl2 = """
 activity Driving_Test
 bind Driving_Test: Driver, Grade
 activity Getting_License
@@ -162,24 +162,40 @@ Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.
 Chain Precedence[ER Registration, ER Triage] |A.org:group is C |(T.InfectionSuspected is true) AND (T.SIRSCritTemperature is true) AND (T.DiagnosticLacticAcid is true) AND (T.DiagnosticBlood is true) AND (T.DiagnosticIC is true) AND (T.SIRSCriteria2OrMore is true) AND (T.DiagnosticECG is true) |52,2154,s
 """
 
+decl = """
+activity act1
+activity act2
+activity act3
+activity act4
+Existence[act1] | |
+Existence[act2] | |
+Existence[act3] | |
+Existence[act4] | |
+"""
 # dp = DeclareParser()
 # model = dp.parse_from_string(decl)
 # dp = DeclModel().parse_from_file("...")
+
 model: DeclModel = DeclModel().parse_from_string(decl)
+model.violate_constraints_all = True
 model.violate_constraints([
+    "Existence[act3] | |",
+    "Existence[act4] | |"
 # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
 # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
 ])
-# print(d.parsed_model)
 
-num_of_traces = 3
+
+
+num_of_traces = 4
 num_min_events = 2
 num_max_events = 4
 asp = AspGenerator(
     model, num_of_traces, num_min_events,
     num_max_events,
-    distributor_type="gaussian",
-    loc=3, scale=0.8, encode_decl_model=True
+    # distributor_type="gaussian",
+    # loc=3, scale=0.8,
+    encode_decl_model=False
 )
 
 asp.run()

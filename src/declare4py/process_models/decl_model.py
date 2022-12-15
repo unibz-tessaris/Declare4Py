@@ -317,7 +317,7 @@ class DeclareParsedDataModel(CustomUtilityDict):
         self.events: dict[str, DeclareModelEvent] = {}
         self.attributes_list: dict[str, dict] = {}
         self.template_constraints = {}
-        self.templates: [DeclareModelTemplateDataModel] = []
+        self.templates: list[DeclareModelTemplateDataModel] = []
         self.encoded_model: DeclareModelCoder = None
         self.encoder: DeclareModelCoder = None
         self.update_props()
@@ -399,7 +399,7 @@ class DeclareParsedDataModel(CustomUtilityDict):
         templt.template = template
         templt.template_name = template.templ_str
         templt.template_line = line
-        if template.supports_cardinality:
+        if template.supports_cardinality and int(cardinality) > 1:
             templt.template_name += str(cardinality)
         compiler = re.compile(r"^(.*)\[(.*)\]\s*(.*)$")
         al = compiler.fullmatch(line)
@@ -662,6 +662,7 @@ class DeclModel(LTLModel):
         # self.activities = []
         self.serialized_constraints = []
         self.constraints = []
+        self.violate_constraints_all = False
         self.parsed_model = DeclareParsedDataModel()
         self.declare_model_lines: [str] = []
         self.declare_model_violate_constraints: [str] = []

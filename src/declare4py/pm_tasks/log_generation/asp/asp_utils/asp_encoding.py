@@ -1,13 +1,13 @@
 
 
 class ASPEncoding(str):
-    value: str = """time(1..t). %t = lunghezza traccia
+    value: str = """
+time(1..t). %t = lunghezza traccia
 
 cur_state(I,S,0) :- initial(Name,S),template(I,Name).
 
 """
     # {trace(A,T) : activity(A)} = 1 :- time(T).
-
     val2 = """
 
 {assigned_value(K,V,T) : value(K,V)} = 1 :- trace(A,T), has_attribute(A,K).
@@ -24,8 +24,6 @@ sat(I,T) :- cur_state(I,S,T), template(I,Name), accepting(Name,S).
 
 :- sat(I), not sat(I,t).
 :- unsat(I), sat(I,t).
-
-
 
 #show trace/2.
 #show assigned_value/3.

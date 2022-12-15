@@ -5,7 +5,8 @@ import typing
 
 import boolean
 
-from src.declare4py.process_models.decl_model import DeclareModelTemplateDataModel, DeclareModelAttributeType
+from src.declare4py.process_models.decl_model import DeclareModelTemplateDataModel, DeclareModelAttributeType, \
+    DeclareModelTemplate
 
 
 class DeclareModalConditionResolver2ASP:
@@ -17,8 +18,12 @@ class DeclareModalConditionResolver2ASP:
     def resolve_to_asp(self, ct: DeclareModelTemplateDataModel, attrs: dict, idx: int = 0):
         ls = []
         activation, target_cond, time = ct.get_conditions()
+
+        ls.append('activation({},{}).'.format(idx, self.__normalize_value(ct.activities[0])))
+        if ct.template.is_binary:
+            ls.append('target({},{}).'.format(idx, self.__normalize_value(ct.activities[1])))
+
         if activation:
-            ls.append('activation({},{}).'.format(idx, ct.activities[0].lower()))
             exp, n2c, c2n = self.parsed_condition('activation', activation)
             conditions = set(n2c.keys())
             if exp.isliteral:
@@ -34,9 +39,11 @@ class DeclareModalConditionResolver2ASP:
                 s = self.condition_to_asp(n, c, idx, attrs)
                 if s and len(s) > 0:
                     ls = ls + s
+        else:
+            ls.append(f"activation_condition({idx},T) :- time(T).")
+
         if target_cond:
             target = ct.activities[1]
-            ls.append('target({},{}).'.format(idx, target.lower()))
             exp, n2c, c2n = self.parsed_condition('correlation', target_cond)
             conditions = set(n2c.keys())
             if exp.isliteral:
@@ -48,10 +55,14 @@ class DeclareModalConditionResolver2ASP:
                 s = self.condition_to_asp(n, c, idx, attrs)
                 if s and len(s) > 0:
                     ls = ls + s
-        if ct.violate:
-            ls.append(f"unsat({idx}).")
         else:
-            ls.append(f"sat({idx}).")
+            if ct.template.is_binary:
+                ls.append(f"correlation_condition({idx},T):- time(T).")
+
+        # if ct.violate:
+        #     ls.append(f"unsat({idx}).")
+        # else:
+        #     ls.append(f"sat({idx}).")
         return ls
 
     def condition_to_asp(self, name, cond, i, attrs):
@@ -120,6 +131,12 @@ class DeclareModalConditionResolver2ASP:
     def parsed_condition(self, condition: typing.Literal['activation', 'correlation'], string: str):
         # s = self.parse_data_cond_to_pycond(string)
         return self.parsed_condition_2(condition, string)
+
+    def __normalize_value(self, val: str):
+        """ If not encoded, we return the value in lower case else we return as it is"""
+        if not self.is_encoded:
+            return val.lower()
+        return val
 
     def parse_data_cond_to_pycond(self, cond: str):  # TODO: could be improved using recursion ?
         try:
