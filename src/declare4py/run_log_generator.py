@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
-from src.declare4py.process_models.decl_model import DeclareParser
-from src.declare4py.log_generation.asp.asp_generator import AspGenerator
+
+from src.declare4py.process_models.decl_model import DeclModel
+from src.declare4py.pm_tasks.log_generation.asp.asp_generator import AspGenerator
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -161,9 +162,16 @@ Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.
 Chain Precedence[ER Registration, ER Triage] |A.org:group is C |(T.InfectionSuspected is true) AND (T.SIRSCritTemperature is true) AND (T.DiagnosticLacticAcid is true) AND (T.DiagnosticBlood is true) AND (T.DiagnosticIC is true) AND (T.SIRSCriteria2OrMore is true) AND (T.DiagnosticECG is true) |52,2154,s
 """
 
-dp = DeclareParser()
-model = dp.parse_from_string(decl)
+# dp = DeclareParser()
+# model = dp.parse_from_string(decl)
+# dp = DeclModel().parse_from_file("...")
+model: DeclModel = DeclModel().parse_from_string(decl)
+model.violate_constraints([
+# "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
+# "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
+])
 # print(d.parsed_model)
+
 num_of_traces = 3
 num_min_events = 2
 num_max_events = 4

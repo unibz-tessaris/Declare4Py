@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from src.declare4py.process_models.ltl_model import LTLModel
-from src.declare4py.process_mining.conformance_check.conf_checking import ConformanceChecking
-from src.declare4py.process_mining.conformance_check.basic_conformance_checking_results \
+from src.declare4py.pm_tasks.conformance_check.basic_conformance_checking_results \
     import BasicConformanceCheckingResults
-from src.declare4py.process_mining.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.conf_checking import ConformanceChecking
+from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
 """

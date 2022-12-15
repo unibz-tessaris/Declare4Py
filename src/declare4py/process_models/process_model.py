@@ -8,8 +8,11 @@ T = TypeVar("T")
 
 class ProcessModel(Generic[T]):
 
+    def __init__(self):
+        self.activities: [str] = []
+
     @abstractmethod
-    def parse_model(self, model_path: str, **kwargs) -> T:
+    def parse_from_file(self, model_path: str, **kwargs) -> T:
         pass
 
     # @abstractmethod

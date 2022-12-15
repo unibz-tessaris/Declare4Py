@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import pandas as pd
 import pm4py
 from mlxtend.frequent_patterns import fpgrowth, apriori

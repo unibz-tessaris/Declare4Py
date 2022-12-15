@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import re
 import typing
+
 import boolean
 
-from src.declare4py.process_models.decl_model import DeclareTemplateModalDict, DeclareModelAttributeType
+from src.declare4py.process_models.decl_model import DeclareModelTemplateDataModel, DeclareModelAttributeType
 
 
 class DeclareModalConditionResolver2ASP:
@@ -13,7 +14,7 @@ class DeclareModalConditionResolver2ASP:
         self.number_scaler = scale_num
         self.is_encoded = is_encoded
 
-    def resolve_to_asp(self, ct: DeclareTemplateModalDict, attrs: dict, idx: int = 0):
+    def resolve_to_asp(self, ct: DeclareModelTemplateDataModel, attrs: dict, idx: int = 0):
         ls = []
         activation, target_cond, time = ct.get_conditions()
         if activation:
@@ -47,6 +48,10 @@ class DeclareModalConditionResolver2ASP:
                 s = self.condition_to_asp(n, c, idx, attrs)
                 if s and len(s) > 0:
                     ls = ls + s
+        if ct.violate:
+            ls.append(f"unsat({idx}).")
+        else:
+            ls.append(f"sat({idx}).")
         return ls
 
     def condition_to_asp(self, name, cond, i, attrs):

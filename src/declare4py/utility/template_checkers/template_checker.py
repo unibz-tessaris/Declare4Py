@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-
-from src.declare4py.process_models.decl_model import DeclareParserUtility, TraceState, DeclareTemplate
 from datetime import timedelta
 
+from src.declare4py.process_models.decl_model import DeclareModelConditionParserUtility, DeclareModelTemplate
 from src.declare4py.utility.template_checkers.checker_result import CheckerResult
+from src.declare4py.utility.trace_states import TraceState
 
 glob = {'__builtins__': None}
 
@@ -13,7 +13,7 @@ glob = {'__builtins__': None}
 class TemplateConstraintChecker(ABC):
 
     def __init__(self, traces: dict, completed: bool, activities: [str], rules: dict):
-        self.declare_parser_utility = DeclareParserUtility()
+        self.declare_parser_utility = DeclareModelConditionParserUtility()
         self.traces: dict = traces
         self.completed: bool = completed
         self.activities: [str] = activities
@@ -102,7 +102,6 @@ class MPExistence(TemplateConstraintChecker):
             state = TraceState.VIOLATED
         elif num_activations >= n:
             state = TraceState.SATISFIED
-
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
                              state=state)
 
@@ -815,7 +814,7 @@ class MPNotChainPrecedence(TemplateConstraintChecker):
 
 class TemplateCheckers:
 
-    def get_template(self, template: DeclareTemplate, traces: dict,
+    def get_template(self, template: DeclareModelTemplate, traces: dict,
                      completed: bool, activities: [str], rules: dict) -> TemplateConstraintChecker:
         """
         We have the classes with each template constraint checker and we invoke them dynamically

@@ -6,9 +6,9 @@ from abc import ABC
 
 from numpy import product, ceil
 
-from src.declare4py.process_mining.query_checking.query_checking import QueryChecking
-from src.declare4py.process_mining.log_analyzer import LogAnalyzer
-from src.declare4py.process_models.decl_model import DeclModel, DeclareTemplate, TraceState
+from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.query_checking import QueryChecking
+from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate, TraceState
 from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
 """
@@ -123,7 +123,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
         if not is_template_given and not is_activation_given and not is_target_given:
             raise RuntimeError("You must set at least one parameter among (template, activation, target).")
         if is_template_given:
-            template = DeclareTemplate.get_template_from_string(template_str)
+            template = DeclareModelTemplate.get_template_from_string(template_str)
             if template is None:
                 raise RuntimeError("You must insert a supported DECLARE template.")
             if not template.is_binary and is_target_given:
@@ -139,9 +139,9 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
         if is_template_given:
             templates_to_check.append(template_str)
         else:
-            templates_to_check += list(map(lambda t: t.templ_str, DeclareTemplate.get_binary_templates()))
+            templates_to_check += list(map(lambda t: t.templ_str, DeclareModelTemplate.get_binary_templates()))
             if not is_target_given:
-                for template in DeclareTemplate.get_unary_templates():
+                for template in DeclareModelTemplate.get_unary_templates():
                     if template.supports_cardinality:
                         for card in range(max_declare_cardinality):
                             templates_to_check.append(template.templ_str + str(card + 1))
@@ -155,7 +155,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
         self.basic_query_checking_results: BasicQueryCheckingResults = BasicQueryCheckingResults()
         for template_str in templates_to_check:
             template_str, cardinality = re.search(r'(^.+?)(\d*$)', template_str).groups()
-            template = DeclareTemplate.get_template_from_string(template_str)
+            template = DeclareModelTemplate.get_template_from_string(template_str)
 
             constraint = {"template": template}
             if cardinality:

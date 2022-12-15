@@ -3,9 +3,8 @@ from __future__ import annotations
 from abc import ABC
 
 from src.declare4py.pm_tasks.pm_task import PMTask
-from src.declare4py.process_mining.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
 from src.declare4py.process_models.process_model import ProcessModel
-from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
 """
 
@@ -16,7 +15,7 @@ Parameters
 -------
     consider_vacuity : bool
         True means that vacuously satisfied traces are considered as satisfied, violated otherwise.
-        
+
 """
 
 

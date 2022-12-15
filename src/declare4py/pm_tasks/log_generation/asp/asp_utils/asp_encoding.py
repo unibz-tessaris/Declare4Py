@@ -20,7 +20,12 @@ cur_state(I,S2,T) :- cur_state(I,S1,T-1), template(I,Name), automaton(Name,S1,b,
 
 sat(I,T) :- cur_state(I,S,T), template(I,Name), accepting(Name,S). 
 
-:- template(I,_), not sat(I,t).
+%:- template(I,_), not sat(I,t).
+
+:- sat(I), not sat(I,t).
+:- unsat(I), sat(I,t).
+
+
 
 #show trace/2.
 #show assigned_value/3.
