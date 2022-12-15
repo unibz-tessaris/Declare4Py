@@ -26,4 +26,7 @@ activation_condition(3,T) :- time(T).
 
 
 
-:-sat(2), sat(3).
+sat(0).
+sat(1).
+sat(2).
+sat(3).

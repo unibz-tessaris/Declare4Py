@@ -5,11 +5,10 @@ import typing
 
 import boolean
 
-from src.declare4py.process_models.decl_model import DeclareModelTemplateDataModel, DeclareModelAttributeType, \
-    DeclareModelTemplate
+from src.declare4py.process_models.decl_model import DeclareModelTemplateDataModel, DeclareModelAttributeType
 
 
-class DeclareModalConditionResolver2ASP:
+class DeclareModelConditionResolver2ASP:
 
     def __init__(self, scale_num: int, is_encoded: bool = False):
         self.number_scaler = scale_num
@@ -18,11 +17,9 @@ class DeclareModalConditionResolver2ASP:
     def resolve_to_asp(self, ct: DeclareModelTemplateDataModel, attrs: dict, idx: int = 0):
         ls = []
         activation, target_cond, time = ct.get_conditions()
-
         ls.append('activation({},{}).'.format(idx, self.__normalize_value(ct.activities[0])))
         if ct.template.is_binary:
             ls.append('target({},{}).'.format(idx, self.__normalize_value(ct.activities[1])))
-
         if activation:
             exp, n2c, c2n = self.parsed_condition('activation', activation)
             conditions = set(n2c.keys())
@@ -42,8 +39,7 @@ class DeclareModalConditionResolver2ASP:
         else:
             ls.append(f"activation_condition({idx},T) :- time(T).")
 
-        if target_cond:
-            target = ct.activities[1]
+        if target_cond:  # target = ct.activities[1]
             exp, n2c, c2n = self.parsed_condition('correlation', target_cond)
             conditions = set(n2c.keys())
             if exp.isliteral:

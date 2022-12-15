@@ -172,15 +172,17 @@ Existence[act2] | |
 Existence[act3] | |
 Existence[act4] | |
 """
+
+
 # dp = DeclareParser()
 # model = dp.parse_from_string(decl)
 # dp = DeclModel().parse_from_file("...")
 
 model: DeclModel = DeclModel().parse_from_string(decl)
-model.violate_constraints_all = True
-model.violate_constraints([
-    "Existence[act3] | |",
-    "Existence[act4] | |"
+model.violate_all_constraints_in_subset = True
+model.add_constraints_subset_to_violate([
+    # "Existence[act2] | |",
+    # "Existence[act4] | |"
 # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
 # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
 ])
@@ -191,7 +193,9 @@ num_of_traces = 4
 num_min_events = 2
 num_max_events = 4
 asp = AspGenerator(
-    model, num_of_traces, num_min_events,
+    model,
+    num_of_traces,
+    num_min_events,
     num_max_events,
     # distributor_type="gaussian",
     # loc=3, scale=0.8,

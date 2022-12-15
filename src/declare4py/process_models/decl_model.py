@@ -662,7 +662,7 @@ class DeclModel(LTLModel):
         # self.activities = []
         self.serialized_constraints = []
         self.constraints = []
-        self.violate_constraints_all = False
+        self.violate_all_constraints_in_subset = False  # IF false: clingo will decide itself
         self.parsed_model = DeclareParsedDataModel()
         self.declare_model_lines: [str] = []
         self.declare_model_violate_constraints: [str] = []
@@ -693,8 +693,6 @@ class DeclModel(LTLModel):
         self.declare_model_lines = lines
         self.parse(lines)
         return self
-        # return model
-        # self.parse(lines)
 
     def parse(self, lines: [str]):
         dpm = self.parsed_model
@@ -755,7 +753,7 @@ class DeclModel(LTLModel):
         self.set_constraints()
         dpm.template_constraints = self.constraints
 
-    def violate_constraints(self, constraints_list: list[str]):
+    def add_constraints_subset_to_violate(self, constraints_list: list[str]):
         self.declare_model_violate_constraints = constraints_list
         parsed_tmpl = self.parsed_model.templates
         for cv in self.declare_model_violate_constraints:
@@ -829,3 +827,4 @@ class DeclModel(LTLModel):
         st = f"""{{"activities": {self.activities}, "serialized_constraints": {self.serialized_constraints},\
         "constraints": {self.constraints}, "parsed_model": {self.parsed_model.to_json()} }} """
         return st.replace("'", '"')
+

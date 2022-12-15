@@ -98,25 +98,37 @@ class AspGenerator(LogGenerator):
         lp = self.generate_asp_from_decl_model(self.encode_decl_model)
         self.clingo_output = []
         self.py_logger.debug("Start generating traces")
+        # traces_length = {2: 3, 4: 1}
         for events, traces in self.traces_length.items():
-            random_seed = randrange(0, 2 ** 32 - 1)
-            self.py_logger.debug(f"Total trace to generate and events: Traces:{traces}, Events: {events},"
-                                 f" RandomSeed:{random_seed}, RandFrequency: 0.9")
-            self.__generate_asp_trace(lp, events, traces, random_seed)
-        self.py_logger.debug(f"Traces generated")
-        self.py_logger.debug(f"Parsing Trace results")
+            self.py_logger.debug(f" Total trace to generate and events: Traces:{traces}, Events: {events},"
+                                 f" RandFrequency: 0.9")
+            self.__generate_asp_trace(lp, events, traces)
+        self.py_logger.debug(f"Traces generated. Parsing Trace results")
         self.__format_to_custom_asp_structure()
         self.py_logger.debug(f"Trace results parsed")
         self.__pm4py_log()
 
-    def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int,
-                             seed: int, freq: float = 0.9):
-        ctl = clingo.Control([f"-c t={int(num_events)}", f"{int(num_traces)}", f"--seed={seed}", f"--rand-freq={freq}"])
-        ctl.add(asp)
-        ctl.add(self.asp_encoding)
-        ctl.add(self.asp_template)
-        ctl.ground([("base", [])], context=self)
-        ctl.solve(on_model=self.__handle_clingo_result)
+    def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
+        # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
+        for i in range(num_traces):
+            seed = randrange(0, 2 ** 32 - 1)
+            self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces}, Events:{num_events}, seed:{seed}")
+            ctl = clingo.Control([f"-c t={int(num_events)}", "--project",
+                                  # f"{int(num_traces)}",
+                                  f"1",
+                                  f"--seed={seed}",
+                                  f"--sign-def=rnd",
+                                  f"--restart-on-model",
+                                  f"--rand-freq={freq}"])
+            ctl.add(asp)
+            ctl.add(self.asp_encoding)
+            ctl.add(self.asp_template)
+            ctl.ground([("base", [])], context=self)
+            result = ctl.solve(on_model=self.__handle_clingo_result)
+            if result.unsatisfiable:
+                self.py_logger.warning(f" Unsatisfied result produced by clingo. It will retry with"
+                                       f" increasing the number of events.")
+                # self.__generate_asp_trace(asp, num_events + 1, 1, freq)
 
     def __format_to_custom_asp_structure(self):
         self.asp_custom_structure = AspResultLogModel()

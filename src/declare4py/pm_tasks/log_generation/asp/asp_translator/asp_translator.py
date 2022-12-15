@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from src.declare4py.pm_tasks.log_generation.asp.asp_translator.declare_constraint_resolver import \
-    DeclareModalConditionResolver2ASP
+    DeclareModelConditionResolver2ASP
 from src.declare4py.process_models.decl_model import DeclareModelAttributeType, DeclareModelTemplateDataModel, \
     DeclModel, DeclareParsedDataModel
 
@@ -26,9 +26,9 @@ class TranslatedASPModel:
         self.attributes_values: [str] = []
         self.templates_s: [str] = []
         self.fact_names: [str] = []
-        self.fact_names: [str] = []
         self.scale_number: int = scale_number
         self.is_encoded: bool = is_encoded
+        self.condition_resolver = DeclareModelConditionResolver2ASP(self.scale_number, self.is_encoded)
 
     def define_predicate(self, name: str, predicate_name: str, is_encoded: bool = True):
         if not is_encoded:
@@ -97,9 +97,7 @@ class TranslatedASPModel:
 
     def add_template(self, name, ct: DeclareModelTemplateDataModel, idx: int, props: dict[str, dict]):
         self.templates_s.append(f"template({idx},\"{name}\").")
-        dc = DeclareModalConditionResolver2ASP(self.scale_number, self.is_encoded)
-        ls = dc.resolve_to_asp(ct, props, idx)
-
+        ls = self.condition_resolver.resolve_to_asp(ct, props, idx)
         if ls and len(ls) > 0:
             self.templates_s = self.templates_s + ls + ["\n"]
 
@@ -152,19 +150,24 @@ class ASPTranslator:
             constraints_violate[templates_idx] = ct.violate
             templates_idx = templates_idx + 1
 
-        if model.violate_constraints_all:
-            s = ":-"
-            for idx, val in constraints_violate.items():
-                if val:
-                    s = s + f'sat({idx}), '
-            s = s.strip().rstrip(',')
-            self.asp_model.add_asp_line(s + '.')
-        else:
+        if model.violate_all_constraints_in_subset:
             for idx, violate in constraints_violate.items():
                 if violate:
                     self.asp_model.add_asp_line(f"unsat({idx}).")
                 else:
                     self.asp_model.add_asp_line(f"sat({idx}).")
+        else:
+            isConstraintViolated = False
+            s = ":-"
+            for idx, val in constraints_violate.items():
+                if val:
+                    s = s + f'sat({idx}), '
+                    isConstraintViolated = True
+                else:
+                    self.asp_model.add_asp_line(f"sat({idx}).")
+            s = s.strip().rstrip(',')
+            if isConstraintViolated:
+                self.asp_model.add_asp_line(s + '.')
 
         return self.asp_model
 

@@ -18,6 +18,7 @@ class ASPResultEventModel:
         for symbols in self.fact_symbol:
             # syb: clingo.symbol.Symbol = symbols
             if symbols.type == SymbolType.Function:
+                # print(syb.positive)
                 self.name = str(symbols.name)
             if symbols.type == SymbolType.Number:
                 self.pos = symbols.number
