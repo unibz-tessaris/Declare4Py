@@ -3,20 +3,544 @@
 	<trace>
 		<string key="concept:name" value="trace_0" />
 		<event>
-			<string key="concept:name" value="act1" />
-			<float key="time:timestamp" value="1671117621.947398" />
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="CRP" value="50.5" />
+			<float key="time:timestamp" value="1671359461.54816" />
 		</event>
 		<event>
-			<string key="concept:name" value="act2" />
-			<float key="time:timestamp" value="1671117621.947398" />
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="38" />
+			<string key="CRP" value="128.1" />
+			<float key="time:timestamp" value="1671359461.548248" />
 		</event>
 		<event>
-			<string key="concept:name" value="act3" />
-			<float key="time:timestamp" value="1671117621.947398" />
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="CRP" value="127.7" />
+			<float key="time:timestamp" value="1671359461.548325" />
 		</event>
 		<event>
-			<string key="concept:name" value="act4" />
-			<float key="time:timestamp" value="1671117621.947398" />
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="80" />
+			<string key="CRP" value="395.0" />
+			<float key="time:timestamp" value="1671359461.548404" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_1" />
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YB" />
+			<string key="Age" value="80" />
+			<string key="CRP" value="207.0" />
+			<float key="time:timestamp" value="1671359461.548484" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="D" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="Leucocytes" value="72.5" />
+			<float key="time:timestamp" value="1671359461.54856" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YD" />
+			<string key="Age" value="80" />
+			<string key="CRP" value="375.7" />
+			<float key="time:timestamp" value="1671359461.548632" />
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid" />
+			<string key="org:group" value="E" />
+			<string key="LacticAcid" value="10.0" />
+			<float key="time:timestamp" value="1671359461.548661" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_2" />
+		<event>
+			<string key="concept:name" value="LacticAcid" />
+			<string key="org:group" value="A" />
+			<string key="LacticAcid" value="0.3" />
+			<float key="time:timestamp" value="1671359461.54869" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="C" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="Leucocytes" value="13.8" />
+			<float key="time:timestamp" value="1671359461.548764" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="80" />
+			<string key="CRP" value="5.8" />
+			<float key="time:timestamp" value="1671359461.548838" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="C" />
+			<string key="Diagnose" value="YC" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="455.4" />
+			<float key="time:timestamp" value="1671359461.548911" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YB" />
+			<string key="Age" value="61" />
+			<string key="CRP" value="413.4" />
+			<float key="time:timestamp" value="1671359461.548983" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="Leucocytes" value="126.6" />
+			<float key="time:timestamp" value="1671359461.549059" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="H" />
+			<string key="Diagnose" value="YB" />
+			<string key="Age" value="41" />
+			<string key="CRP" value="419.0" />
+			<float key="time:timestamp" value="1671359461.549131" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_3" />
+		<event>
+			<string key="concept:name" value="ER Registration" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YD" />
+			<string key="Age" value="35" />
+			<string key="InfectionSuspected" value="true" />
+			<string key="DiagnosticBlood" value="true" />
+			<string key="DisfuncOrg" value="true" />
+			<string key="SIRSCritTachypnea" value="true" />
+			<string key="Hypotensie" value="true" />
+			<string key="SIRSCritHeartRate" value="true" />
+			<string key="Infusion" value="false" />
+			<string key="DiagnosticArtAstrup" value="false" />
+			<string key="DiagnosticIC" value="true" />
+			<string key="DiagnosticSputum" value="false" />
+			<string key="DiagnosticLiquor" value="false" />
+			<string key="DiagnosticOther" value="true" />
+			<string key="SIRSCriteria2OrMore" value="true" />
+			<string key="DiagnosticXthorax" value="true" />
+			<string key="SIRSCritTemperature" value="true" />
+			<string key="DiagnosticUrinaryCulture" value="false" />
+			<string key="SIRSCritLeucos" value="true" />
+			<string key="Oligurie" value="true" />
+			<string key="DiagnosticLacticAcid" value="true" />
+			<string key="Hypoxie" value="true" />
+			<string key="DiagnosticUrinarySediment" value="true" />
+			<string key="DiagnosticECG" value="true" />
+			<float key="time:timestamp" value="1671359461.549554" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="CRP" value="399.3" />
+			<float key="time:timestamp" value="1671359461.549634" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="Leucocytes" value="13.8" />
+			<float key="time:timestamp" value="1671359461.549711" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="49" />
+			<string key="Leucocytes" value="130.0" />
+			<float key="time:timestamp" value="1671359461.549786" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="80" />
+			<string key="CRP" value="526.2" />
+			<float key="time:timestamp" value="1671359461.549859" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="D" />
+			<string key="Diagnose" value="YB" />
+			<string key="Age" value="80" />
+			<string key="CRP" value="5.7" />
+			<float key="time:timestamp" value="1671359461.549946" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="54" />
+			<string key="CRP" value="5.7" />
+			<float key="time:timestamp" value="1671359461.550048" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_4" />
+		<event>
+			<string key="concept:name" value="LacticAcid" />
+			<string key="org:group" value="A" />
+			<string key="LacticAcid" value="0.2" />
+			<float key="time:timestamp" value="1671359461.550088" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YC" />
+			<string key="Age" value="80" />
+			<string key="Leucocytes" value="142.4" />
+			<float key="time:timestamp" value="1671359461.550167" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YD" />
+			<string key="Age" value="20" />
+			<string key="Leucocytes" value="273.2" />
+			<float key="time:timestamp" value="1671359461.550243" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="48" />
+			<string key="CRP" value="5.7" />
+			<float key="time:timestamp" value="1671359461.550318" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="64" />
+			<string key="Leucocytes" value="191.1" />
+			<float key="time:timestamp" value="1671359461.550392" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="5.9" />
+			<float key="time:timestamp" value="1671359461.550466" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="21" />
+			<string key="Leucocytes" value="51.5" />
+			<float key="time:timestamp" value="1671359461.55054" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_5" />
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="CRP" value="5.7" />
+			<float key="time:timestamp" value="1671359461.550619" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="80" />
+			<string key="CRP" value="502.0" />
+			<float key="time:timestamp" value="1671359461.550693" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="80" />
+			<string key="Leucocytes" value="13.9" />
+			<float key="time:timestamp" value="1671359461.550786" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="80" />
+			<string key="CRP" value="341.5" />
+			<float key="time:timestamp" value="1671359461.550859" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YC" />
+			<string key="Age" value="80" />
+			<string key="Leucocytes" value="328.3" />
+			<float key="time:timestamp" value="1671359461.550933" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="E" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="Leucocytes" value="112.4" />
+			<float key="time:timestamp" value="1671359461.551013" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="560.6" />
+			<float key="time:timestamp" value="1671359461.551086" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_6" />
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="80" />
+			<string key="CRP" value="5.8" />
+			<float key="time:timestamp" value="1671359461.551161" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="C" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="Leucocytes" value="13.8" />
+			<float key="time:timestamp" value="1671359461.551233" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="Leucocytes" value="13.8" />
+			<float key="time:timestamp" value="1671359461.551306" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YD" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="532.3" />
+			<float key="time:timestamp" value="1671359461.551379" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YC" />
+			<string key="Age" value="20" />
+			<string key="Leucocytes" value="186.3" />
+			<float key="time:timestamp" value="1671359461.551454" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="C" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="80" />
+			<string key="Leucocytes" value="13.8" />
+			<float key="time:timestamp" value="1671359461.55153" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="Leucocytes" value="13.8" />
+			<float key="time:timestamp" value="1671359461.551605" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YB" />
+			<string key="Age" value="20" />
+			<string key="Leucocytes" value="13.8" />
+			<float key="time:timestamp" value="1671359461.551679" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_7" />
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="76" />
+			<string key="Leucocytes" value="68.6" />
+			<float key="time:timestamp" value="1671359461.551755" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YC" />
+			<string key="Age" value="45" />
+			<string key="CRP" value="5.7" />
+			<float key="time:timestamp" value="1671359461.551827" />
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid" />
+			<string key="org:group" value="B" />
+			<string key="LacticAcid" value="1.1" />
+			<float key="time:timestamp" value="1671359461.551856" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YC" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="372.5" />
+			<float key="time:timestamp" value="1671359461.551928" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="5.7" />
+			<float key="time:timestamp" value="1671359461.552003" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="F" />
+			<string key="Age" value="37" />
+			<string key="CRP" value="5.7" />
+			<float key="time:timestamp" value="1671359461.552074" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YC" />
+			<string key="Age" value="78" />
+			<string key="CRP" value="98.2" />
+			<float key="time:timestamp" value="1671359461.552145" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="5.8" />
+			<float key="time:timestamp" value="1671359461.552217" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_8" />
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="5.7" />
+			<float key="time:timestamp" value="1671359461.552295" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YB" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="481.2" />
+			<float key="time:timestamp" value="1671359461.552367" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="B" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="27.7" />
+			<float key="time:timestamp" value="1671359461.552439" />
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid" />
+			<string key="org:group" value="D" />
+			<string key="LacticAcid" value="0.2" />
+			<float key="time:timestamp" value="1671359461.552466" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="58" />
+			<string key="Leucocytes" value="327.3" />
+			<float key="time:timestamp" value="1671359461.552538" />
+		</event>
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YB" />
+			<string key="Age" value="20" />
+			<string key="CRP" value="145.1" />
+			<float key="time:timestamp" value="1671359461.55261" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_9" />
+		<event>
+			<string key="concept:name" value="CRP" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="CRP" value="393.2" />
+			<float key="time:timestamp" value="1671359461.552688" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="C" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="84" />
+			<string key="Leucocytes" value="222.6" />
+			<float key="time:timestamp" value="1671359461.552762" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="C" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="80" />
+			<string key="Leucocytes" value="52.7" />
+			<float key="time:timestamp" value="1671359461.552834" />
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid" />
+			<string key="org:group" value="A" />
+			<string key="LacticAcid" value="7.0" />
+			<float key="time:timestamp" value="1671359461.55286" />
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes" />
+			<string key="org:group" value="A" />
+			<string key="Diagnose" value="YA" />
+			<string key="Age" value="45" />
+			<string key="Leucocytes" value="143.2" />
+			<float key="time:timestamp" value="1671359461.552931" />
 		</event>
 	</trace>
 </log>

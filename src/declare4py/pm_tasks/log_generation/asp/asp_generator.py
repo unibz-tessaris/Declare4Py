@@ -4,6 +4,7 @@ import collections
 import logging
 import re
 import typing
+import warnings
 from datetime import datetime
 from random import randrange
 
@@ -19,6 +20,8 @@ from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser impo
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser import ASPResultTraceModel
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_template import ASPTemplate
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.distribution import Distributor
+import io
+from contextlib import redirect_stdout
 
 
 class AspGenerator(LogGenerator):
@@ -126,8 +129,9 @@ class AspGenerator(LogGenerator):
             ctl.ground([("base", [])], context=self)
             result = ctl.solve(on_model=self.__handle_clingo_result)
             if result.unsatisfiable:
-                self.py_logger.warning(f" Unsatisfied result produced by clingo. It will retry with"
-                                       f" increasing the number of events.")
+                warnings.warn(f'WARNING: Cannot generate traces with {num_events} events following this model.')
+                # self.py_logger.warning(f" Unsatisfied result produced by clingo. It will retry with"
+                #                        f" increasing the number of events.")
                 # self.__generate_asp_trace(asp, num_events + 1, 1, freq)
 
     def __format_to_custom_asp_structure(self):
@@ -141,7 +145,6 @@ class AspGenerator(LogGenerator):
 
     def __handle_clingo_result(self, output: clingo.solving.Model):
         symbols = output.symbols(shown=True)
-        print("output", output)
         self.clingo_output.append(symbols)
 
     def __pm4py_log(self):
@@ -174,12 +177,12 @@ class AspGenerator(LogGenerator):
                                         # for example 485 but scaling down back, it would become 4.85, which is not an
                                         # integer but float. I don't know what to do in this case, right now, i am
                                         # scaling down and round to nearst integer
-                                        self.py_logger.info(f"Unsafe: attribute \"{res_name_decoded}\" =>"
-                                                            f" \"{attr['value']}\" is type"
-                                                            f" of integer but scaling down from a float."
-                                                            f" Value: {res_value_decoded}"
-                                                            f" precision: {self.lp_model.scale_number}"
-                                                            f" num: {num}")
+                                        self.py_logger.warning(f" Unsafe: attribute \"{res_name_decoded}\" =>"
+                                                               f" \"{attr['value']}\" is type"
+                                                               f" of integer but scaling down from a float."
+                                                               f" Value: {res_value_decoded}"
+                                                               f" precision: {self.lp_model.scale_number}"
+                                                               f" num: {num} final result will be {round(num)}")
                                     num = round(num)
                                 res_value_decoded = str(num)
                     event[res_name_decoded] = str(res_value_decoded).strip()

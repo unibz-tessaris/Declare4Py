@@ -161,17 +161,17 @@ Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |
 Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m
 Chain Precedence[ER Registration, ER Triage] |A.org:group is C |(T.InfectionSuspected is true) AND (T.SIRSCritTemperature is true) AND (T.DiagnosticLacticAcid is true) AND (T.DiagnosticBlood is true) AND (T.DiagnosticIC is true) AND (T.SIRSCriteria2OrMore is true) AND (T.DiagnosticECG is true) |52,2154,s
 """
-
-decl = """
-activity act1
-activity act2
-activity act3
-activity act4
-Existence[act1] | |
-Existence[act2] | |
-Existence[act3] | |
-Existence[act4] | |
-"""
+#
+# decl = """
+# activity act1
+# activity act2
+# activity act3
+# activity act4
+# Existence[act1] | |
+# Existence[act2] | |
+# Existence[act3] | |
+# Existence[act4] | |
+# """
 
 
 # dp = DeclareParser()
@@ -188,10 +188,9 @@ model.add_constraints_subset_to_violate([
 ])
 
 
-
-num_of_traces = 4
-num_min_events = 2
-num_max_events = 4
+num_of_traces = 10
+num_min_events = 4
+num_max_events = 8
 asp = AspGenerator(
     model,
     num_of_traces,
@@ -199,7 +198,7 @@ asp = AspGenerator(
     num_max_events,
     # distributor_type="gaussian",
     # loc=3, scale=0.8,
-    encode_decl_model=False
+    encode_decl_model=True
 )
 
 asp.run()
