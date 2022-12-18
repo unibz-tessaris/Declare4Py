@@ -21,6 +21,7 @@ class DeclareModelConditionResolver2ASP:
         if ct.template.is_binary:
             ls.append('target({},{}).'.format(idx, self.__normalize_value(ct.activities[1])))
         if activation:
+
             exp, n2c, c2n = self.parsed_condition('activation', activation)
             conditions = set(n2c.keys())
             if exp.isliteral:
