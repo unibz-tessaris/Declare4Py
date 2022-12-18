@@ -20,8 +20,6 @@ from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser impo
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser import ASPResultTraceModel
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_template import ASPTemplate
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.distribution import Distributor
-import io
-from contextlib import redirect_stdout
 
 
 class AspGenerator(LogGenerator):
@@ -37,9 +35,9 @@ class AspGenerator(LogGenerator):
         Parameters
         ----------
         decl_model: DeclModel
-        num_traces: int
-        min_event: int
-        max_event: int
+        num_traces: int an integer representing the number of traces to generate
+        min_event: int an integer representing the minimum number of events that a trace can have
+        max_event: int an integer representing the maximum number of events that a trace can have
         distributor_type: "uniform" | "gaussian" | "custom"
         custom_probabilities: list of floats which represents the probabilities and the total sum of values must be 1
         loc: mu:float in case gaussian distribution is used, You must provide mu and sigma
@@ -65,6 +63,11 @@ class AspGenerator(LogGenerator):
         self.compute_distribution()
 
     def compute_distribution(self):
+        """
+         The compute_distribution method computes the distribution of the number of events in a trace based on
+         the distributor_type parameter. If the distributor_type is "gaussian", it uses the loc and scale parameters
+         to compute a Gaussian distribution. Otherwise, it uses a uniform or custom distribution.
+        """
         self.py_logger.info("Start computing distribution")
         d = self.distributor_instance
         if self.distributor_type == "gaussian":
@@ -85,18 +88,26 @@ class AspGenerator(LogGenerator):
                 self.min_events, self.max_events, self.log_length, self.distributor_type, self.custom_probabilities)
         self.py_logger.info(f"Distribution result {self.traces_length}")
 
-    def generate_asp_from_decl_model(self, encode: bool = True) -> str:
+    def generate_asp_from_decl_model(self, encode: bool = True, save_file: str = None) -> str:
+        """
+            Generates an ASP translation of the Declare model. It takes an optional encode parameter, which is a boolean
+             indicating whether to encode the model or not. The default value is True.
+        """
         self.py_logger.debug("Starting translate declare model to ASP")
         self.lp_model = ASPTranslator().from_decl_model(self.process_model, encode)
         lp = self.lp_model.to_str()
-        with open('../generated.asp', 'w+') as f:
-            f.write(lp)
+        if save_file:
+            with open(save_file, 'w+') as f:
+                f.write(lp)
         self.py_logger.debug(f"Declare model translated to ASP. Total Facts {len(self.lp_model.fact_names)}")
         self.asp_encoding = ASPEncoding().get_alp_encoding(self.lp_model.fact_names)
         self.py_logger.debug("ASP encoding generated")
         return lp
 
     def run(self):
+        """
+            Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
+        """
         self.py_logger.debug("Starting RUN method")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model)
         self.clingo_output = []
@@ -173,7 +184,7 @@ class AspGenerator(LogGenerator):
                                     if isinstance(num, float):
                                         # age: integer between 1 to 10
                                         # but after scaled up this for example with 100, this would have become value
-                                        # from 100 to 1000 and log/cling might have generated the generated the value
+                                        # from 100 to 1000 and log/cling might have generated the value
                                         # for example 485 but scaling down back, it would become 4.85, which is not an
                                         # integer but float. I don't know what to do in this case, right now, i am
                                         # scaling down and round to nearst integer
