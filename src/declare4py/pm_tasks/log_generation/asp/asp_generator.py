@@ -200,6 +200,9 @@ class AspGenerator(LogGenerator):
                 event["time:timestamp"] = datetime.now().timestamp()  # + timedelta(hours=c).datetime
                 trace_gen.append(event)
             self.log_analyzer.log.append(trace_gen)
+        l = len(self.asp_custom_structure.traces)
+        if l != self.log_length:
+            self.py_logger.warning(f'PM4PY log generated: {l}/{self.log_length} only.')
         self.py_logger.debug(f"Pm4py generated but not saved yet")
 
     def to_xes(self, output_fn: str):
