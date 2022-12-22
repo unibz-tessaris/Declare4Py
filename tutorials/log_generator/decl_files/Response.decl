@@ -1,0 +1,9 @@
+activity A
+bind A: grade
+bind A: mark, name
+activity B
+bind B: grade, mark, name
+grade: integer between 1 and 5
+mark: integer between 1 and 5
+name: x, y, z, v
+Response[A, B] |A.grade > 2 |T.grade > 5 |1,5,s
