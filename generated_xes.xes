@@ -1,22 +1,3 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <log xes.version="1849-2016" xes.features="nested-attributes" xmlns="http://www.xes-standard.org/">
-	<trace>
-		<string key="concept:name" value="trace_0" />
-		<event>
-			<string key="concept:name" value="act1" />
-			<float key="time:timestamp" value="1671811534.673165" />
-		</event>
-		<event>
-			<string key="concept:name" value="act2" />
-			<float key="time:timestamp" value="1671811534.673192" />
-		</event>
-		<event>
-			<string key="concept:name" value="act3" />
-			<float key="time:timestamp" value="1671811534.673199" />
-		</event>
-		<event>
-			<string key="concept:name" value="act4" />
-			<float key="time:timestamp" value="1671811534.673205" />
-		</event>
-	</trace>
 </log>

@@ -125,7 +125,7 @@ class AspGenerator(LogGenerator):
         # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
         for i in range(num_traces):
             seed = randrange(0, 2 ** 32 - 1)
-            self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces}, Events:{num_events}, seed:{seed}")
+            self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces} with events:{num_events}, seed:{seed}")
             ctl = clingo.Control([f"-c t={int(num_events)}", "--project",
                                   # f"{int(num_traces)}",
                                   f"1",
@@ -138,8 +138,9 @@ class AspGenerator(LogGenerator):
             ctl.add(self.asp_template)
             ctl.ground([("base", [])], context=self)
             result = ctl.solve(on_model=self.__handle_clingo_result)
+            self.py_logger.debug(f" Clingo Result :{str(result)}")
             if result.unsatisfiable:
-                warnings.warn(f'WARNING: Cannot generate traces with {num_events} events following this model.')
+                warnings.warn(f'WARNING: Cannot generate traces with {num_events} events with this model.')
                 # self.py_logger.warning(f" Unsatisfied result produced by clingo. It will retry with"
                 #                        f" increasing the number of events.")
                 # self.__generate_asp_trace(asp, num_events + 1, 1, freq)
@@ -155,6 +156,8 @@ class AspGenerator(LogGenerator):
 
     def __handle_clingo_result(self, output: clingo.solving.Model):
         symbols = output.symbols(shown=True)
+        print('symbols', symbols)
+        self.py_logger.debug(f" Traces generated :{symbols}")
         self.clingo_output.append(symbols)
 
     def __pm4py_log(self):
