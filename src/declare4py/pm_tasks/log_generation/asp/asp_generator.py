@@ -16,7 +16,6 @@ from src.declare4py.pm_tasks.log_generation.log_generator import LogGenerator
 from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedDataModel, DeclareModelAttributeType
 from src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator import TranslatedASPModel, ASPTranslator
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_encoding import ASPEncoding
-from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser import AspResultLogModel
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser import ASPResultTraceModel
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_template import ASPTemplate
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.distribution import Distributor
@@ -46,7 +45,7 @@ class AspGenerator(LogGenerator):
         super().__init__(num_traces, min_event, max_event, decl_model)
         self.py_logger = logging.getLogger("ASP generator")
         self.clingo_output = []
-        self.asp_custom_structure: AspResultLogModel | None = None
+        self.asp_generated_traces: typing.List[ASPResultTraceModel] | None = None
         self.asp_encoding = ASPEncoding().get_alp_encoding()
         self.asp_template = ASPTemplate().value
         self.distributor_type = distributor_type
@@ -146,12 +145,12 @@ class AspGenerator(LogGenerator):
                 # self.__generate_asp_trace(asp, num_events + 1, 1, freq)
 
     def __format_to_custom_asp_structure(self):
-        self.asp_custom_structure = AspResultLogModel()
-        asp_model = self.asp_custom_structure
+        self.asp_generated_traces = []
+        asp_model = self.asp_generated_traces
         i = 0
         for clingo_trace in self.clingo_output:
-            trace_model = ASPResultTraceModel(f"trace_{i}", clingo_trace, self.lp_model.scale_number)
-            asp_model.traces.append(trace_model)
+            trace_model = ASPResultTraceModel(f"trace_{i}", clingo_trace)
+            asp_model.append(trace_model)
             i = i + 1
 
     def __handle_clingo_result(self, output: clingo.solving.Model):
@@ -163,7 +162,7 @@ class AspGenerator(LogGenerator):
         self.log_analyzer.log = lg.EventLog()
         decl_encoded_model: DeclareParsedDataModel = self.process_model.parsed_model
         attr_list = decl_encoded_model.attributes_list
-        for trace in self.asp_custom_structure.traces:
+        for trace in self.asp_generated_traces:
             trace_gen = lg.Trace()
             trace_gen.attributes["concept:name"] = trace.name
             for asp_event in trace.events:
@@ -178,29 +177,19 @@ class AspGenerator(LogGenerator):
                         if res_name_decoded in attr_list:
                             attr = attr_list[res_name_decoded]
                             if attr["value_type"] != DeclareModelAttributeType.ENUMERATION:
-                                num = int(res_value_decoded) / self.lp_model.scale_number
+                                # num = int(res_value_decoded) / attr["range_precision"]
+                                num = res_value_decoded
                                 dmat = DeclareModelAttributeType
-                                if attr["value_type"] in [dmat.INTEGER_RANGE, dmat.INTEGER]:
-                                    if isinstance(num, float):
-                                        # age: integer between 1 to 10
-                                        # but after scaled up this for example with 100, this would have become value
-                                        # from 100 to 1000 and log/cling might have generated the value
-                                        # for example 485 but scaling down back, it would become 4.85, which is not an
-                                        # integer but float. I don't know what to do in this case, right now, i am
-                                        # scaling down and round to nearst integer
-                                        self.py_logger.warning(f" Unsafe: attribute \"{res_name_decoded}\" =>"
-                                                               f" \"{attr['value']}\" is type"
-                                                               f" of integer but scaling down from a float."
-                                                               f" Value: {res_value_decoded}"
-                                                               f" precision: {self.lp_model.scale_number}"
-                                                               f" num: {num} final result will be {round(num)}")
-                                    num = round(num)
+                                if attr["value_type"] in [dmat.FLOAT]:
+                                    num = int(res_value_decoded) / attr["range_precision"]
+                                if attr["value_type"] in [dmat.FLOAT_RANGE]:
+                                    num = int(res_value_decoded) / attr["range_precision"]
                                 res_value_decoded = str(num)
                     event[res_name_decoded] = str(res_value_decoded).strip()
                 event["time:timestamp"] = datetime.now().timestamp()  # + timedelta(hours=c).datetime
                 trace_gen.append(event)
             self.log_analyzer.log.append(trace_gen)
-        l = len(self.asp_custom_structure.traces)
+        l = len(self.asp_generated_traces)
         if l != self.log_length:
             self.py_logger.warning(f'PM4PY log generated: {l}/{self.log_length} only.')
         self.py_logger.debug(f"Pm4py generated but not saved yet")

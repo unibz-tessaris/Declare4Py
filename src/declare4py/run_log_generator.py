@@ -8,8 +8,7 @@ from src.declare4py.pm_tasks.log_generation.asp.asp_generator import AspGenerato
 logging.basicConfig(level=logging.DEBUG)
 
 
-
-decl2 = """
+decl = """
 activity Driving_Test
 bind Driving_Test: Driver, Grade
 activity Getting_License
@@ -27,7 +26,7 @@ Response[Driving_Test, Test_Failed] |A.Grade<=2 | |
 """
 
 
-decl = """activity ER_Triage
+decl2 = """activity ER_Triage
 bind ER_Triage: org_group, Diagnose, Age
 activity er_registration
 bind er_registration: InfectionSuspected, org_group, DiagnosticBlood, DisfuncOrg, SIRSCritTachypnea, Hypotensie, SIRSCritHeartRate, Infusion, DiagnosticArtAstrup, Age, DiagnosticIC, DiagnosticSputum, DiagnosticLiquor, DiagnosticOther, SIRSCriteria2OrMore, DiagnosticXthorax, SIRSCritTemperature, DiagnosticUrinaryCulture, SIRSCritLeucos, Oligurie, DiagnosticLacticAcid, Diagnose, Hypoxie, DiagnosticUrinarySediment, DiagnosticECG
@@ -95,7 +94,7 @@ Chain Response[LacticAcid, Leucocytes] | A.LacticAcid <= 0.8 | T.Leucocytes >= 1
 Chain Precedence[er_registration, ER_Triage] | A.org_group is C |(T.InfectionSuspected is true) AND (T.SIRSCritTemperature is true) AND (T.DiagnosticLacticAcid is true) AND (T.DiagnosticBlood is true) AND (T.DiagnosticIC is true) AND (T.SIRSCriteria2OrMore is true) AND (T.DiagnosticECG is true) |52,2154,s"""
 
 
-decl = """activity ER Triage
+decl3 = """activity ER Triage
 bind ER Triage: org:group, Diagnose, Age
 activity ER Registration
 bind ER Registration: InfectionSuspected, org:group, DiagnosticBlood, DisfuncOrg, SIRSCritTachypnea, Hypotensie, SIRSCritHeartRate, Infusion, DiagnosticArtAstrup, Age, DiagnosticIC, DiagnosticSputum, DiagnosticLiquor, DiagnosticOther, SIRSCriteria2OrMore, DiagnosticXthorax, SIRSCritTemperature, DiagnosticUrinaryCulture, SIRSCritLeucos, Oligurie, DiagnosticLacticAcid, Diagnose, Hypoxie, DiagnosticUrinarySediment, DiagnosticECG
@@ -163,8 +162,7 @@ Chain Precedence[ER Registration, ER Triage] |A.org:group is C |(T.InfectionSusp
 """
 
 
-# decl =
-"""
+decl4 = """
 activity act1
 activity act2
 activity act3
@@ -180,7 +178,7 @@ Existence[act4] | |
 # model = dp.parse_from_string(decl)
 # dp = DeclModel().parse_from_file("...")
 
-model: DeclModel = DeclModel().parse_from_string(decl)
+model: DeclModel = DeclModel().parse_from_string(decl4)
 model.violate_all_constraints_in_subset = True
 model.add_constraints_subset_to_violate([
     # "Existence[act2] | |",
@@ -199,7 +197,8 @@ asp = AspGenerator(
     num_min_events,
     num_max_events,
     # distributor_type="gaussian",
-    # loc=3, scale=0.8,
+    # loc=3,
+    # scale=0.8,
     encode_decl_model=True
 )
 

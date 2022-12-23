@@ -10,8 +10,7 @@ from src.declare4py.process_models.decl_model import DeclareModelTemplateDataMod
 
 class DeclareModelConditionResolver2ASP:
 
-    def __init__(self, scale_num: int, is_encoded: bool = False):
-        self.number_scaler = scale_num
+    def __init__(self, is_encoded: bool = False):
         self.is_encoded = is_encoded
 
     def resolve_to_asp(self, ct: DeclareModelTemplateDataModel, attrs: dict, idx: int = 0):
@@ -119,7 +118,7 @@ class DeclareModelConditionResolver2ASP:
                 for rel in relations:
                     if rel in cond:
                         value = string.split(rel)[1]
-                        value = self.scale_number2int(value)
+                        value = self.scale_number2int(value, attr_obj)
                         ls.append('{} :- assigned_value({},V,T),V{}{}.'.format(name, attr, rel, str(value)))
                         break
         return ls
@@ -308,11 +307,10 @@ class DeclareModelConditionResolver2ASP:
                 self.tree_conditions_to_asp(condition, arg, no_params(arg_name), i, lp_st)
         return lp_st
 
-    def scale_number2int(self, num: [int | float]) -> int:
+    def scale_number2int(self, num: str, attr_obj) -> int:
         # if isinstance(num, int) or isinstance(num, float):
-        if isinstance(num, str):
-            if num.__contains__('.'):
-                num = float(num)
-            else:
-                num = int(num)
-        return int(num * self.number_scaler)
+        if num.__contains__("."):  # if number contains . then we have to scale it.
+            if attr_obj["value_type"] != DeclareModelAttributeType.FLOAT_RANGE:
+                raise ValueError("The attribute is not type of Float but right side of condition contains float number")
+            num = ((10 ** attr_obj["range_precision"]) * float(num))
+        return int(num)

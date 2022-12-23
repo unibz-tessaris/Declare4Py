@@ -362,8 +362,7 @@ class DeclareParsedDataModel(CustomUtilityDict):
             attrs = {}
             dme.attributes = attrs
         if attr_name in self.attributes_list:
-            attrs[attr_name] = self.attributes_list[
-                attr_name]  # saving the same reference. Same attr cannot have two values
+            attrs[attr_name] = self.attributes_list[attr_name]  # saving the same reference. Same attr cannot have two values
         else:
             attrs[attr_name] = {"value": "", "value_type": ""}
 
@@ -392,6 +391,45 @@ class DeclareParsedDataModel(CustomUtilityDict):
         attribute = self.attributes_list[attr_name]
         attribute["value"] = attr_value
         attribute["value_type"] = attr_type
+
+        if attr_type == DeclareModelAttributeType.FLOAT:
+            frm = str(attr_value).split(".")  # 10.587  # attribute["range_precision"] = len(frm[1])
+            precision = len(frm[1])
+            attribute["value"] = int((10 ** precision) * frm)
+            attribute["range_precision"] = precision
+        elif attr_type == DeclareModelAttributeType.INTEGER:
+            attribute["range_precision"] = 0
+
+        if attr_type == DeclareModelAttributeType.FLOAT_RANGE or attr_type == DeclareModelAttributeType.INTEGER_RANGE:
+            pattern = re.compile(r"( \d+.?\d*)( and )?(\d+.?\d*)")
+            match = pattern.findall(attr_value)
+            # Extract the float values
+            if match:
+                (val1, val2) = (0, 0)
+                if attr_type == DeclareModelAttributeType.INTEGER_RANGE:
+                    val1 = int(match[0][0])
+                    val2 = int(match[0][2])
+                    attribute["range_precision"] = 0
+                if attr_type == DeclareModelAttributeType.FLOAT_RANGE:
+                    val1 = float(match[0][0])
+                    val2 = float(match[0][2])
+                    attribute["range_precision"] = self.get_float_biggest_precision(val1, val2)
+                attribute["from"] = val1
+                attribute["to"] = val2
+
+    def get_float_biggest_precision(self, v1: float, v2: float) -> int:
+        decimal_len_list = []
+        precision = 0
+        frm = str(v1).split(".")  # 10.587
+        til = str(v2).split(".")  # 3.587
+        if len(frm) > 1:
+            precision = len(frm[1])  # frm[1] = 587 and length would be 3
+        if len(til) > 1:
+            precision = max(len(til[1]), precision)
+        decimal_len_list.append(precision)
+        if len(decimal_len_list) == 0:
+            return 0
+        return max(decimal_len_list)
 
     def add_template(self, line: str, template: DeclareModelTemplate, cardinality: str):
         templt = DeclareModelTemplateDataModel()

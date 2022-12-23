@@ -32,13 +32,12 @@ class ASPResultEventModel:
 
 
 class ASPResultTraceModel:
-    def __init__(self, trace_name: str, model: [clingo.solving.Model], scale_down: int):
+    def __init__(self, trace_name: str, model: [clingo.solving.Model]):
         self.model = model
         self.name: str = trace_name
         self.events: [ASPResultEventModel] = []
         # ASP/clingo doesn't handle floats, thus we scaling up the number values and now, we have to scale down back
         # after result
-        self.scale_down_number = scale_down
         self.parse_clingo_trace()
 
     def parse_clingo_trace(self):
@@ -60,16 +59,12 @@ class ASPResultTraceModel:
 
     def parse_clingo_val_assignement(self, syb: [clingo.symbol.Symbol]):
         val = []
-        tot_symbols = len(syb)
+        # tot_symbols = len(syb)
         for i, symbols in enumerate(syb):
             if symbols.type == SymbolType.Function:  # if symbol is functionm it can have .arguments
                 val.append(symbols.name)
             else:
                 num = symbols.number
-                # we shouldn't scale the last number of given symbol because it referred to the trace
-                # position and not attribute values
-                # if (tot_symbols - 1) != i:
-                #     num = (symbols.number / self.scale_down_number)
                 val.append(num)
         return val[0], val[1], val[2]
 
@@ -81,17 +76,17 @@ class ASPResultTraceModel:
         return self.__str__()
 
 
-class AspResultLogModel:
-    def __init__(self):
-        self.traces: typing.List[ASPResultTraceModel] = []
-
-    def __str__(self):
-        return str(self.traces)
-
-    def __repr__(self):
-        return self.__str__()
-
-    def print_indent(self):
-        s = self.__str__()
-        j = json.loads(s)
-        print(json.dumps(j, indent=2))
+# class AspResultLogModel:  # TODO: print json rename class
+#     def __init__(self):
+#         self.traces: typing.List[ASPResultTraceModel] = []
+#
+#     def __str__(self):
+#         return str(self.traces)
+#
+#     def __repr__(self):
+#         return self.__str__()
+#
+#     def print_indent(self):
+#         s = self.__str__()
+#         j = json.loads(s)
+#         print(json.dumps(j, indent=2))

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from src.declare4py.pm_tasks.log_generation.asp.asp_translator.declare_constraint_resolver import \
     DeclareModelConditionResolver2ASP
-from src.declare4py.process_models.decl_model import DeclareModelAttributeType, DeclareModelTemplateDataModel, \
-    DeclModel, DeclareParsedDataModel
+from src.declare4py.process_models.decl_model import DeclareModelAttributeType
+from src.declare4py.process_models.decl_model import DeclModel
+from src.declare4py.process_models.decl_model import DeclareModelTemplateDataModel
 
 """
 Abductive logic programming (ALP) is a high-level knowledge-representation framework that can be used to solve
@@ -19,16 +20,15 @@ Abductive logic programming (ALP) is a high-level knowledge-representation frame
 
 class TranslatedASPModel:
 
-    def __init__(self, scale_number: int, is_encoded: bool):
+    def __init__(self, is_encoded: bool):
         self.lines: [str] = []
         self.extra_asp_line: [str] = []
         self.values_assignment: [str] = []
         self.attributes_values: [str] = []
         self.templates_s: [str] = []
         self.fact_names: [str] = []
-        self.scale_number: int = scale_number
         self.is_encoded: bool = is_encoded
-        self.condition_resolver = DeclareModelConditionResolver2ASP(self.scale_number, self.is_encoded)
+        self.condition_resolver = DeclareModelConditionResolver2ASP(self.is_encoded)
 
     def define_predicate(self, name: str, predicate_name: str, is_encoded: bool = True):
         if not is_encoded:
@@ -50,18 +50,15 @@ class TranslatedASPModel:
         if not is_encoded:
             attr = attr.lower()
         if value["value_type"] == DeclareModelAttributeType.INTEGER:
-            self.add_attribute_value_to_list(f'value({attr}, {self.scale_number2int(value["value"])}).')
+            self.add_attribute_value_to_list(f'value({attr}, {value["value"]}).')
         elif value["value_type"] == DeclareModelAttributeType.FLOAT:
-            self.add_attribute_value_to_list(f'value({attr}, {self.scale_number2int(value["value"])}).')
+            self.add_attribute_value_to_list(f'value({attr}, {(value["value"])}).')
         elif value["value_type"] == DeclareModelAttributeType.INTEGER_RANGE:
-            frm, til = self.__parse_range_value(value["value"])
-            frm = self.scale_number2int(frm)
-            til = self.scale_number2int(til)
+            (frm, til) = (value["from"], value["to"])
             self.add_attribute_value_to_list(f'value({attr}, {frm}..{til}).')
         elif value["value_type"] == DeclareModelAttributeType.FLOAT_RANGE:
-            frm, til = self.__parse_range_value(value["value"])
-            frm = self.scale_number2int(frm)
-            til = self.scale_number2int(til)
+            frm = self.scale_number2int(value["from"], value["range_precision"])
+            til = self.scale_number2int(value["to"], value["range_precision"])
             self.add_attribute_value_to_list(f'value({attr}, {frm}..{til}).')
         elif value["value_type"] == DeclareModelAttributeType.ENUMERATION:
             val = value["value"].split(",")
@@ -72,28 +69,12 @@ class TranslatedASPModel:
             for s in val:
                 self.add_attribute_value_to_list(f'value({attr}, {s}).')
 
-    def scale_number2int(self, num: [int | float]) -> int:
-        # if isinstance(num, int) or isinstance(num, float):
-        if isinstance(num, str):
-            if num.__contains__('.'):
-                num = float(num)
-            else:
-                num = int(num)
-        return int(num * self.scale_number)
+    def scale_number2int(self, num: [int | float], num_to_scale: int) -> int:
+        return int(num * (10 ** num_to_scale))
 
     def add_attribute_value_to_list(self, value: str):
         if value not in self.attributes_values:
             self.attributes_values.append(value)
-
-    def __parse_range_value(self, value: str):
-        v = value.lower().replace("integer", "")\
-            .replace("float", "")\
-            .replace("between", "") \
-            .replace("and", "") \
-            .replace("  ", " ") \
-            .strip()
-        (frm, til) = v.split(" ")
-        return frm, til
 
     def add_template(self, name, ct: DeclareModelTemplateDataModel, idx: int, props: dict[str, dict]):
         self.templates_s.append(f"template({idx},\"{name}\").")
@@ -131,9 +112,7 @@ class ASPTranslator:
             keys = model.parsed_model.encode()
         else:
             keys = model.parsed_model
-        scalable_precision = self.get_float_biggest_precision(keys)
-        self.asp_model = TranslatedASPModel(10 ** (scalable_precision - 1), use_encoding)
-
+        self.asp_model = TranslatedASPModel(use_encoding)
         for k in keys.events:
             event = keys.events[k]
             self.asp_model.define_predicate(event.name, event.event_type, use_encoding)
@@ -170,28 +149,3 @@ class ASPTranslator:
                 self.asp_model.add_asp_line(s + '.')
 
         return self.asp_model
-
-    def get_float_biggest_precision(self, model: DeclareParsedDataModel) -> int:
-        attr_list = model.attributes_list
-        decimal_len_list = []
-        for attr in attr_list:
-            attr_dict = attr_list[attr]
-            if attr_dict["value_type"] == DeclareModelAttributeType.FLOAT_RANGE or attr_dict["value_type"] == DeclareModelAttributeType.INTEGER_RANGE:
-                v = attr_dict["value"].lower().replace("integer", "") \
-                    .replace("float", "") \
-                    .replace("between", "") \
-                    .replace("and", "") \
-                    .replace("  ", " ") \
-                    .strip()
-                (frm, til) = v.split(" ")
-                precision = 1
-                frm = frm.split(".")  # 10.587
-                if len(frm) > 1:
-                    precision = len(frm[1])  # frm[1] = 587 and length would be 3
-                til = til.split(".")
-                if len(til) > 1:
-                    precision = max(len(til[1]), precision)
-                decimal_len_list.append(precision)
-        if len(decimal_len_list) == 0:
-            return 1
-        return max(decimal_len_list)
