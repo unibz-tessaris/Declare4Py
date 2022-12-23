@@ -26,7 +26,9 @@ class AspGenerator(LogGenerator):
     def __init__(self, decl_model: DeclModel, num_traces: int, min_event: int, max_event: int,
                  distributor_type: typing.Literal["uniform", "gaussian", "custom"] = "uniform",
                  custom_probabilities: typing.Optional[typing.List[float]] = None,
-                 loc: float = None, scale: float = None, encode_decl_model: bool = True):
+                 loc: float = None, scale: float = None, encode_decl_model: bool = True,
+                 activation: dict | None = None
+                 ):
         """
         ASPGenerator generates the log from declare model which translate declare model
         into ASP, and then it passes to the clingo, which generates the traces

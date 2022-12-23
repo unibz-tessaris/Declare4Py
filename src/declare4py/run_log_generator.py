@@ -119,6 +119,8 @@ model.add_constraints_subset_to_violate([
 ])
 
 
+
+
 num_of_traces = 4
 num_min_events = 2
 num_max_events = 4
@@ -130,11 +132,18 @@ asp = AspGenerator(
     # distributor_type="gaussian",
     # loc=3,
     # scale=0.8,
-    encode_decl_model=True
+    encode_decl_model=True,
+    activation= {
+        1: ["<", 3],
+        2: ["<", 3],
+        3: ["<=", 2],
+    }
 )
 
 asp.run()
 asp.to_xes("../../generated_xes.xes")
+
+
 
 
 # TODO: ask how to implement TIME CONDITION in asp
