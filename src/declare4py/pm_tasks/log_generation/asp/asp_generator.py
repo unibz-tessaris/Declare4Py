@@ -103,7 +103,7 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug("ASP encoding generated")
         return lp
 
-    def run(self, generated_asp_file_path: str | None):
+    def run(self, generated_asp_file_path: str | None = None):
         """
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         """

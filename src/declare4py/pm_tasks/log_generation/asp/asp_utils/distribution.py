@@ -7,8 +7,28 @@ import numpy as np
 
 
 class Distributor:
+    """
+    A class for generating trace lengths according to different distributions.
+    """
 
     def custom_distribution(self, min_num: int, max_num: int, traces_num: int, probabilities: [float]):
+        """
+        Generates trace lengths according to a custom distribution specified by the `probabilities` list.
+
+        Args:
+        - min_num: The minimum trace length.
+        - max_num: The maximum trace length.
+        - traces_num: The number of traces to generate.
+        - probabilities: A list of probabilities for each trace length from `min_num` to `max_num`.
+         The list must have a length equal to `max_num - min_num + 1`, and the sum of the probabilities must be 1.
+
+        Returns:
+        A `collections.Counter` object containing the count of each trace length generated.
+
+        Raises:
+        - ValueError: If `probabilities` is not provided or if the sum of the probabilities is not 1.
+        - ValueError: If the number of probabilities provided is not equal to the difference between `max_num` and `min_num`.
+        """
         if probabilities is None:
             raise ValueError("custom probabilities must be provided")
         s = sum(probabilities)
@@ -22,10 +42,35 @@ class Distributor:
         return self.__distribute_random_choices(min_num, max_num, traces_num, probabilities)
 
     def uniform_distribution(self, min_num, max_num, traces_num: int):
+        """
+        Generates trace lengths according to a uniform distribution.
+
+        Args:
+        - min_num: The minimum trace length.
+        - max_num: The maximum trace length.
+        - traces_num: The number of traces to generate.
+
+        Returns:
+        A `collections.Counter` object containing the count of each trace length generated.
+        """
         probabilities = self.__get_uniform_probabilities((max_num + 1) - min_num)
         return self.custom_distribution(min_num, max_num, traces_num, probabilities)
 
     def normal_distribution(self, mu, sigma, num_traces: int):
+        """
+        Generates trace lengths according to a normal (Gaussian) distribution.
+
+        Args:
+        - mu: The mean of the distribution.
+        - sigma: The standard deviation of the distribution.
+        - num_traces: The number of traces to generate.
+
+        Returns:
+        A `collections.Counter` object containing the count of each trace length generated.
+
+        Notes:
+        - Trace lengths less than 1 are not included in the output.
+        """
         trace_lens = np.random.normal(mu, sigma, num_traces)
         trace_lens = np.round(trace_lens)
         trace_lens = trace_lens[trace_lens > 1]
@@ -33,9 +78,30 @@ class Distributor:
         return c
 
     def __get_uniform_probabilities(self, num_probabilities: int):
+        """
+        Generates a list of uniform probabilities for the given number of probabilities.
+
+        Args:
+        - num_probabilities: The number of probabilities to generate.
+
+        Returns:
+        A list of uniform probabilities.
+        """
         return [1 / num_probabilities for p in range(0, num_probabilities)]
 
     def __distribute_random_choices(self, min_num, max_num, traces_num, probabilities: [float]):
+        """
+        Generates trace lengths according to a custom distribution specified by the `probabilities` list, using the `numpy.random.choice()` function.
+
+        Args:
+        - min_num: The minimum trace length.
+        - max_num: The maximum trace length.
+        - traces_num: The number of traces to generate.
+        - probabilities: A list of probabilities for each trace length from `min_num` to `max_num`. The list must have a length equal to `max_num - min_num + 1`, and the sum of the probabilities must be 1.
+
+        Returns:
+        A `collections.Counter` object containing the count of each trace length generated.
+        """
         prefixes = range(min_num, max_num + 1)
         trace_lens = np.random.choice(prefixes, traces_num, p=probabilities)
         c = collections.Counter(trace_lens)
@@ -48,6 +114,23 @@ class Distributor:
             num_traces: int | float,
             dist_type: Literal["uniform", "gaussian", "custom"] = "uniform",
             custom_probabilities: Optional[List[float]] = None):
+        """
+        Generates trace lengths according to the specified distribution.
+
+        Args:
+        - min_num_events_or_mu: The minimum trace length for uniform distributions, or the mean of the distribution for normal distributions.
+        - max_num_events_or_sigma: The maximum trace length for uniform distributions, or the standard deviation of the distribution for normal distributions.
+        - num_traces: The number of traces to generate.
+        - dist_type: The type of distribution to use. Can be "uniform", "gaussian", or "custom". Default is "uniform".
+        - custom_probabilities: A list of custom probabilities to use for the "custom" distribution type.
+
+        Returns:
+        - For "uniform" and "custom" distribution types, a `collections.Counter` object containing the count of each trace length generated.
+        - For "gaussian" distribution type, an integer representing the total number of traces generated.
+
+        Raises:
+        - AttributeError: If `dist_type` is not one of the supported distribution types.
+        """
         if dist_type == "gaussian":
             return self.normal_distribution(min_num_events_or_mu, max_num_events_or_sigma, num_traces)
         elif dist_type == "uniform":
