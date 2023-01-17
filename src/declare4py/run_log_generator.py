@@ -109,13 +109,13 @@ Existence[act4] | |
 
 model: DeclModel = DeclModel().parse_from_string(decl)
 model.violate_all_constraints_in_subset = True
-model.add_constraints_subset_to_violate([
-    # "Existence[act2] | |",
-    # "Existence[act4] | |"
-    "Response[Driving_Test, Resit] |A.Grade<=2 | |"
-    # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
-    # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
-])
+# model.add_constraints_subset_to_violate([
+#     # "Existence[act2] | |",
+#     # "Existence[act4] | |"
+#     "Response[Driving_Test, Resit] |A.Grade<=2 | |"
+#     # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
+#     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
+# ])
 
 num_of_traces = 4
 num_min_events = 2
@@ -135,6 +135,15 @@ asp = AspGenerator(
         3: ["<=", 2],
     }
 )
+
+asp.violate_all_constraints_in_subset = False
+asp.add_constraints_subset_to_violate([
+    # "Existence[act2] | |",
+    # "Existence[act4] | |"
+    "Response[Driving_Test, Resit] |A.Grade<=2 | |"
+    # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
+    # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
+])
 
 asp.run('./generated_asp.lp', negative_traces=2)
 asp.to_xes("../../generated_xes.xes")

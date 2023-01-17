@@ -8,6 +8,7 @@ import warnings
 from datetime import datetime
 from random import randrange
 
+import copy
 import clingo
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
@@ -19,6 +20,7 @@ from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_encoding import AS
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser import ASPResultTraceModel
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_template import ASPTemplate
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.distribution import Distributor
+from src.declare4py.process_models.process_model import ProcessModel
 
 
 class AspGenerator(LogGenerator):
@@ -54,6 +56,8 @@ class AspGenerator(LogGenerator):
         self.custom_probabilities = custom_probabilities
         self.scale = scale
         self.loc = loc
+        self.violate_all_constraints_in_subset: bool = False  # IF false: clingo will decide itself the constraints to violate
+        self.declare_model_violate_constraints: [str] = []  # constraint list which should be violated
         self.traces_length = {}
         self.distributor_instance: Distributor = Distributor()
         self.lp_model: TranslatedASPModel = None
@@ -110,23 +114,27 @@ class AspGenerator(LogGenerator):
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         """
         if negative_traces > self.log_length:
-            warnings.warn("Negative traces can not be greater than total traces asked to generate.")
+            warnings.warn("Negative traces can not be greater than total traces asked to generate. Nothing Generating")
             return
-        self.__generate_log(generated_asp_file_path)
 
-    def __generate_log(self, generated_asp_file_path: str | None = None):
+        if negative_traces > 0:
+            nDeclModel = self.__get_decl_model_with_violate_constraint()
+            lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
+
+        # self.__generate_log(generated_asp_file_path, 89565)  ### TODO: how to handle distribution for neg and pos traces
+
+    def __generate_log(self, lp_model: str, traces_to_generate: int):
         """
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         """
         self.py_logger.debug("Starting RUN method")
-        lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
         self.clingo_output = []
         self.py_logger.debug("Start generating traces")
         # traces_length = {2: 3, 4: 1}
         for events, traces in self.traces_length.items():
             self.py_logger.debug(f" Total trace to generate and events: Traces:{traces}, Events: {events},"
                                  f" RandFrequency: 0.9")
-            self.__generate_asp_trace(lp, events, traces)
+            self.__generate_asp_trace(lp_model, events, traces)
         self.py_logger.debug(f"Traces generated. Parsing Trace results")
         self.__format_to_custom_asp_structure()
         self.py_logger.debug(f"Trace results parsed")
@@ -212,3 +220,33 @@ class AspGenerator(LogGenerator):
         if self.log_analyzer.log is None:
             self.__pm4py_log()
         exporter.apply(self.log_analyzer.log, output_fn)
+
+    def add_constraints_subset_to_violate(self, constraints_list: list[str]):
+        """
+        Add constraints to violate
+
+        Parameters
+        ----------
+        constraints_list
+
+        Returns
+        -------
+
+        """
+        self.declare_model_violate_constraints = constraints_list
+
+    def __get_decl_model_with_violate_constraint(self) -> DeclModel | ProcessModel:
+        """
+        Creates a duplicate process model with change in template list, assigning a boolean value to `violate` property
+
+        Returns
+        -------
+        DeclModel
+        """
+        dpm = copy.deepcopy(self.process_model)
+        parsed_tmpl = dpm.templates
+        for cv in self.declare_model_violate_constraints:
+            for tmpl in parsed_tmpl:
+                if tmpl.template_line == cv:
+                    tmpl.violate = True
+        return dpm
