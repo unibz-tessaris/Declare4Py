@@ -105,7 +105,16 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug("ASP encoding generated")
         return lp
 
-    def run(self, generated_asp_file_path: str | None = None):
+    def run(self, generated_asp_file_path: str | None = None, negative_traces: int = 0):
+        """
+            Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
+        """
+        if negative_traces > self.log_length:
+            warnings.warn("Negative traces can not be greater than total traces asked to generate.")
+            return
+        self.__generate_log(generated_asp_file_path)
+
+    def __generate_log(self, generated_asp_file_path: str | None = None):
         """
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         """

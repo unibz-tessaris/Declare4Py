@@ -12,14 +12,13 @@ decl = """
 activity Driving_Test
 bind Driving_Test: Driver, Grade
 activity Getting_License
-bind Getting_License: Driver
+bind Getting_License: Driver, Grade
 activity Resit
 bind Resit: Driver, Grade
 activity Test_Failed
 bind Test_Failed: Driver
 Driver: Fabrizio, Mike, Marlon, Raimundas
 Grade: integer between 1 and 5
-# Response[Driving_Test, Getting_License] |A.Grade>2 | |
 Response[Driving_Test, Getting_License] | |T.Grade>2 |
 Response[Driving_Test, Resit] |A.Grade<=2 | |
 Response[Driving_Test, Test_Failed] |A.Grade<=2 | |
@@ -92,7 +91,6 @@ Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.
 Chain Precedence[ER Registration, ER Triage] |A.org:group is C |(T.InfectionSuspected is true) AND (T.SIRSCritTemperature is true) AND (T.DiagnosticLacticAcid is true) AND (T.DiagnosticBlood is true) AND (T.DiagnosticIC is true) AND (T.SIRSCriteria2OrMore is true) AND (T.DiagnosticECG is true) |52,2154,s
 """
 
-
 decl3 = """
 activity act1
 activity act2
@@ -109,17 +107,15 @@ Existence[act4] | |
 # model = dp.parse_from_string(decl)
 # dp = DeclModel().parse_from_file("...")
 
-model: DeclModel = DeclModel().parse_from_string(decl2)
+model: DeclModel = DeclModel().parse_from_string(decl)
 model.violate_all_constraints_in_subset = True
 model.add_constraints_subset_to_violate([
     # "Existence[act2] | |",
     # "Existence[act4] | |"
-"Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
-"Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
+    "Response[Driving_Test, Resit] |A.Grade<=2 | |"
+    # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
+    # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
 ])
-
-
-
 
 num_of_traces = 4
 num_min_events = 2
@@ -132,21 +128,16 @@ asp = AspGenerator(
     # distributor_type="gaussian",
     # loc=3,
     # scale=0.8,
-    encode_decl_model=True,
-    activation= {
+    encode_decl_model=False,
+    activation={
         1: ["<", 3],
         2: ["<", 3],
         3: ["<=", 2],
     }
 )
 
-asp.run()
+asp.run('./generated_asp.lp', negative_traces=2)
 asp.to_xes("../../generated_xes.xes")
-
-
-
 
 # TODO: ask how to implement TIME CONDITION in asp
 # TODO: Ask Chiarello whether the generated output of lp is correct
-
-
