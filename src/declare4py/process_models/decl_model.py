@@ -8,6 +8,10 @@ from enum import Enum
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.utility.custom_utility_dict import CustomUtilityDict
 
+"""
+Class which holds most of the Constraint Template List with some information about templates themself.
+"""
+
 
 class DeclareModelTemplate(str, Enum):
 
@@ -70,6 +74,11 @@ class DeclareModelTemplate(str, Enum):
 
     def __repr__(self):
         return "\"" + str(self.__str__()) + "\""
+
+
+"""
+Class for backward-compatibility for some older code which contains two methods for declare models.
+"""
 
 
 class DeclareModelConditionParserUtility:
@@ -176,6 +185,11 @@ class DeclareModelConditionParserUtility:
 
         except Exception:
             raise SyntaxError
+
+
+"""
+An Enum class that specifies types of attributes of the Declare model
+"""
 
 
 class DeclareModelAttributeType(str, Enum):
@@ -700,7 +714,6 @@ class DeclModel(LTLModel):
         # self.activities = []
         self.serialized_constraints = []
         self.constraints = []
-        self.violate_all_constraints_in_subset = False  # IF false: clingo will decide itself
         self.parsed_model = DeclareParsedDataModel()
         self.declare_model_lines: [str] = []
         self.declare_model_violate_constraints: [str] = []
@@ -790,14 +803,6 @@ class DeclModel(LTLModel):
                         dpm.add_template(line, template, cardinality)
         self.set_constraints()
         dpm.template_constraints = self.constraints
-
-    def add_constraints_subset_to_violate(self, constraints_list: list[str]):
-        self.declare_model_violate_constraints = constraints_list
-        parsed_tmpl = self.parsed_model.templates
-        for cv in self.declare_model_violate_constraints:
-            for tmpl in parsed_tmpl:
-                if tmpl.template_line == cv:
-                    tmpl.violate = True
 
     @staticmethod
     def is_event_name_definition(line: str) -> bool:

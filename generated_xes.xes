@@ -1,66 +1,90 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <log xes.version="1849-2016" xes.features="nested-attributes" xmlns="http://www.xes-standard.org/">
 	<trace>
-		<string key="concept:name" value="trace_0" />
+		<string key="concept:name" value="trace_2" />
+		<string key="trace:type" value="positive" />
 		<event>
-			<string key="concept:name" value="driving_test" />
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="test_failed" />
+			<string key="driver" value="mike" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
+		</event>
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="resit" />
+			<string key="driver" value="mike" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
+			<string key="grade" value="1" />
+		</event>
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="resit" />
 			<string key="driver" value="marlon" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
 			<string key="grade" value="2" />
-			<float key="time:timestamp" value="1673952604.144948" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_3" />
+		<string key="trace:type" value="positive" />
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="test_failed" />
+			<string key="driver" value="marlon" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
 		</event>
 		<event>
-			<string key="concept:name" value="driving_test" />
-			<string key="driver" value="fabrizio" />
-			<string key="grade" value="5" />
-			<float key="time:timestamp" value="1673952604.144962" />
-		</event>
-		<event>
-			<string key="concept:name" value="getting_license" />
-			<string key="driver" value="fabrizio" />
-			<float key="time:timestamp" value="1673952604.144967" />
-		</event>
-		<event>
+			<string key="lifecycle:transition" value="complete" />
 			<string key="concept:name" value="test_failed" />
 			<string key="driver" value="fabrizio" />
-			<float key="time:timestamp" value="1673952604.144971" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
+		</event>
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="test_failed" />
+			<string key="driver" value="fabrizio" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_0" />
+		<string key="trace:type" value="negative" />
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="getting_license" />
+			<string key="driver" value="fabrizio" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
+			<string key="grade" value="3" />
+		</event>
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="test_failed" />
+			<string key="driver" value="marlon" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
 		</event>
 	</trace>
 	<trace>
 		<string key="concept:name" value="trace_1" />
+		<string key="trace:type" value="negative" />
 		<event>
-			<string key="concept:name" value="driving_test" />
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="test_failed" />
 			<string key="driver" value="mike" />
-			<string key="grade" value="2" />
-			<float key="time:timestamp" value="1673952604.144981" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
 		</event>
 		<event>
-			<string key="concept:name" value="getting_license" />
-			<string key="driver" value="fabrizio" />
-			<float key="time:timestamp" value="1673952604.144985" />
-		</event>
-		<event>
-			<string key="concept:name" value="test_failed" />
-			<string key="driver" value="fabrizio" />
-			<float key="time:timestamp" value="1673952604.144989" />
-		</event>
-	</trace>
-	<trace>
-		<string key="concept:name" value="trace_2" />
-		<event>
+			<string key="lifecycle:transition" value="complete" />
 			<string key="concept:name" value="driving_test" />
-			<string key="driver" value="fabrizio" />
-			<string key="grade" value="2" />
-			<float key="time:timestamp" value="1673952604.144997" />
-		</event>
-		<event>
-			<string key="concept:name" value="getting_license" />
-			<string key="driver" value="fabrizio" />
-			<float key="time:timestamp" value="1673952604.145" />
-		</event>
-		<event>
-			<string key="concept:name" value="test_failed" />
 			<string key="driver" value="raimundas" />
-			<float key="time:timestamp" value="1673952604.145004" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
+			<string key="grade" value="4" />
+		</event>
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="getting_license" />
+			<string key="driver" value="mike" />
+			<string key="time:timestamp" value="2023-01-17T20:23:33+01:00" />
+			<string key="grade" value="3" />
 		</event>
 	</trace>
 </log>

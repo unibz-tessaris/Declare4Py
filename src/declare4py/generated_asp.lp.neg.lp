@@ -42,5 +42,5 @@ correlation_condition(2,T):- time(T).
 
 
 sat(0).
-sat(1).
 sat(2).
+:-sat(1).
