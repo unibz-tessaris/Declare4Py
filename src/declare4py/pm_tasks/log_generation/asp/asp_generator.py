@@ -57,7 +57,8 @@ class AspGenerator(LogGenerator):
         self.lp_model: TranslatedASPModel = None
         self.encode_decl_model = encode_decl_model
         self.py_logger.debug(f"Distribution for traces {self.distributor_type}")
-        self.py_logger.debug(f"traces: {num_traces}, events can have a trace min({self.min_events}) max({self.max_events})")
+        self.py_logger.debug(
+            f"traces: {num_traces}, events can have a trace min({self.min_events}) max({self.max_events})")
         self.compute_distribution()
 
     def generate_asp_from_decl_model(self, encode: bool = True, save_file: str = None,
@@ -94,13 +95,13 @@ class AspGenerator(LogGenerator):
         result: LogTracesType = LogTracesType(negative=[], positive=[])
         if self.negative_traces > 0:
             self.py_logger.debug("Generating negative traces")
+            violation = {'constraint_violation': True, 'violate_all_constraints': self.violate_all_constraints}
             dupl_decl_model = self.__get_decl_model_with_violate_constraint()
-            lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path+'.neg.lp',
-                                                   dupl_decl_model,
-                                                   {
-                                                       'constraint_violation': True,
-                                                       'violate_all_constraints': self.violate_all_constraints
-                                                   })
+            if generated_asp_file_path is not None:
+                lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path + '.neg.lp',
+                                                       dupl_decl_model, violation)
+            else:
+                lp = self.generate_asp_from_decl_model(self.encode_decl_model, None, dupl_decl_model, violation)
             self.__generate_log(lp, neg_traces_dist)
             result['negative'] = self.clingo_output
 
@@ -165,7 +166,6 @@ class AspGenerator(LogGenerator):
 
     def __handle_clingo_result(self, output: clingo.solving.Model):
         symbols = output.symbols(shown=True)
-        print('symbols', symbols)
         self.py_logger.debug(f" Traces generated :{symbols}")
         self.clingo_output.append(symbols)
 
@@ -178,7 +178,8 @@ class AspGenerator(LogGenerator):
 
         # current_time = datetime(tzinfo=timezone(timedelta(hours=1))).now()
         dt = datetime.now()
-        current_time = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, tzinfo=timezone(timedelta(hours=1)))
+        current_time = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
+                                tzinfo=timezone(timedelta(hours=1)))
         formatted_time = current_time.isoformat()
 
         for result in self.asp_generated_traces:
