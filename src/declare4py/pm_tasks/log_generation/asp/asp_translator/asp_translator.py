@@ -11,7 +11,6 @@ Abductive logic programming (ALP) is a high-level knowledge-representation frame
  problems declaratively based on abductive reasoning.
 """
 
-
 """
     ASP model contains the translated code of declare model. The ASP code in this model describe the problem
     representation in ASP.
@@ -104,10 +103,28 @@ class ASPTranslator:
     """
     ASP interpreter reads the data from the decl_model and converts it into ASP, as defining the problem
     """
+
     def __init__(self) -> None:
         self.asp_model: TranslatedASPModel
 
-    def from_decl_model(self, model: DeclModel, use_encoding: bool = True) -> TranslatedASPModel:
+    def from_decl_model(self, model: DeclModel, use_encoding: bool = True,
+                        constraint_violation: dict = None) -> TranslatedASPModel:
+        """
+        Translate the declare model into LP model or ASP which is, then, fed into Clingo.
+        Parameters
+        ----------
+        model: Declare model
+        use_encoding: encode event, activities, attributes. Since clingo doesn't support some chars so we need to encode it
+        constraint_violation: dictionary with two keyvalue pair: { constraint_violation: bool, violate_all_constraints: bool }.
+         `constraint_violation` indicates whether violation feature should be enabled or not, `violate_all_constraints`
+          indicates whether all the constraints mentioned in the list should be violated (True) or some of them (False)
+          and when the value is False, the constraints are chosen by clingo itself to violate.
+          The `violate_all_constraints` works only if `constraint_violation` is set to True.
+
+        Returns
+        -------
+        TranslatedASPModel
+        """
         if use_encoding:
             keys = model.parsed_model.encode()
         else:
@@ -129,23 +146,32 @@ class ASPTranslator:
             constraints_violate[templates_idx] = ct.violate
             templates_idx = templates_idx + 1
 
-        if model.violate_all_constraints_in_subset:
-            for idx, violate in constraints_violate.items():
-                if violate:
-                    self.asp_model.add_asp_line(f"unsat({idx}).")
-                else:
-                    self.asp_model.add_asp_line(f"sat({idx}).")
+        if constraint_violation is not None and 'constraint_violation' in constraint_violation and\
+                constraint_violation['constraint_violation']:
+            # if model.violate_all_constraints_in_subset:
+            if 'violate_all_constraints' in constraint_violation and constraint_violation['violate_all_constraints']:
+                for idx, violate in constraints_violate.items():
+                    if violate:
+                        self.asp_model.add_asp_line(f"unsat({idx}).")
+                    else:
+                        self.asp_model.add_asp_line(f"sat({idx}).")
+            else:
+                isConstraintViolated = False
+                s = ":-"
+                for idx, val in constraints_violate.items():
+                    if val:
+                        s = s + f'sat({idx}), '
+                        isConstraintViolated = True
+                    else:
+                        self.asp_model.add_asp_line(f"sat({idx}).")
+                s = s.strip().rstrip(',')
+                if isConstraintViolated:
+                    self.asp_model.add_asp_line(s + '.')
         else:
-            isConstraintViolated = False
-            s = ":-"
-            for idx, val in constraints_violate.items():
-                if val:
-                    s = s + f'sat({idx}), '
-                    isConstraintViolated = True
-                else:
-                    self.asp_model.add_asp_line(f"sat({idx}).")
-            s = s.strip().rstrip(',')
-            if isConstraintViolated:
-                self.asp_model.add_asp_line(s + '.')
+            idx = 0
+            for ct in keys.templates:
+                constraints_violate[templates_idx] = ct.violate
+                self.asp_model.add_asp_line(f'sat({idx}).')
+                idx = idx + 1
 
         return self.asp_model
