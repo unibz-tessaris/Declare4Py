@@ -116,7 +116,7 @@ asp = AspGenerator(
     encode_decl_model=False,
 )
 # asp.set_distribution( distributor_type="gaussian", loc=3, scale=0.8)
-asp.set_negative_traces_len(0)
+asp.set_negative_traces_len(1)
 asp.violate_all_constraints_in_subset = True
 asp.add_constraints_subset_to_violate([
     # "Existence[act2] | |",
