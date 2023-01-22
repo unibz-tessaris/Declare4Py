@@ -21,33 +21,55 @@ class DeclareModelTemplate(str, Enum):
         obj._value_ = value
         return obj
 
-    def __init__(self, templ_str: str, is_binary: bool, is_negative: bool, supports_cardinality: bool):
+    def __init__(self, templ_str: str, is_binary: bool, is_negative: bool,
+                 supports_cardinality: bool,
+                 both_activation_condition: bool = False):
+        """
+
+        Parameters
+        ----------
+        templ_str: template name
+        is_binary: whether template supports 2 events
+        is_negative: whether the template is negative
+        supports_cardinality: whether template supports cardinality, i.e Existence template is unary
+         but you can specify a number how many times Existence should occur. "Existence4[A]|||" where 4 times at least occur.
+        both_activation_condition: some templates doesn't have target condition, instead both conditions are activation conditions.
+        """
         self.templ_str = templ_str
         self.is_binary = is_binary
         self.is_negative = is_negative
         self.supports_cardinality = supports_cardinality
+        self.both_activation_condition = both_activation_condition
 
-    EXISTENCE = "Existence", False, False, True
-    ABSENCE = "Absence", False, False, True
-    EXACTLY = "Exactly", False, False, True
+    EXISTENCE = "Existence", False, False, True, False
+    ABSENCE = "Absence", False, False, True, False
+    EXACTLY = "Exactly", False, False, True, False
 
-    INIT = "Init", False, False, False
+    INIT = "Init", False, False, False, False
 
-    CHOICE = "Choice", True, False, False
-    EXCLUSIVE_CHOICE = "Exclusive Choice", True, False, False
-    RESPONDED_EXISTENCE = "Responded Existence", True, False, False
-    RESPONSE = "Response", True, False, False
-    ALTERNATE_RESPONSE = "Alternate Response", True, False, False
-    CHAIN_RESPONSE = "Chain Response", True, False, False
-    PRECEDENCE = "Precedence", True, False, False
-    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False
-    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False
+    CHOICE = "Choice", True, False, False, True
+    EXCLUSIVE_CHOICE = "Exclusive Choice", True, False, False, True
+    RESPONDED_EXISTENCE = "Responded Existence", True, False, False, False
+    RESPONSE = "Response", True, False, False, False
+    ALTERNATE_RESPONSE = "Alternate Response", True, False, False, False
+    CHAIN_RESPONSE = "Chain Response", True, False, False, False
+    PRECEDENCE = "Precedence", True, False, False, False
+    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False
+    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False
 
-    NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False
-    NOT_RESPONSE = "Not Response", True, True, False
-    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False
-    NOT_PRECEDENCE = "Not Precedence", True, True, False
-    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False
+    SUCCESSION = "Succession", True, False, False, True  # TODO: check if it is defined correct
+    NOT_SUCCESSION = "Not Succession", True, True, False, True  # TODO: check if it is defined correct
+    ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True  # TODO: check whether it is defined correct
+    Chain_SUCCESSION = "Chain Succession", True, False, False, True  # TODO: check whether it is defined correct
+    NOT_CHAIN_SUCCESSION = "Not Chain Succession", True, False, False, True  # TODO: check whether it is defined correct
+    CO_EXISTENCE = "Co-Existence", True, False, False, True  # TODO: check whether it is defined correct, I dont think this one is correct
+    NOT_CO_EXISTENCE = "Not Co-Existence", True, False, False, True  # TODO: check whether it is defined correct, I dont think this one is correct
+
+    NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False
+    NOT_RESPONSE = "Not Response", True, True, False, False
+    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False
+    NOT_PRECEDENCE = "Not Precedence", True, True, False, False
+    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False
 
     @classmethod
     def get_template_from_string(cls, template_str):
@@ -243,6 +265,7 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
         self.template_line: str | None  # Constraint lines
         self.condition_line: str | None  # |A.grade < 2  | T.mark > 2|1,5,s
         self.violate: bool = False
+        self.template_index_id: int = None
 
     def get_conditions(self):
         return self.get_active_condition(), self.get_target_condition(), self.get_time_condition()
@@ -326,6 +349,7 @@ which contains the information of about declare model which is parsed.
 
 
 class DeclareParsedDataModel(CustomUtilityDict):
+
     def __init__(self):
         super().__init__()
         self.events: dict[str, DeclareModelEvent] = {}
@@ -335,6 +359,7 @@ class DeclareParsedDataModel(CustomUtilityDict):
         self.encoded_model: DeclareModelCoder = None
         self.encoder: DeclareModelCoder = None
         self.update_props()
+        self.total_templates = 0
 
     def add_event(self, name: str, event_type: str) -> None:
         """
@@ -445,12 +470,14 @@ class DeclareParsedDataModel(CustomUtilityDict):
             return 0
         return max(decimal_len_list)
 
-    def add_template(self, line: str, template: DeclareModelTemplate, cardinality: str):
+    def add_template(self, line: str, template: DeclareModelTemplate, cardinality: str, template_idx: int = None):
         templt = DeclareModelTemplateDataModel()
         self.templates.append(templt)
         templt.template = template
         templt.template_name = template.templ_str
         templt.template_line = line
+        templt.template_index_id = template_idx or self.total_templates
+        self.total_templates = self.total_templates + 1
         if template.supports_cardinality and int(cardinality) > 1:
             templt.template_name += str(cardinality)
         compiler = re.compile(r"^(.*)\[(.*)\]\s*(.*)$")
@@ -546,6 +573,7 @@ class DeclareModelCoder:
                 encoded_conditions.append(tm)
             template.condition = encoded_conditions
             template.violate = tmpl.violate
+            template.template_index_id = tmpl.template_index_id
             template.condition_line = "| " + " | ".join(encoded_conditions)
             a = ", ".join(template.activities)
             template.template_line = f"{template.template_name}[{a}] {template.condition_line}"

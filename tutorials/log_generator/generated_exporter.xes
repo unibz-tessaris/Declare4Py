@@ -1,138 +1,90 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <log xes.version="1849-2016" xes.features="nested-attributes" xmlns="http://www.xes-standard.org/">
 	<trace>
-		<string key="concept:name" value="trace_2" />
-		<string key="label" value="positive" />
-		<event>
-			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="IV Antibiotics" />
-			<string key="org:group" value="A" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-		</event>
-		<event>
-			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="CRP" />
-			<string key="org:group" value="B" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YA" />
-			<string key="Age" value="20" />
-			<string key="CRP" value="4178.0" />
-		</event>
-	</trace>
-	<trace>
-		<string key="concept:name" value="trace_3" />
-		<string key="label" value="positive" />
-		<event>
-			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="CRP" />
-			<string key="org:group" value="A" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YA" />
-			<string key="Age" value="20" />
-			<string key="CRP" value="1755.0" />
-		</event>
-		<event>
-			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="Leucocytes" />
-			<string key="org:group" value="B" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YB" />
-			<string key="Age" value="52" />
-			<string key="Leucocytes" value="2737.0" />
-		</event>
-		<event>
-			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="Leucocytes" />
-			<string key="org:group" value="B" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YC" />
-			<string key="Age" value="82" />
-			<string key="Leucocytes" value="3755.0" />
-		</event>
-		<event>
-			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="CRP" />
-			<string key="org:group" value="A" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YA" />
-			<string key="Age" value="47" />
-			<string key="CRP" value="5431.0" />
-		</event>
-	</trace>
-	<trace>
 		<string key="concept:name" value="trace_0" />
-		<string key="label" value="negative" />
+		<string key="label" value="positive" />
 		<event>
 			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="LacticAcid" />
-			<string key="org:group" value="B" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="LacticAcid" value="66.0" />
+			<string key="concept:name" value="Getting_License" />
+			<string key="Driver" value="Raimundas" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+			<string key="Grade" value="1" />
 		</event>
 		<event>
 			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="LacticAcid" />
-			<string key="org:group" value="A" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="LacticAcid" value="62.0" />
+			<string key="concept:name" value="Resit" />
+			<string key="Driver" value="Fabrizio" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+			<string key="Grade" value="1" />
 		</event>
 		<event>
 			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="Leucocytes" />
-			<string key="org:group" value="B" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YA" />
-			<string key="Age" value="46" />
-			<string key="Leucocytes" value="1411.0" />
+			<string key="concept:name" value="Resit" />
+			<string key="Driver" value="Raimundas" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+			<string key="Grade" value="2" />
 		</event>
 		<event>
 			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="Leucocytes" />
-			<string key="org:group" value="C" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YA" />
-			<string key="Age" value="45" />
-			<string key="Leucocytes" value="3453.0" />
+			<string key="concept:name" value="Test_Failed" />
+			<string key="Driver" value="Mike" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
 		</event>
 	</trace>
 	<trace>
 		<string key="concept:name" value="trace_1" />
-		<string key="label" value="negative" />
+		<string key="label" value="positive" />
 		<event>
 			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="CRP" />
-			<string key="org:group" value="A" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YA" />
-			<string key="Age" value="47" />
-			<string key="CRP" value="3802.0" />
+			<string key="concept:name" value="Resit" />
+			<string key="Driver" value="Raimundas" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+			<string key="Grade" value="1" />
 		</event>
 		<event>
 			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="CRP" />
-			<string key="org:group" value="B" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YA" />
-			<string key="Age" value="45" />
-			<string key="CRP" value="1566.0" />
+			<string key="concept:name" value="Resit" />
+			<string key="Driver" value="Mike" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+			<string key="Grade" value="1" />
 		</event>
 		<event>
 			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="Leucocytes" />
-			<string key="org:group" value="B" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YA" />
-			<string key="Age" value="46" />
-			<string key="Leucocytes" value="2302.0" />
+			<string key="concept:name" value="Resit" />
+			<string key="Driver" value="Fabrizio" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+			<string key="Grade" value="2" />
 		</event>
 		<event>
 			<string key="lifecycle:transition" value="complete" />
-			<string key="concept:name" value="CRP" />
-			<string key="org:group" value="A" />
-			<string key="time:timestamp" value="2023-01-19T18:47:02+01:00" />
-			<string key="Diagnose" value="YA" />
-			<string key="Age" value="46" />
-			<string key="CRP" value="2516.0" />
+			<string key="concept:name" value="Test_Failed" />
+			<string key="Driver" value="Mike" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="trace_2" />
+		<string key="label" value="positive" />
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="Getting_License" />
+			<string key="Driver" value="Fabrizio" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+			<string key="Grade" value="1" />
+		</event>
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="Resit" />
+			<string key="Driver" value="Fabrizio" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+			<string key="Grade" value="2" />
+		</event>
+		<event>
+			<string key="lifecycle:transition" value="complete" />
+			<string key="concept:name" value="Resit" />
+			<string key="Driver" value="Marlon" />
+			<string key="time:timestamp" value="2023-01-22T22:45:05+01:00" />
+			<string key="Grade" value="2" />
 		</event>
 	</trace>
 </log>

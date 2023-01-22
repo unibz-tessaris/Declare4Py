@@ -44,3 +44,5 @@ correlation_condition(2,T):- time(T).
 sat(0).
 sat(1).
 sat(2).
+:- #count{T:trace(A,T), activation_condition(1,T)} < 2.
+:- #count{T:trace(A,T), activation_condition(1,T)} > 4.

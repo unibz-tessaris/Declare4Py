@@ -49,6 +49,9 @@ class LogGenerator(PMTask, ABC):
         self.violatable_constraints: [str] = []  # constraint list which should be violated
         self.negative_traces = 0
 
+        # constraint template conditions
+        self.activation_conditions: dict = None
+
     def compute_distribution(self, total_traces: int | None = None):
         """
          The compute_distribution method computes the distribution of the number of events in a trace based on
@@ -101,6 +104,28 @@ class LogGenerator(PMTask, ABC):
         return self
 
     def set_negative_traces_len(self, num: int = 0):
-        assert num > 0
+        assert num >= 0
         self.negative_traces = num
         return self
+
+    def set_activation_conditions(self, activations_list: dict[str, list]):
+        """
+        the activation conditions are used TODO: add more info about it.
+        TODO: this method should be in the asp generator rather than abstract class and also self.activation_conditions.
+
+        Parameters
+        ----------
+        : param activations_list dict: accepts a dictionary with key as a string which represent a declare model
+            constraint template, and value as an list with number values.
+            i.e 'Response[A,B] | A.attribute is value1 | |': [3, 5].
+            Here key represents a constraint template and the number list represents how many times activation key of
+            that constraint template should be occurred. In this example we are saying, that it should at least 3 times
+            and at most 5 times.
+
+        Returns
+        -------
+
+        """
+        self.activation_conditions = activations_list
+        return self
+

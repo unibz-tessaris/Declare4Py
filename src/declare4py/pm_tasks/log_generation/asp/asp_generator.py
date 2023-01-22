@@ -14,7 +14,8 @@ from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
 
 from src.declare4py.pm_tasks.log_generation.log_generator import LogGenerator
-from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedDataModel, DeclareModelAttributeType
+from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedDataModel, DeclareModelAttributeType, \
+    DeclareModelTemplateDataModel
 from src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator import TranslatedASPModel, ASPTranslator
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_encoding import ASPEncoding
 from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser import ASPResultTraceModel
@@ -71,6 +72,7 @@ class AspGenerator(LogGenerator):
             process_model = self.process_model
         self.py_logger.debug("Translate declare model to ASP")
         self.lp_model = ASPTranslator().from_decl_model(process_model, encode, violation)
+        self.__handle_activations_condition_asp_generation()
         lp = self.lp_model.to_str()
         if save_file:
             with open(save_file, 'w+') as f:
@@ -79,6 +81,29 @@ class AspGenerator(LogGenerator):
         self.asp_encoding = ASPEncoding().get_alp_encoding(self.lp_model.fact_names)
         self.py_logger.debug("ASP encoding generated")
         return lp
+
+    def __handle_activations_condition_asp_generation(self):
+        if self.activation_conditions is None:
+            return
+        decl_model: DeclareParsedDataModel = self.process_model.parsed_model
+        # decl_model.templates[0].template_line
+        for template_def, cond_num_list in self.activation_conditions.items():
+            template_def = template_def.strip()
+            decl_template_parsed: DeclareModelTemplateDataModel = [d for d in decl_model.templates if d.template_line == template_def]
+            decl_template_parsed = decl_template_parsed[0]
+            asp_template_idx = decl_template_parsed.template_index_id
+            if decl_template_parsed is None or len(decl_template_parsed) == 0 or len(decl_template_parsed) > 1:
+                warnings.warn("Unexpected found. Same constraint templates are defined multiple times.")
+            if len(cond_num_list) >= 1:
+                self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
+                if decl_template_parsed.template.both_activation_condition:
+                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
+            if len(cond_num_list) == 2:
+                self.lp_model.add_asp_line(
+                    f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[1]}.")
+                if decl_template_parsed.template.both_activation_condition:
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[1]}.")
 
     def run(self, generated_asp_file_path: str | None = None):
         """

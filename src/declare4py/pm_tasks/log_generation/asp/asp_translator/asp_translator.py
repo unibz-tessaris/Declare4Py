@@ -75,9 +75,9 @@ class TranslatedASPModel:
         if value not in self.attributes_values:
             self.attributes_values.append(value)
 
-    def add_template(self, name, ct: DeclareModelTemplateDataModel, idx: int, props: dict[str, dict]):
-        self.templates_s.append(f"template({idx},\"{name}\").")
-        ls = self.condition_resolver.resolve_to_asp(ct, props, idx)
+    def add_template(self, name, ct: DeclareModelTemplateDataModel, props: dict[str, dict]):
+        self.templates_s.append(f"template({ct.template_index_id},\"{name}\").")
+        ls = self.condition_resolver.resolve_to_asp(ct, props, ct.template_index_id)
         if ls and len(ls) > 0:
             self.templates_s = self.templates_s + ls + ["\n"]
 
@@ -110,7 +110,7 @@ class ASPTranslator:
     def from_decl_model(self, model: DeclModel, use_encoding: bool = True,
                         constraint_violation: dict = None) -> TranslatedASPModel:
         """
-        Translate the declare model into LP model or ASP which is, then, fed into Clingo.
+        Translate to declare model into LP model or ASP which is, then, fed into Clingo.
         Parameters
         ----------
         model: Declare model
@@ -138,13 +138,10 @@ class ASPTranslator:
                 self.asp_model.define_predicate_attr(event.name, attr, use_encoding)
                 dopt = attrs[attr]
                 self.asp_model.set_attr_value(attr, dopt, use_encoding)
-        templates_idx = 0
         constraints_violate = {}
         for ct in keys.templates:
-            self.asp_model.add_template(ct.template_name, ct, templates_idx, keys.attributes_list)
-            # template_line.append(f"template({templates_idx},\"{tmp_name}\")")
-            constraints_violate[templates_idx] = ct.violate
-            templates_idx = templates_idx + 1
+            self.asp_model.add_template(ct.template_name, ct, keys.attributes_list)
+            constraints_violate[ct.template_index_id] = ct.violate
 
         if constraint_violation is not None and 'constraint_violation' in constraint_violation and\
                 constraint_violation['constraint_violation']:
@@ -168,10 +165,7 @@ class ASPTranslator:
                 if isConstraintViolated:
                     self.asp_model.add_asp_line(s + '.')
         else:
-            idx = 0
             for ct in keys.templates:
-                constraints_violate[templates_idx] = ct.violate
-                self.asp_model.add_asp_line(f'sat({idx}).')
-                idx = idx + 1
+                self.asp_model.add_asp_line(f'sat({ct.template_index_id}).')  # no constraints to violate
 
         return self.asp_model
