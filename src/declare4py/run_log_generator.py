@@ -116,9 +116,10 @@ asp = AspGenerator(
     encode_decl_model=False,
 )
 # asp.set_distribution( distributor_type="gaussian", loc=3, scale=0.8)
+ # TODO: wrap next 3 methods into one method
 asp.set_negative_traces_len(1)
 asp.violate_all_constraints_in_subset = True
-asp.add_constraints_subset_to_violate([
+asp.add_constraints_subset_to_violate([  # use two methods for this one accepts contraint template index
     # "Existence[act2] | |",
     # "Existence[act4] | |"
     "Response[Driving_Test, Resit] |A.Grade<=2 | |"
@@ -129,7 +130,7 @@ asp.add_constraints_subset_to_violate([
 asp.set_activation_conditions({
     # 'Response[A,B] | A.attribute is value1 | |': [3, 5],
     # 'Existence5[A] | A.attribute is True | |': [3, 3],
-    'Response[Driving_Test, Resit] |A.Grade<=2 | |': [2, 4]
+    'Response[Driving_Test, Resit] |A.Grade<=2 | |': [2, 4]  # todo add contraint template index id, correct interval
 })
 
 asp.run('./generated_asp.lp')
