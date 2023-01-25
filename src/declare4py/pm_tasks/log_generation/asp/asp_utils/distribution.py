@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import collections
+import fractions
+import logging
 from typing import *
 
 import numpy as np
@@ -10,6 +12,9 @@ class Distributor:
     """
     A class for generating trace lengths according to different distributions.
     """
+
+    def __init__(self):
+        self.__logger = logging.getLogger("Distributor")
 
     def custom_distribution(self, min_num: int, max_num: int, traces_num: int, probabilities: [float]):
         """
@@ -29,11 +34,14 @@ class Distributor:
         - ValueError: If `probabilities` is not provided or if the sum of the probabilities is not 1.
         - ValueError: If the number of probabilities provided is not equal to the difference between `max_num` and `min_num`.
         """
+
+        self.__logger.debug(f"Custom_dist() min_mu:{min_num} max_sigma:{max_num} num_traces:{traces_num}")
         if probabilities is None:
-            raise ValueError("custom probabilities must be provided")
+            raise ValueError(" custom probabilities must be provided")
         s = sum(probabilities)
+        self.__logger.debug(f"Probabilities sum {s}")
         if s != 1:
-            raise ValueError("sum of provided list must be 1")
+            raise ValueError(f"Sum of provided list must be 1 but found {s}")
         prob_len = len(probabilities)
         prefixes = (max_num + 1) - min_num
         if prob_len != prefixes:
@@ -54,6 +62,7 @@ class Distributor:
         A `collections.Counter` object containing the count of each trace length generated.
         """
         probabilities = self.__get_uniform_probabilities((max_num + 1) - min_num)
+        self.__logger.debug(f"Uniform() probabilities: {probabilities}")
         return self.custom_distribution(min_num, max_num, traces_num, probabilities)
 
     def normal_distribution(self, mu, sigma, num_traces: int):
@@ -87,7 +96,8 @@ class Distributor:
         Returns:
         A list of uniform probabilities.
         """
-        return [1 / num_probabilities for p in range(0, num_probabilities)]
+        # return [1 / num_probabilities for p in range(0, num_probabilities)]
+        return [fractions.Fraction(1, num_probabilities) for i in range(0, num_probabilities)]
 
     def __distribute_random_choices(self, min_num, max_num, traces_num, probabilities: [float]):
         """
@@ -104,6 +114,7 @@ class Distributor:
         """
         prefixes = range(min_num, max_num + 1)
         trace_lens = np.random.choice(prefixes, traces_num, p=probabilities)
+        self.__logger.debug(f"Distribution result: {trace_lens}")
         c = collections.Counter(trace_lens)
         return c
 
@@ -131,6 +142,9 @@ class Distributor:
         Raises:
         - AttributeError: If `dist_type` is not one of the supported distribution types.
         """
+        self.__logger.debug(f"Distribution() {dist_type} min_mu: {min_num_events_or_mu}"
+                            f" max_sigma: {max_num_events_or_sigma} num_traces: {num_traces}"
+                            f" custom_prob: {custom_probabilities}")
         if dist_type == "gaussian":
             return self.normal_distribution(min_num_events_or_mu, max_num_events_or_sigma, num_traces)
         elif dist_type == "uniform":

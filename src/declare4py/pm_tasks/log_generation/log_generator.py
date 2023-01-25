@@ -27,7 +27,9 @@ class LogGenerator(PMTask, ABC):
 
     def __init__(self, num_traces: int, min_event: int, max_event: int, p_model: ProcessModel):
         super().__init__(None, p_model)
-        self.__py_logger = logging.getLogger("LOG_GENERATOR")
+        if min_event > max_event:
+            raise ValueError(f"min_events({min_event}) > max_events({max_event}) not valid! Min events are greater than max events")
+        self.__py_logger = logging.getLogger("Log generator")
         self.log_length: int = num_traces
         self.max_events: int = max_event
         self.min_events: int = min_event
