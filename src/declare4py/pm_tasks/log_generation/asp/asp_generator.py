@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 import logging
+import math
 import re
 import typing
 import warnings
@@ -94,16 +95,28 @@ class AspGenerator(LogGenerator):
             asp_template_idx = decl_template_parsed.template_index_id
             if decl_template_parsed is None or len(decl_template_parsed) == 0 or len(decl_template_parsed) > 1:
                 warnings.warn("Unexpected found. Same constraint templates are defined multiple times.")
-            if len(cond_num_list) >= 1:
-                self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
-                if decl_template_parsed.template.both_activation_condition:
-                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
             if len(cond_num_list) == 2:
-                self.lp_model.add_asp_line(
-                    f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[1]}.")
-                if decl_template_parsed.template.both_activation_condition:
-                    self.lp_model.add_asp_line(
-                        f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[1]}.")
+                if cond_num_list[0] <= 0:
+                    # left side tends to -inf or 0 starting from cond_num_list[1]. cond_num_list = [0, 2]
+                    # means it can have only at most 2 activations
+                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                    if decl_template_parsed.template.both_activation_condition:
+                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                elif cond_num_list[1] == math.inf:
+                    # right side tends to inf from cond_num_list[0] to +inf. cond_num_list = [2, math.inf]
+                    # means it can have it should at least 2 activations and can go to infinite
+                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    if decl_template_parsed.template.both_activation_condition:
+                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                else:
+                    # ie cond_num_list = [2, 4]
+                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
+                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    if decl_template_parsed.template.both_activation_condition:
+                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[1]}.")
+            else:
+                raise ValueError("Interval values are wrong. It must have only 2 values, represents, left and right interval")
 
     def run(self, generated_asp_file_path: str | None = None):
         """
@@ -250,19 +263,43 @@ class AspGenerator(LogGenerator):
             self.__pm4py_log()
         exporter.apply(self.log_analyzer.log, output_fn)
 
-    def add_constraints_subset_to_violate(self, constraints_list: list[str]):
+    def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
         """
         Add constraints to violate
 
         Parameters
         ----------
+        tot_negative_trace
+        violate_all
         constraints_list
 
         Returns
         -------
-
+            declare_model_violate_constraints
         """
-        self.declare_model_violate_constraints = constraints_list
+        assert tot_negative_trace >= 0
+        self.negative_traces = tot_negative_trace
+        self.violate_all_constraints = violate_all
+        self.add_constraints_to_violate(constraints_list)
+
+    def set_constraints_to_violate_by_template_index(self, tot_negative_trace: int, violate_all: bool, constraints_idx_list: list[int]):
+        """
+        Add constraints to violate
+
+        Parameters
+        ----------
+        tot_negative_trace: the number of total negative traces to generate. Cannot be greater than the Total traces len
+        violate_all: whether all constraints should be violated or some of them (decided by clingo using && op)
+        constraints_idx_list: an integer list indicating the indexing of constraint templates
+
+        Returns
+        -------
+        """
+        templates: [DeclareModelTemplateDataModel] = self.process_model.parsed_model.templates
+        constraints_list = []
+        for idx in constraints_idx_list:
+            constraints_list.append(templates[idx].template_line)
+        self.set_constraints_to_violate(tot_negative_trace, violate_all, constraints_list)
 
     def __get_decl_model_with_violate_constraint(self) -> DeclModel | ProcessModel:
         """
@@ -274,7 +311,7 @@ class AspGenerator(LogGenerator):
         """
         dpm = copy.deepcopy(self.process_model)
         parsed_tmpl = dpm.parsed_model.templates
-        for cv in self.declare_model_violate_constraints:
+        for cv in self.violatable_constraints:
             for tmpl in parsed_tmpl:
                 if tmpl.template_line == cv:
                     tmpl.violate = True

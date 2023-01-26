@@ -94,10 +94,6 @@ class LogGenerator(PMTask, ABC):
         self.loc = loc
         return self
 
-    def violate_all_constraints_in_subset(self, violate_all: bool = True):
-        self.violate_all_constraints = violate_all
-        return self
-
     def add_constraints_to_violate(self, constrains_to_violate: str | [str] = True):
         if isinstance(constrains_to_violate, str):
             self.violatable_constraints.append(constrains_to_violate)
@@ -105,12 +101,30 @@ class LogGenerator(PMTask, ABC):
             self.violatable_constraints = constrains_to_violate
         return self
 
-    def set_negative_traces_len(self, num: int = 0):
-        assert num >= 0
-        self.negative_traces = num
+    def set_activation_conditions(self, activations_list: dict[str, list[int]]):
+        """
+        the activation conditions are used TODO: add more info about it.
+        TODO: this method should be in the asp generator rather than abstract class and also self.activation_conditions.
+
+        Parameters
+        ----------
+        : param activations_list dict: accepts a dictionary with key as a string which represent a declare model
+            constraint template, and value as an list with number values.
+            i.e 'Response[A,B] | A.attribute is value1 | |': [3, 5].
+            Here key represents a constraint template and the number list represents how many times activation key of
+            that constraint template should be occurred. In this example we are saying, that it should at least 3 times
+            and at most 5 times.
+            the value must be a list of 2 integer which represents the bounding limits of activation. You can add math.inf
+            as the 2 second element. First element should be greater or equal than 0.
+
+        Returns
+        -------
+
+        """
+        self.activation_conditions = activations_list
         return self
 
-    def set_activation_conditions(self, activations_list: dict[str, list]):
+    def set_activation_conditions_by_template_index(self, activations_list: dict[int, list[int]]):
         """
         the activation conditions are used TODO: add more info about it.
         TODO: this method should be in the asp generator rather than abstract class and also self.activation_conditions.
@@ -128,6 +142,11 @@ class LogGenerator(PMTask, ABC):
         -------
 
         """
-        self.activation_conditions = activations_list
+        # indexes = activations_list.keys()  # indexes of constraint templates
+        templates = self.process_model.parsed_model.templates
+        n_dict = {}
+        for m, n in activations_list.items():
+            n_dict[templates[m].template_line] = n
+        self.activation_conditions = n_dict
         return self
 

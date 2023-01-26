@@ -115,25 +115,31 @@ asp = AspGenerator(
     num_max_events,
     encode_decl_model=False,
 )
-# asp.set_distribution( distributor_type="gaussian", loc=3, scale=0.8)
- # TODO: wrap next 3 methods into one method
-asp.set_negative_traces_len(1)
-asp.violate_all_constraints_in_subset = True
-asp.add_constraints_subset_to_violate([  # use two methods for this one accepts contraint template index
-    # "Existence[act2] | |",
-    # "Existence[act4] | |"
-    "Response[Driving_Test, Resit] |A.Grade<=2 | |"
-    # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
-    # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
-])
 
-asp.set_activation_conditions({
-    # 'Response[A,B] | A.attribute is value1 | |': [3, 5],
-    # 'Existence5[A] | A.attribute is True | |': [3, 3],
-    'Response[Driving_Test, Resit] |A.Grade<=2 | |': [2, 4]  # todo add contraint template index id, correct interval
+# asp.set_distribution( distributor_type="gaussian", loc=3, scale=0.8)
+
+# TODO: wrap next 3 methods into one method
+# asp.set_constraints_to_violate(1, True, [
+#     # "Existence[act2] | |",
+#     # "Existence[act4] | |"
+#     "Response[Driving_Test, Resit] |A.Grade<=2 | |"
+#     # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
+#     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
+# ])
+
+asp.set_constraints_to_violate_by_template_index(1, True, [2])
+
+# asp.set_activation_conditions({
+#     # 'Response[A,B] | A.attribute is value1 | |': [3, 5],
+#     # 'Existence5[A] | A.attribute is True | |': [3, 3],
+#     'Response[Driving_Test, Resit] |A.Grade<=2 | |': [2, 4]
+# })
+asp.set_activation_conditions_by_template_index({
+    2: [2, 4]
 })
 
-asp.run('./generated_asp.lp')
+# asp.run('./generated_asp.lp')
+asp.run()
 asp.to_xes("../../generated_xes.xes")
 
 
