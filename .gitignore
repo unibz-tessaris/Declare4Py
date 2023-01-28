@@ -129,3 +129,8 @@ dmypy.json
 
 .idea
 .DS_Store
+
+*.xes
+*.lp
+*.asp
+

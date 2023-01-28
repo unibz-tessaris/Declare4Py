@@ -106,8 +106,8 @@ Existence[act4] | |
 model: DeclModel = DeclModel().parse_from_string(decl)
 
 num_of_traces = 4
-num_min_events = 8
-num_max_events = 16
+num_min_events = 2
+num_max_events = 6
 asp = AspGenerator(
     model,
     num_of_traces,
@@ -127,20 +127,25 @@ asp = AspGenerator(
 #     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
 # ])
 
-asp.set_constraints_to_violate_by_template_index(1, True, [2])
+# asp.set_constraints_to_violate_by_template_index(1, True, [2])
 
 # asp.set_activation_conditions({
 #     # 'Response[A,B] | A.attribute is value1 | |': [3, 5],
 #     # 'Existence5[A] | A.attribute is True | |': [3, 3],
 #     'Response[Driving_Test, Resit] |A.Grade<=2 | |': [2, 4]
 # })
-asp.set_activation_conditions_by_template_index({
-    2: [2, 4]
-})
+
+## OR
+
+# asp.set_activation_conditions_by_template_index({
+#     2: [2, 4]
+# })
+
+asp.set_number_of_variations_per_trace(8)
 
 # asp.run('./generated_asp.lp')
 asp.run()
-asp.to_xes("../../generated_xes.xes")
+asp.to_xes("../../generated_xes1.xes")
 
 
 

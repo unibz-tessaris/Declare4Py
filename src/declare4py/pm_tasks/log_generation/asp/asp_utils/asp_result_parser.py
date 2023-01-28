@@ -36,7 +36,7 @@ class ASPResultTraceModel:
         self.model = model
         self.name: str = trace_name
         self.events: [ASPResultEventModel] = []
-        # ASP/clingo doesn't handle floats, thus we scaling up the number values and now, we have to scale down back
+        # ASP/clingo doesn't handle floats, thus we're scaling up the number values and now, we have to scale down back
         # after result
         self.parse_clingo_trace()
 
