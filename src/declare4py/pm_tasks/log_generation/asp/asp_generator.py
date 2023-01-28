@@ -56,7 +56,7 @@ class AspGenerator(LogGenerator):
         self.asp_generated_traces: LogTracesType | None = None
         self.asp_encoding = ASPEncoding().get_alp_encoding()
         self.asp_template = ASPTemplate().value
-        self.num_variations_per_trace = 0
+        self.num_repetition_per_trace = 0
         self.trace_counter = 0
         self.trace_variations_key_id = 0  #
 
@@ -88,6 +88,7 @@ class AspGenerator(LogGenerator):
         return lp
 
     def __handle_activations_condition_asp_generation(self):
+        """ Handles the logic for the activations condition """
         if self.activation_conditions is None:
             return
         decl_model: DeclareParsedDataModel = self.process_model.parsed_model
@@ -196,18 +197,33 @@ class AspGenerator(LogGenerator):
             self.py_logger.debug(f" Clingo Result :{str(result)}")
             if result.unsatisfiable:
                 warnings.warn(f'WARNING: Cannot generate traces with {num_events} events with this model.')
-            elif self.num_variations_per_trace > 0:
+            elif self.num_repetition_per_trace > 0:
                 self.trace_counter = self.trace_counter + 1
                 self.trace_variations_key_id = i
                 self.clingo_output_traces_variation[self.trace_variations_key_id] = []  # to generate the name of variation trace
-                num = self.num_variations_per_trace - 1
+                num = self.num_repetition_per_trace - 1
                 if num > 0 and self.clingo_current_output is not None:
                     c = ASPResultTraceModel(f"variation_{i}_trace_{self.trace_counter}", self.clingo_current_output)
                     asp_variation = asp + "\n"
                     for ev in c.events:
                         asp_variation = asp_variation + f"trace({ev.name}, {ev.pos}).\n"
                     for nm in range(0, num):
-                        self.__generate_asp_trace_variation(asp_variation, num_events, num_traces, freq)
+                        self.__generate_asp_trace_variation(asp_variation, num_events, 1, freq)
+
+    def __generate_asp_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
+        # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
+        seed = randrange(0, 2 ** 32 - 1)
+        self.py_logger.debug(f" Generating variation trace: {num_traces}, events{num_events}, seed:{seed}")
+        ctl = clingo.Control([f"-c t={int(num_events)}", "--project", f"1", # f"{int(num_traces)}",
+                              f"--seed={seed}", f"--sign-def=rnd", f"--restart-on-model", f"--rand-freq={freq}"])
+        ctl.add(asp)
+        ctl.add(self.asp_encoding)
+        ctl.add(self.asp_template)
+        ctl.ground([("base", [])], context=self)
+        result = ctl.solve(on_model=self.__handle_clingo_variation_result)
+        self.py_logger.debug(f" Clingo variation Result :{str(result)}")
+        if result.unsatisfiable:
+            warnings.warn(f'WARNING: Failed to generate trace variation/case.')
 
     def __handle_clingo_result(self, output: clingo.solving.Model):
         symbols = output.symbols(shown=True)
@@ -239,26 +255,6 @@ class AspGenerator(LogGenerator):
                     i = i + 1
             self.asp_generated_traces[result] = self.asp_generated_traces[result] + asp_model
 
-    def __generate_asp_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
-        # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
-        for i in range(num_traces):
-            seed = randrange(0, 2 ** 32 - 1)
-            self.py_logger.debug(f" Generating variation trace:{i + 1}/{num_traces} with events:{num_events}, seed:{seed}")
-            ctl = clingo.Control([f"-c t={int(num_events)}", "--project",
-                                  f"1", # f"{int(num_traces)}",
-                                  f"--seed={seed}",
-                                  f"--sign-def=rnd",
-                                  f"--restart-on-model",
-                                  f"--rand-freq={freq}"])
-            ctl.add(asp)
-            ctl.add(self.asp_encoding)
-            ctl.add(self.asp_template)
-            ctl.ground([("base", [])], context=self)
-            result = ctl.solve(on_model=self.__handle_clingo_variation_result)
-            self.py_logger.debug(f" Clingo variation Result :{str(result)}")
-            if result.unsatisfiable:
-                warnings.warn(f'WARNING: Failed to generate trace variation/case.')
-
     def __handle_clingo_variation_result(self, output: clingo.solving.Model):
         symbols = output.symbols(shown=True)
         self.py_logger.debug(f" Variation traces generated :{symbols}")
@@ -276,7 +272,6 @@ class AspGenerator(LogGenerator):
         current_time = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
                                 tzinfo=timezone(timedelta(hours=1)))
         formatted_time = current_time.isoformat()
-
         for result in self.asp_generated_traces:
             tot_traces_generated = tot_traces_generated + len(self.asp_generated_traces[result])
             traces_generated = self.asp_generated_traces[result]
@@ -298,7 +293,6 @@ class AspGenerator(LogGenerator):
                             if res_name_decoded in attr_list:
                                 attr = attr_list[res_name_decoded]
                                 if attr["value_type"] != DeclareModelAttributeType.ENUMERATION:
-                                    # num = int(res_value_decoded) / attr["range_precision"]
                                     num = res_value_decoded
                                     dmat = DeclareModelAttributeType
                                     if attr["value_type"] in [dmat.FLOAT]:
@@ -307,14 +301,11 @@ class AspGenerator(LogGenerator):
                                         num = int(res_value_decoded) / attr["range_precision"]
                                     res_value_decoded = str(num)
                         event[res_name_decoded] = str(res_value_decoded).strip()
-                        # event["time:timestamp"] = datetime.now().timestamp()  # + timedelta(hours=c).datetime
-                        # event["time:timestamp"] = datetime.now().isoformat()  # + timedelta(hours=c).datetime
-                        # event["time:timestamp"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S+%z%Z")  # + timedelta(hours=c).datetime
                         event["time:timestamp"] = formatted_time
                     trace_gen.append(event)
                 self.log_analyzer.log.append(trace_gen)
         if tot_traces_generated != self.log_length:
-            num = self.num_variations_per_trace
+            num = self.num_repetition_per_trace
             if num <= 0:
                 num = 1
             self.py_logger.warning(f'PM4PY log generated: {tot_traces_generated}/{self.log_length * num} only.')
@@ -363,8 +354,16 @@ class AspGenerator(LogGenerator):
             constraints_list.append(templates[idx].template_line)
         self.set_constraints_to_violate(tot_negative_trace, violate_all, constraints_list)
 
-    def set_number_of_variations_per_trace(self, tot_variation: int):
-        self.num_variations_per_trace = tot_variation
+    def set_number_of_repetition_per_trace(self, repetition: int):
+        """
+        Example: 4(number of traces) Traces with 8(repetition) repetition. Suppose we have generated 4 traces as following:
+        - A B E D
+        - C D A F
+        - E D C A
+        - B A C E
+        and then for each of these trace we generate other 7 traces
+        """
+        self.num_repetition_per_trace = repetition
 
     def __get_decl_model_with_violate_constraint(self) -> DeclModel | ProcessModel:
         """
@@ -381,4 +380,5 @@ class AspGenerator(LogGenerator):
                 if tmpl.template_line == cv:
                     tmpl.violate = True
         return dpm
+
 

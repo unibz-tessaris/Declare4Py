@@ -127,7 +127,7 @@ asp = AspGenerator(
 #     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
 # ])
 
-# asp.set_constraints_to_violate_by_template_index(1, True, [2])
+asp.set_constraints_to_violate_by_template_index(1, True, [2])
 
 # asp.set_activation_conditions({
 #     # 'Response[A,B] | A.attribute is value1 | |': [3, 5],
@@ -141,7 +141,7 @@ asp = AspGenerator(
 #     2: [2, 4]
 # })
 
-asp.set_number_of_variations_per_trace(8)
+asp.set_number_of_repetition_per_trace(8)
 
 # asp.run('./generated_asp.lp')
 asp.run()
