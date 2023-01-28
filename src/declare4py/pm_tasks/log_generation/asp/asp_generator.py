@@ -30,6 +30,13 @@ class LogTracesType(typing.TypedDict):
     negative: typing.List
 
 
+def custom_sort_trace_key(x):
+    # Extract the numeric parts of the string
+    parts = re.findall(r'\d+', x.name)
+    # Convert the numeric parts to integers
+    parts = [int(p) for p in parts]
+    return parts
+
 class AspGenerator(LogGenerator):
 
     def __init__(self, decl_model: DeclModel, num_traces: int, min_event: int, max_event: int,
@@ -275,7 +282,9 @@ class AspGenerator(LogGenerator):
         for result in self.asp_generated_traces:
             tot_traces_generated = tot_traces_generated + len(self.asp_generated_traces[result])
             traces_generated = self.asp_generated_traces[result]
-            traces_generated.sort(key=lambda x: x.name)
+            # traces_generated.sort(key=lambda x: x.name)
+            print(traces_generated)
+            traces_generated = sorted(traces_generated, key=custom_sort_trace_key)
             for trace in traces_generated:
                 trace_gen = lg.Trace()
                 trace_gen.attributes["concept:name"] = trace.name
