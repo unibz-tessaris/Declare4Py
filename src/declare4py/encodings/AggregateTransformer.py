@@ -32,8 +32,7 @@ class AggregateTransformer(TransformerMixin):
         
         self.fit_time = 0
         self.transform_time = 0
-    
-    
+
     def fit(self, X, y=None):
         return self
     
