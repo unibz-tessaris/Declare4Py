@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Union
+from typing import Union, Dict, Tuple
 
 from src.declare4py.d4py_event_log import D4PyEventLog
 from src.declare4py.pm_tasks.discovery import Discovery
@@ -118,7 +118,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
         return self.basic_discovery_results
 
     def filter_discovery(self, min_support: float = 0, output_path: str = None) \
-            -> dict[str: dict[tuple[int, str]: CheckerResult]]:
+            -> Dict[str: Dict[Tuple[int, str]: CheckerResult]]:
         """
         Filters discovery results by means of minimum support.
 

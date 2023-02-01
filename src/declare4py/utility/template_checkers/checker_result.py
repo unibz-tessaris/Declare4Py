@@ -14,7 +14,7 @@ Parameters
 
 
 class CheckerResult:
-    def __init__(self, num_fulfillments, num_violations, num_pendings, num_activations, state):
+    def __init__(self, num_fulfillments: int, num_violations: int, num_pendings: int, num_activations: int, state):
         # super().__init__()
         self.num_fulfillments = num_fulfillments
         self.num_violations = num_violations

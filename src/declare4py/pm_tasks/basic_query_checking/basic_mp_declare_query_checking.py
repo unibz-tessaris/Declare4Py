@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import sys
 from abc import ABC
-from typing import Union
+from typing import Union, List
 
 from numpy import product, ceil
 
@@ -190,7 +190,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
                         self.basic_query_checking_results[constraint_str] = res_value
         return self.basic_query_checking_results
 
-    def filter_query_checking(self, queries) -> list[list[str]]:
+    def filter_query_checking(self, queries) -> List[List[str]]:
         """
         The function outputs, for each constraint of the query checking result, only the elements of the constraint
         specified in the 'queries' list.

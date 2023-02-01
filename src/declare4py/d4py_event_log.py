@@ -9,7 +9,7 @@ import pm4py
 
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.obj import EventLog
-from typing import Union, List
+from typing import Union, List, Tuple, Set
 
 from src.declare4py.encodings import AggregateTransformer
 
@@ -27,8 +27,6 @@ class D4PyEventLog:
             the trace number of the input log
         frequent_item_sets : DataFrame
             list of the most frequent item sets found along the log traces, together with their support and length
-        binary_encoded_log : DataFrame
-                the binary encoded version of the input log
     """
 
     def __init__(self):
@@ -37,7 +35,7 @@ class D4PyEventLog:
         self.frequent_item_sets = None
 
     # LOG MANAGEMENT UTILITIES
-    def get_trace_keys(self) -> list[tuple[int, str]]:
+    def get_trace_keys(self) -> List[Tuple[int, str]]:
         """
         Return the name of each trace, along with the position in the log.
 
@@ -71,7 +69,7 @@ class D4PyEventLog:
             # Mettere qui eventuale conversione da pandas frame a EventLog
             raise RuntimeError("Please use the newer version of pm4py")
 
-    def activities_log_projection(self) -> list[list[str]]:
+    def activities_log_projection(self) -> List[List[str]]:
         """
         Return for each trace a time-ordered list of the activity names of the events.
 
@@ -90,7 +88,7 @@ class D4PyEventLog:
             projection.append(tmp_trace)
         return projection
 
-    def resources_log_projection(self) -> list[list[str]]:
+    def resources_log_projection(self) -> List[List[str]]:
         """
         Return for each trace a time-ordered list of the resources of the events.
 
@@ -139,8 +137,8 @@ class D4PyEventLog:
             if attr_name not in log_df.columns:
                 raise RuntimeError(f"{attr_name} is not a valid attribute. Check the log.")
 
-        encoder = AggregateTransformer(case_id_col=case_id_col, cat_cols=categorical_attributes, num_cols=[],
-                                       boolean=True)
+        encoder: AggregateTransformer = AggregateTransformer(case_id_col=case_id_col, cat_cols=categorical_attributes,
+                                                             num_cols=[], boolean=True)
         binary_encoded_log = encoder.fit_transform(log_df)
         if algorithm == 'fpgrowth':
             frequent_itemsets = fpgrowth(binary_encoded_log, min_support=min_support, use_colnames=True)
@@ -156,7 +154,7 @@ class D4PyEventLog:
         else:
             self.frequent_item_sets = frequent_itemsets[(frequent_itemsets['length'] <= len_itemset)]
 
-    def get_log(self) -> pm4py.objects.event_log.obj.EventLog:
+    def get_log(self) -> EventLog:
         """
         Return the log previously fed in input.
 
@@ -182,7 +180,7 @@ class D4PyEventLog:
             raise RuntimeError("You must load a log before.")
         return self.log_length
 
-    def get_log_alphabet_payload(self) -> set[str]:
+    def get_log_alphabet_payload(self) -> Set[str]:
         """
         Return the set of resources that are in the log.
 
