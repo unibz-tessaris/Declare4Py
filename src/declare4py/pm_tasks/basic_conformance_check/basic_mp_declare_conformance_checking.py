@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from src.declare4py.pm_tasks.conformance_check.basic_conformance_checking_results \
-    import BasicConformanceCheckingResults
+from typing import Union
+
+from src.declare4py.pm_tasks.basic_conformance_check.basic_conformance_checking_results import \
+    BasicConformanceCheckingResults
 from src.declare4py.pm_tasks.conf_checking import ConformanceChecking
-from src.declare4py.pm_tasks.log_analyzer import d4pyEventLog
+from src.declare4py.d4py_event_log import D4PyEventLog
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
@@ -16,18 +18,18 @@ class BasicMPDeclareConformanceChecking(ConformanceChecking):
 
     def __init__(self, template_str: str, max_declare_cardinality: int, activation: str, target: str,
                  act_cond: str, trg_cond: str, time_cond: str, min_support: float,
-                 consider_vacuity: bool, log: d4pyEventLog, ltl_model: LTLModel):
-        self.template_str: str | None = template_str
-        self.activation: str | None = activation
-        self.target: str | None = target
-        self.act_cond: str | None = act_cond
-        self.trg_cond: str | None = trg_cond
-        self.time_cond: str | None = time_cond
+                 consider_vacuity: bool, log: D4PyEventLog, ltl_model: LTLModel):
+        self.template_str: Union[str, None] = template_str
+        self.activation: Union[str, None] = activation
+        self.target: Union[str, None] = target
+        self.act_cond: Union[str, None] = act_cond
+        self.trg_cond: Union[str, None] = trg_cond
+        self.time_cond: Union[str, None] = time_cond
         self.min_support: float = min_support  # or 1.0
         self.max_declare_cardinality: int = max_declare_cardinality
         self.constraint_checker = ConstraintCheck(consider_vacuity)
         super().__init__(consider_vacuity, log, ltl_model)
-        self.basic_conformance_checking_results: BasicConformanceCheckingResults | None = None
+        self.basic_conformance_checking_results: Union[BasicConformanceCheckingResults, None] = None
 
     def run(self, consider_vacuity: bool) -> BasicConformanceCheckingResults:
         """

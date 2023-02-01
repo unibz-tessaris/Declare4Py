@@ -37,6 +37,7 @@ def custom_sort_trace_key(x):
     parts = [int(p) for p in parts]
     return parts
 
+
 class AspGenerator(LogGenerator):
 
     def __init__(self, decl_model: DeclModel, num_traces: int, min_event: int, max_event: int,

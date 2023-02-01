@@ -3,13 +3,15 @@ from __future__ import annotations
 import re
 import sys
 from abc import ABC
+from typing import Union
 
 from numpy import product, ceil
 
-from src.declare4py.pm_tasks.log_analyzer import d4pyEventLog
+from src.declare4py.d4py_event_log import D4PyEventLog
 from src.declare4py.pm_tasks.query_checking import QueryChecking
-from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate, TraceState
+from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate
 from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
+from src.declare4py.utility.trace_states import TraceState
 
 """
 Initializes class QueryCheckingResults
@@ -53,13 +55,13 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
     def __init__(self, consider_vacuity, template_str, max_declare_cardinality, activation,
                  target, act_cond, trg_cond, time_cond, min_support):
         super().__init__(consider_vacuity, None, None)  # TODO: create/pass logAnalyzer?
-        self.basic_query_checking_results: BasicQueryCheckingResults | None = None
-        self.template_str: str | None = template_str
-        self.activation: str | None = activation
-        self.target: str | None = target
-        self.act_cond: str | None = act_cond
-        self.trg_cond: str | None = trg_cond
-        self.time_cond: str | None = time_cond
+        self.basic_query_checking_results: Union[BasicQueryCheckingResults, None] = None
+        self.template_str: Union[str, None] = template_str
+        self.activation: Union[str, None] = activation
+        self.target: Union[str, None] = target
+        self.act_cond: Union[str, None] = act_cond
+        self.trg_cond: Union[str, None] = trg_cond
+        self.time_cond: Union[str, None] = time_cond
         self.min_support: float = min_support  # or 1.0
         self.max_declare_cardinality: int = max_declare_cardinality
         self.constraint_checker = ConstraintCheck(consider_vacuity)
@@ -221,7 +223,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
             assignments.append(tmp_answer)
         return assignments
 
-    def query_constraint(self, log: d4pyEventLog, constraint: dict, consider_vacuity: bool, min_support: float):
+    def query_constraint(self, log: D4PyEventLog, constraint: dict, consider_vacuity: bool, min_support: float):
         # Fake model composed by a single constraint
         model = DeclModel()
         model.constraints.append(constraint)
