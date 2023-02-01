@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.log_analyzer import d4pyEventLog
 from src.declare4py.process_models.decl_model import DeclModel
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.process_models.process_model import ProcessModel
@@ -17,7 +17,7 @@ class ConstraintCheck:
         ----------
         :param bool consider_vacuity: True means that vacuously satisfied traces are considered as satisfied, violated
          otherwise
-        :param LogAnalyzer log: log
+        :param d4pyEventLog log: log
         :param LTLModel ltl_model: Process mining model
 
         """

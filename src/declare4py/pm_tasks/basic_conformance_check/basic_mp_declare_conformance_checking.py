@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.declare4py.pm_tasks.conformance_check.basic_conformance_checking_results \
     import BasicConformanceCheckingResults
 from src.declare4py.pm_tasks.conf_checking import ConformanceChecking
-from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.log_analyzer import d4pyEventLog
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
 
@@ -16,7 +16,7 @@ class BasicMPDeclareConformanceChecking(ConformanceChecking):
 
     def __init__(self, template_str: str, max_declare_cardinality: int, activation: str, target: str,
                  act_cond: str, trg_cond: str, time_cond: str, min_support: float,
-                 consider_vacuity: bool, log: LogAnalyzer, ltl_model: LTLModel):
+                 consider_vacuity: bool, log: d4pyEventLog, ltl_model: LTLModel):
         self.template_str: str | None = template_str
         self.activation: str | None = activation
         self.target: str | None = target

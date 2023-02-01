@@ -1,4 +1,4 @@
-from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.log_analyzer import d4pyEventLog
 import pm4py
 from pm4py.objects.log.obj import EventLog, Trace
 from typing import Union, Set, List, Tuple, Any, Dict
@@ -6,8 +6,8 @@ from typing import Union, Set, List, Tuple, Any, Dict
 
 class BasicFilters:
 
-    def __init__(self, event_log: LogAnalyzer):
-        self.event_log: LogAnalyzer = event_log
+    def __init__(self, event_log: d4pyEventLog):
+        self.event_log: d4pyEventLog = event_log
 
     def filter_time_range_contained(self, start_date: str, end_date: str, mode: str = "events",
                                     timestamp_key: str = "time:timestamp",

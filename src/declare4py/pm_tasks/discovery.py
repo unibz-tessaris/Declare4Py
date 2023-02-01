@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 
 from src.declare4py.pm_tasks.pm_task import PMTask
-from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.log_analyzer import d4pyEventLog
 from src.declare4py.process_models.process_model import ProcessModel
 
 """
@@ -28,7 +28,7 @@ Attributes
 
 class Discovery(PMTask, ABC):
 
-    def __init__(self, consider_vacuity: bool, log: LogAnalyzer | None, model: ProcessModel):
+    def __init__(self, consider_vacuity: bool, log: d4pyEventLog | None, model: ProcessModel):
         self.consider_vacuity = consider_vacuity
         super().__init__(log, model)
 

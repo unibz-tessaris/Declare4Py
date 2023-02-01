@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 
-from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.log_analyzer import d4pyEventLog
 from src.declare4py.pm_tasks.discovery import Discovery
 from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate, TraceState
 from src.declare4py.process_models.ltl_model import LTLModel
@@ -43,7 +43,7 @@ Attributes
 class BasicMPDeclareDiscovery(Discovery, ABC):
 
     def __init__(self, consider_vacuity: bool, support: float, max_declare_cardinality: int,
-                 log: LogAnalyzer | None, ltl_model: LTLModel):
+                 log: d4pyEventLog | None, ltl_model: LTLModel):
         super().__init__(consider_vacuity, support, max_declare_cardinality, log, ltl_model)
         self.init_discovery_result_instance()
         self.constraint_checker = ConstraintCheck(consider_vacuity)
@@ -154,7 +154,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
                 f.write('\n'.join(result.keys()))
         return result
 
-    def discover_constraint(self, log: LogAnalyzer, constraint: dict, consider_vacuity: bool):
+    def discover_constraint(self, log: d4pyEventLog, constraint: dict, consider_vacuity: bool):
         # Fake model composed by a single constraint
         model = DeclModel()
         model.constraints.append(constraint)

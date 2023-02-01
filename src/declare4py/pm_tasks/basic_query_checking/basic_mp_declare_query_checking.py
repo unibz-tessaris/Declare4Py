@@ -6,7 +6,7 @@ from abc import ABC
 
 from numpy import product, ceil
 
-from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from src.declare4py.pm_tasks.log_analyzer import d4pyEventLog
 from src.declare4py.pm_tasks.query_checking import QueryChecking
 from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate, TraceState
 from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
@@ -221,7 +221,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
             assignments.append(tmp_answer)
         return assignments
 
-    def query_constraint(self, log: LogAnalyzer, constraint: dict, consider_vacuity: bool, min_support: float):
+    def query_constraint(self, log: d4pyEventLog, constraint: dict, consider_vacuity: bool, min_support: float):
         # Fake model composed by a single constraint
         model = DeclModel()
         model.constraints.append(constraint)
