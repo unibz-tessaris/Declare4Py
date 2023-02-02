@@ -1,65 +1,58 @@
 from __future__ import annotations
 
-
 import packaging
 from packaging import version
 
 from mlxtend.frequent_patterns import fpgrowth, apriori
-import pm4py
 
-from pm4py.objects.log import obj as lg
+import pm4py
 from pm4py.objects.log.obj import EventLog
+
 from typing import Union, List, Tuple, Set
 
 from src.declare4py.encodings import AggregateTransformer
 
+from pandas import DataFrame
+
 
 class D4PyEventLog:
     """
-        Wrapper that collects the input log, the computed binary encoding and frequent item sets
-        for the input log.
+    Wrapper that collects the input log, the computed binary encoding and frequent item set for the input log.
 
-        Attributes
-        ----------
-        log : EventLog
-            the input event log parsed from a XES file
-        log_length : int
-            the trace number of the input log
-        frequent_item_sets : DataFrame
-            list of the most frequent item sets found along the log traces, together with their support and length
+    Args:
+        log: the input event log parsed from a XES file
+        log_length: the trace number of the input log
+        frequent_item_sets: list of the most frequent item sets found along the log traces, together with their support and length
     """
 
     def __init__(self):
-        self.log: Union[lg.EventLog, None] = None
-        self.log_length = None
-        self.frequent_item_sets = None
+        """The class constructor
+
+        Example::
+
+            d4py_log = D4PyEventLog()
+        """
+        self.log: Union[EventLog, None] = None
+        self.log_length: Union[int, None] = None
+        self.frequent_item_sets: Union[DataFrame, None] = None
 
     # LOG MANAGEMENT UTILITIES
-    def get_trace_keys(self) -> List[Tuple[int, str]]:
-        """
-        Return the name of each trace, along with the position in the log.
-
-        Returns
-        -------
-        trace_ids
-            list containing the position in the log and the name of the trace.
-        """
-        if self.log is None:
-            raise RuntimeError("You must load a log before.")
-        trace_ids = []
-        for trace_id, trace in enumerate(self.log):
-            trace_ids.append((trace_id, trace.attributes["concept:name"]))
-        return trace_ids
-
     def parse_xes_log(self, log_path: str) -> None:
         """
         Set the 'log' EventLog object and the 'log_length' integer by reading and parsing the log corresponding to
         given log file path.
 
-        Parameters
-        ----------
-        :param log_path : str
-            File path where the log is stored.
+        Note:
+            the current version of Declare4py supports only (zipped) XES format of the event logs.
+
+        Args:
+            log_path: File path where the log is stored.
+
+        Example::
+
+            log_path = path/to/my/xes
+            d4py_log = D4PyEventLog()
+            d4py_log.parse_xes_log(log_path)
         """
         if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
             read_log = pm4py.read_xes(log_path)
@@ -69,13 +62,65 @@ class D4PyEventLog:
             # Mettere qui eventuale conversione da pandas frame a EventLog
             raise RuntimeError("Please use the newer version of pm4py")
 
-    def activities_log_projection(self) -> List[List[str]]:
+    def get_log(self) -> EventLog:
         """
-        Return for each trace a time-ordered list of the activity names of the events.
+        Returns the log previously fed in input.
 
-        Returns
-        -------
-        projection
+        Returns:
+            the input log.
+        """
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        return self.log
+
+    def get_length(self) -> int:
+        """
+        Return the length of the log, which was previously fed in input.
+
+        Returns:
+            the length of the log.
+        """
+        if self.log_length is None:
+            raise RuntimeError("You must load a log before.")
+        return self.log_length
+
+    def get_log_alphabet_attribute(self, attribute_name: str = None) -> Set[str]:
+        """
+        Return the set of values for a given input attribute of the case.
+
+        Args:
+            attribute_name: the name of the attribute
+
+        Returns:
+            resource set.
+        """
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        resources = set()
+        for trace in self.log:
+            for event in trace:
+                resources.add(event[attribute_name])
+        return resources
+
+    def get_trace_keys(self) -> List[Tuple[int, str]]:
+        """
+        Returns the name of each trace, along with the position in the log.
+
+        Returns:
+            a list containing the position in the log and the name of the trace.
+        """
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        trace_ids = []
+        for trace_id, trace in enumerate(self.log):
+            trace_ids.append((trace_id, trace.attributes["concept:name"]))
+        return trace_ids
+
+    def attribute_log_projection(self, attribute_name: str = None) -> List[List[str]]:
+        """
+        Returns for each trace a time-ordered list of the values of the input attribute for each event.
+
+        Returns:
             nested lists, the outer one addresses traces while the inner one contains event activity names.
         """
         projection = []
@@ -84,48 +129,22 @@ class D4PyEventLog:
         for trace in self.log:
             tmp_trace = []
             for event in trace:
-                tmp_trace.append(event["concept:name"])
+                tmp_trace.append(event[attribute_name])
             projection.append(tmp_trace)
         return projection
 
-    def resources_log_projection(self) -> List[List[str]]:
-        """
-        Return for each trace a time-ordered list of the resources of the events.
-
-        Returns
-        -------
-        projection
-            nested lists, the outer one addresses traces while the inner one contains event activity names.
-        """
-        projection = []
-        if self.log is None:
-            raise RuntimeError("You must load a log before.")
-        for trace in self.log:
-            tmp_trace = []
-            for event in trace:
-                tmp_trace.append(event["org:group"])
-            projection.append(tmp_trace)
-        return projection
-
-    def compute_frequent_itemsets(self, min_support: float, case_id_col: str, categorical_attributes: str = List[str],
-                                  algorithm: str = 'fpgrowth', len_itemset: int = None) -> None:
+    def compute_frequent_itemsets(self, min_support: float, case_id_col: str, categorical_attributes: List[str] = None,
+                                  algorithm: str = 'fpgrowth', len_itemset: int = 2) -> None:
         """
         Compute the most frequent item sets with a support greater or equal than 'min_support' with the given algorithm
         and over the given dimension.
 
-        Parameters
-        ----------
-        :param min_support: float
-            the minimum support of the returned item sets.
-        :param case_id_col: str
-            the name of the log attribute containing the ids of the cases
-        :param categorical_attributes : list
-            a list of strings containing the names of the attributes to be encoded. For example, 'concept:name'
-            for the activity names and 'org:group' for the resources.
-        :param algorithm : str, optional
-            the algorithm for extracting frequent itemsets, choose between 'fpgrowth' (default) and 'apriori'.
-        :param len_itemset : int, optional
-            the maximum length of the extracted itemsets.
+        Args:
+            min_support: the minimum support of the returned item sets.
+            case_id_col: the name of the log attribute containing the ids of the cases
+            categorical_attributes: a list of strings containing the names of the attributes to be encoded. For example, 'concept:name' for the activity names and 'org:group' for the resources.
+            algorithm: the algorithm for extracting frequent itemsets, choose between 'fpgrowth' (default) and 'apriori'.
+            len_itemset: the maximum length of the extracted itemsets.
         """
         if self.log is None:
             raise RuntimeError("You must load a log before.")
@@ -154,73 +173,11 @@ class D4PyEventLog:
         else:
             self.frequent_item_sets = frequent_itemsets[(frequent_itemsets['length'] <= len_itemset)]
 
-    def get_log(self) -> EventLog:
-        """
-        Return the log previously fed in input.
-
-        Returns
-        -------
-        log
-            the input log.
-        """
-        if self.log is None:
-            raise RuntimeError("You must load a log before.")
-        return self.log
-
-    def get_length(self) -> int:
-        """
-        Return the length of the log, which was previously fed in input.
-
-        Returns
-        -------
-        log_length
-            the length of the log.
-        """
-        if self.log_length is None:
-            raise RuntimeError("You must load a log before.")
-        return self.log_length
-
-    def get_log_alphabet_payload(self) -> Set[str]:
-        """
-        Return the set of resources that are in the log.
-
-        Returns
-        -------
-        resources
-            resource set.
-        """
-        if self.log is None:
-            raise RuntimeError("You must load a log before.")
-        resources = set()
-        for trace in self.log:
-            for event in trace:
-                resources.add(event["org:group"])
-        return resources
-
-    def get_log_alphabet_activities(self):
-        """
-        Return the set of activities that are in the log.
-
-        Returns
-        -------
-        activities
-            activity set.
-        """
-        if self.log is None:
-            raise RuntimeError("You must load a log before.")
-        activities = set()
-        for trace in self.log:
-            for event in trace:
-                activities.add(event["concept:name"])
-        return list(activities)
-
     def get_frequent_item_sets(self):
         """
         Return the most frequent item sets.
 
-        Returns
-        -------
-        frequent_item_sets
+        Returns:
             set of the most frequent items.
         """
         if self.frequent_item_sets is None:
