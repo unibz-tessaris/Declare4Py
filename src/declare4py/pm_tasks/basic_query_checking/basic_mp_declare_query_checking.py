@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import sys
 from abc import ABC
-from typing import Union, List
+from typing import Union, List, Optional
 
 from numpy import product, ceil
 
@@ -53,15 +53,15 @@ Attributes
 class BasicMPDeclareQueryChecking(QueryChecking, ABC):
 
     def __init__(self, consider_vacuity, template_str, max_declare_cardinality, activation,
-                 target, act_cond, trg_cond, time_cond, min_support):
+                 target, act_cond, trg_cond, time_cond: Optional[str] = None, min_support: float = 0.1):
         super().__init__(consider_vacuity, None, None)  # TODO: create/pass logAnalyzer?
-        self.basic_query_checking_results: Union[BasicQueryCheckingResults, None] = None
-        self.template_str: Union[str, None] = template_str
-        self.activation: Union[str, None] = activation
-        self.target: Union[str, None] = target
-        self.act_cond: Union[str, None] = act_cond
-        self.trg_cond: Union[str, None] = trg_cond
-        self.time_cond: Union[str, None] = time_cond
+        self.basic_query_checking_results: Optional[BasicQueryCheckingResults] = None
+        self.template_str: Optional[str] = template_str
+        self.activation: Optional[str] = activation
+        self.target: Optional[str] = target
+        self.act_cond: Optional[str] = act_cond
+        self.trg_cond: Optional[str] = trg_cond
+        self.time_cond: Optional[str] = time_cond
         self.min_support: float = min_support  # or 1.0
         self.max_declare_cardinality: int = max_declare_cardinality
         self.constraint_checker = ConstraintCheck(consider_vacuity)
