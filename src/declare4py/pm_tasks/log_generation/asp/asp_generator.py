@@ -15,7 +15,7 @@ from clingo import Symbol
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
 
-from src.declare4py.pm_tasks.log_generation.log_generator import LogGenerator
+from src.declare4py.pm_tasks.log_generator import LogGenerator
 from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedDataModel, DeclareModelAttributeType, \
     DeclareModelTemplateDataModel
 from src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator import TranslatedASPModel, ASPTranslator
@@ -36,6 +36,7 @@ def custom_sort_trace_key(x):
     # Convert the numeric parts to integers
     parts = [int(p) for p in parts]
     return parts
+
 
 class AspGenerator(LogGenerator):
 
@@ -389,5 +390,4 @@ class AspGenerator(LogGenerator):
                 if tmpl.template_line == cv:
                     tmpl.violate = True
         return dpm
-
 

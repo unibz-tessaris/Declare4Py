@@ -13,7 +13,7 @@ class DeclareModelConditionResolver2ASP:
     def __init__(self, is_encoded: bool = False):
         self.is_encoded = is_encoded
 
-    def resolve_to_asp(self, ct: DeclareModelTemplateDataModel, attrs: dict, idx: int = 0):
+    def resolve_to_asp(self, ct: DeclareModelTemplateDataModel, attrs: dict[str, list], idx: int = 0):
         ls = []
         activation, target_cond, time = ct.get_conditions()
         ls.append('activation({},{}).'.format(idx, self.__normalize_value(ct.activities[0])))
@@ -124,6 +124,17 @@ class DeclareModelConditionResolver2ASP:
         return ls
 
     def parsed_condition(self, condition: typing.Literal['activation', 'correlation'], string: str):
+        """
+
+        Parameters
+        ----------
+        condition
+        string
+
+        Returns
+        -------
+
+        """
         # s = self.parse_data_cond_to_pycond(string)
         return self.parsed_condition_2(condition, string)
 

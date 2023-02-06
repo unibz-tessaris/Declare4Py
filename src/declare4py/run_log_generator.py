@@ -107,7 +107,7 @@ model: DeclModel = DeclModel().parse_from_string(decl)
 
 num_of_traces = 4
 num_min_events = 2
-num_max_events = 6
+num_max_events = 3
 asp = AspGenerator(
     model,
     num_of_traces,
