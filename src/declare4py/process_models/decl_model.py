@@ -4,6 +4,7 @@ import base64
 import copy
 import re
 from enum import Enum
+from typing import Dict, List, Union
 
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.utility.custom_utility_dict import CustomUtilityDict
@@ -240,7 +241,7 @@ class DeclareModelEvent(CustomUtilityDict):
         super().__init__()
         self.name: str = ""  # name of the activity/fact
         self.event_type: str = ""  # type of fact, can be activity, trace.
-        self.attributes: dict[str, dict] = {}
+        self.attributes: Dict[str, Dict] = {}
         self.update_props()
 
     def update_props(self):
@@ -258,12 +259,12 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
 
     def __init__(self):
         super().__init__()
-        self.template: DeclareModelTemplate | None = None
-        self.activities: str | None = None
-        self.condition: [str] | None = None
-        self.template_name: str | None = None
-        self.template_line: str | None  # Constraint lines
-        self.condition_line: str | None  # |A.grade < 2  | T.mark > 2|1,5,s
+        self.template: Union[DeclareModelTemplate, None] = None
+        self.activities: Union[str, None] = None
+        self.condition: Union[List[str], None] = None
+        self.template_name: Union[str, None] = None
+        self.template_line: Union[str, None]  # Constraint lines
+        self.condition_line: Union[str, None]  # |A.grade < 2  | T.mark > 2|1,5,s
         self.violate: bool = False
         self.template_index_id: int = None
 
@@ -352,10 +353,10 @@ class DeclareParsedDataModel(CustomUtilityDict):
 
     def __init__(self):
         super().__init__()
-        self.events: dict[str, DeclareModelEvent] = {}
-        self.attributes_list: dict[str, dict] = {}
+        self.events: Dict[str, DeclareModelEvent] = {}
+        self.attributes_list: Dict[str, Dict] = {}
         self.template_constraints = {}
-        self.templates: list[DeclareModelTemplateDataModel] = []
+        self.templates: List[DeclareModelTemplateDataModel] = []
         self.encoded_model: DeclareModelCoder = None
         self.encoder: DeclareModelCoder = None
         self.update_props()
@@ -580,7 +581,7 @@ class DeclareModelCoder:
 
         return self.model
 
-    def encode_attributes_list(self, attr_list: dict):
+    def encode_attributes_list(self, attr_list: Dict):
         d = {}
         for attr_name, attr_obj in attr_list.items():
             e_attr_name = self.encode_value(attr_name)
@@ -682,9 +683,9 @@ class DeclareModelCoder:
         ss = [self.encode_value(se) for se in ss]
         return ", ".join(ss)
 
-    def encode_str_list(self, lst: [str]) -> [str]:
+    def encode_str_list(self, input_list: List[str]) -> List[str]:
         ss = []
-        for se in lst:
+        for se in input_list:
             if "ENCODEDSTRINGENCODEDSTRING" not in se:
                 ss.append(self.encode_value(se))
             else:
@@ -743,8 +744,8 @@ class DeclModel(LTLModel):
         self.serialized_constraints = []
         self.constraints = []
         self.parsed_model = DeclareParsedDataModel()
-        self.declare_model_lines: [str] = []
-        self.declare_model_violate_constraints: [str] = []
+        self.declare_model_lines: List[str] = []
+        self.declare_model_violate_constraints: List[str] = []
 
     def set_constraints(self):
         constraint_str = ''

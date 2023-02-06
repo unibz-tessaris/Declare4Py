@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from abc import ABC
+from typing import Union, Dict, Tuple
 
-from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from src.declare4py.d4py_event_log import D4PyEventLog
 from src.declare4py.pm_tasks.discovery import Discovery
-from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate, TraceState
+from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.utility.template_checkers.checker_result import CheckerResult
 from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
+from src.declare4py.utility.trace_states import TraceState
 
 """
 
@@ -43,13 +45,13 @@ Attributes
 class BasicMPDeclareDiscovery(Discovery, ABC):
 
     def __init__(self, consider_vacuity: bool, support: float, max_declare_cardinality: int,
-                 log: LogAnalyzer | None, ltl_model: LTLModel):
+                 log: Union[D4PyEventLog, None], ltl_model: LTLModel):
         super().__init__(consider_vacuity, support, max_declare_cardinality, log, ltl_model)
         self.init_discovery_result_instance()
         self.constraint_checker = ConstraintCheck(consider_vacuity)
         self.support: float = support
-        self.max_declare_cardinality: int | None = max_declare_cardinality
-        self.basic_discovery_results: BasicDiscoveryResults | None = None
+        self.max_declare_cardinality: Union[int, None] = max_declare_cardinality
+        self.basic_discovery_results: Union[BasicDiscoveryResults, None] = None
 
     def init_discovery_result_instance(self):
         self.basic_discovery_results: BasicDiscoveryResults = BasicDiscoveryResults()
@@ -93,20 +95,20 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
                 for templ in DeclareModelTemplate.get_unary_templates():
                     constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "")}
                     if not templ.supports_cardinality:
-                        self.basic_discovery_results |= self.discover_constraint(self.log_analyzer, constraint,
+                        self.basic_discovery_results,= self.discover_constraint(self.log_analyzer, constraint,
                                                                                  consider_vacuity)
                     else:
                         for i in range(max_declare_cardinality):
                             constraint['n'] = i + 1
-                            self.basic_discovery_results |= self.discover_constraint(self.log_analyzer, constraint,
+                            self.basic_discovery_results,= self.discover_constraint(self.log_analyzer, constraint,
                                                                                      consider_vacuity)
             elif length == 2:
                 for templ in DeclareModelTemplate.get_binary_templates():
                     constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "", "")}
-                    self.basic_discovery_results |= self.discover_constraint(self.log_analyzer, constraint,
+                    self.basic_discovery_results,= self.discover_constraint(self.log_analyzer, constraint,
                                                                              consider_vacuity)
                     constraint['activities'] = ', '.join(reversed(list(item_set)))
-                    self.basic_discovery_results |= self.discover_constraint(self.log_analyzer, constraint,
+                    self.basic_discovery_results,= self.discover_constraint(self.log_analyzer, constraint,
                                                                              consider_vacuity)
         activities_decl_format = "activity " + "\nactivity ".join(self.log_analyzer.get_log_alphabet_activities()) + "\n"
         if output_path is not None:
@@ -116,7 +118,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
         return self.basic_discovery_results
 
     def filter_discovery(self, min_support: float = 0, output_path: str = None) \
-            -> dict[str: dict[tuple[int, str]: CheckerResult]]:
+            -> Dict[str: Dict[Tuple[int, str]: CheckerResult]]:
         """
         Filters discovery results by means of minimum support.
 
@@ -154,7 +156,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
                 f.write('\n'.join(result.keys()))
         return result
 
-    def discover_constraint(self, log: LogAnalyzer, constraint: dict, consider_vacuity: bool):
+    def discover_constraint(self, log: D4PyEventLog, constraint: dict, consider_vacuity: bool):
         # Fake model composed by a single constraint
         model = DeclModel()
         model.constraints.append(constraint)
@@ -168,7 +170,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
             if checker_res.state == TraceState.SATISFIED:
                 new_val = {(i, trace.attributes['concept:name']): checker_res}
                 if constraint_str in discovery_res:
-                    discovery_res[constraint_str] |= new_val
+                    discovery_res[constraint_str],= new_val
                 else:
                     discovery_res[constraint_str] = new_val
         return discovery_res

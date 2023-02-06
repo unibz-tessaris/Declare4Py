@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from src.declare4py.pm_tasks.log_analyzer import LogAnalyzer
+from typing import Union
+
 from src.declare4py.process_models.decl_model import DeclModel
 from src.declare4py.process_models.ltl_model import LTLModel
 from src.declare4py.process_models.process_model import ProcessModel
@@ -9,7 +10,7 @@ from src.declare4py.utility.template_checkers.template_checker import TemplateCh
 
 class ConstraintCheck:
 
-    def __init__(self, consider_vacuity: bool | None):
+    def __init__(self, consider_vacuity: Union[bool, None]):
         """
         Checks whether the constraints are fulfillment, violation, pendings, activations etc
 
@@ -17,7 +18,7 @@ class ConstraintCheck:
         ----------
         :param bool consider_vacuity: True means that vacuously satisfied traces are considered as satisfied, violated
          otherwise
-        :param LogAnalyzer log: log
+        :param d4pyEventLog log: log
         :param LTLModel ltl_model: Process mining model
 
         """
