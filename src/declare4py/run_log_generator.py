@@ -102,12 +102,35 @@ Existence[act3] | |
 Existence[act4] | |
 """
 
+decl4 = """
+activity A
+bind A: ax, ay
+ax: integer between 0 and 1000
+ay: integer between 0 and 1000
+activity B
+bind B: bs, bt
+bs: float between -50.25 and 50.75
+bt: float between -50.25 and 50.75
+activity C
+bind C: name, surname
+name: axel, susi, csaba
+surname: mezini, loddi, toth
+activity D
+bind D: boolean, grade
+boolean: true, false, maybe
+grade: integer between 1 and 10
+activity E
+Exactly2[B] | A.bt > 100 |
+Absence[A] | A.ax > 20 |
+Existence[E] | |
+Choice[C, D] | A.name in (axel, susi) | T.grade = 20
+"""
 
-model: DeclModel = DeclModel().parse_from_string(decl)
+model: DeclModel = DeclModel().parse_from_string(decl4)
 
-num_of_traces = 4
-num_min_events = 2
-num_max_events = 3
+num_of_traces = 30
+num_min_events = 10
+num_max_events = 15
 asp = AspGenerator(
     model,
     num_of_traces,
@@ -116,6 +139,7 @@ asp = AspGenerator(
     encode_decl_model=False,
 )
 
+asp.set_distribution("uniform")
 # asp.set_distribution( distributor_type="gaussian", loc=3, scale=0.8)
 
 # TODO: wrap next 3 methods into one method
@@ -126,8 +150,16 @@ asp = AspGenerator(
 #     # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
 #     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
 # ])
+# asp.set_constraints_to_violate(3, True, [
+     # "Existence[act2] | |",
+     # "Existence[act4] | |
+     # "Absence[A] | A.ax > 20 |",
+     # "Existence[E] | |"
+     # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
+     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
+# ])
 
-asp.set_constraints_to_violate_by_template_index(1, True, [2])
+# asp.set_constraints_to_violate_by_template_index(1, True, [2])
 
 # asp.set_activation_conditions({
 #     # 'Response[A,B] | A.attribute is value1 | |': [3, 5],
@@ -141,10 +173,10 @@ asp.set_constraints_to_violate_by_template_index(1, True, [2])
 #     2: [2, 4]
 # })
 
-asp.set_number_of_repetition_per_trace(8)
+# asp.set_number_of_repetition_per_trace(8)
 
-# asp.run('./generated_asp.lp')
-asp.run()
+asp.run('./generated_asp.lp')
+# asp.run()
 asp.to_xes("../../generated_xes1.xes")
 
 

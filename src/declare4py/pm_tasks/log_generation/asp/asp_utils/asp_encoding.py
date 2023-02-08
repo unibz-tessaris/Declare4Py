@@ -30,7 +30,7 @@ sat(I,T) :- cur_state(I,S,T), template(I,Name), accepting(Name,S).
 %#show sat/2.
 """
 
-    def get_alp_encoding(self, facts_name: [str] = ["activity"]):
+    def get_ASP_encoding(self, facts_name: [str] = ["activity"]):
         """
         We need add the facts. The facts name can be anything described in the decl model.
         Parameters

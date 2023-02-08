@@ -431,7 +431,6 @@ class DeclareParsedDataModel(CustomUtilityDict):
         attribute = self.attributes_list[attr_name]
         attribute["value"] = attr_value
         attribute["value_type"] = attr_type
-
         if attr_type == DeclareModelAttributeType.FLOAT:
             frm = str(attr_value).split(".")  # 10.587  # attribute["range_precision"] = len(frm[1])
             precision = len(frm[1])
@@ -451,8 +450,12 @@ class DeclareParsedDataModel(CustomUtilityDict):
                     val2 = int(match[0][2])
                     attribute["range_precision"] = 0
                 if attr_type == DeclareModelAttributeType.FLOAT_RANGE:
-                    val1 = float(match[0][0])
-                    val2 = float(match[0][2])
+                    v = attr_value.replace("float between", "").replace("and", "---")
+                    v = v.strip().split(" --- ")
+                    # val1 = float(match[0][0])
+                    # val2 = float(match[0][2])
+                    val1 = float(v[0])
+                    val2 = float(v[1])
                     attribute["range_precision"] = self.get_float_biggest_precision(val1, val2)
                 attribute["from"] = val1
                 attribute["to"] = val2
@@ -859,7 +862,7 @@ class DeclModel(LTLModel):
         :param line: declare line
         :return:
         """
-        x = re.search(r"^(?!bind)([a-zA-Z_,0-9.?: ]+) *(: *[\w,.? ]+)$", line, re.MULTILINE)
+        x = re.search(r"^(?!bind)([a-zA-Z_,0-9.?:\- ]+) *(: *[\w,.? \-]+)$", line, re.MULTILINE)
         if x is None:
             return False
         groups_len = len(x.groups())
