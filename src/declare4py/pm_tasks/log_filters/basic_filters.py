@@ -2,7 +2,9 @@ from src.declare4py.d4py_event_log import D4PyEventLog
 
 import pm4py
 from pm4py.objects.log.obj import EventLog, Trace
-from typing import Union, Set, List, Tuple, Any, Dict
+from typing import Union, Set, List, Tuple, Dict
+import packaging
+from packaging import version
 
 
 class BasicFilters:
@@ -105,7 +107,11 @@ class BasicFilters:
 
         """
 
-        return pm4py.get_end_activities(self.event_log.log, activity_key, timestamp_key, case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.get_end_activities(self.event_log.log, activity_key, timestamp_key, case_id_key)
+        else:
+            end_activities = pm4py.get_end_activities(self.event_log.log)
+            return end_activities
 
     def filter_end_activities(self, activities: [Set[str], List[str]], retain: bool = True,
                               activity_key: str = "concept:name",

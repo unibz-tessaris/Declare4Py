@@ -8,9 +8,9 @@ from mlxtend.frequent_patterns import fpgrowth, apriori
 import pm4py
 from pm4py.objects.log.obj import EventLog
 
-from typing import Union, List, Tuple, Set
+from typing import List, Tuple, Optional
 
-from src.declare4py.encodings import AggregateTransformer
+from src.declare4py.encodings.AggregateTransformer import AggregateTransformer
 
 from pandas import DataFrame
 
@@ -32,11 +32,9 @@ class D4PyEventLog:
 
             d4py_log = D4PyEventLog()
         """
-        self.log: Union[EventLog, None] = None
-        self.log_length: Union[int, None] = None
-        self.frequent_item_sets: Union[DataFrame, None] = None
+        self.log: Optional[EventLog] = None
+        self.log_length: Optional[int] = None
 
-    # LOG MANAGEMENT UTILITIES
     def parse_xes_log(self, log_path: str) -> None:
         """
         Set the 'log' EventLog object and the 'log_length' integer by reading and parsing the log corresponding to
@@ -54,13 +52,12 @@ class D4PyEventLog:
             d4py_log = D4PyEventLog()
             d4py_log.parse_xes_log(log_path)
         """
+        log = pm4py.read_xes(log_path)
         if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
-            read_log = pm4py.read_xes(log_path)
-            self.log = pm4py.convert_to_event_log(read_log)
-            self.log_length = len(self.log)
+            self.log = pm4py.convert_to_event_log(log)
         else:
-            # Mettere qui eventuale conversione da pandas frame a EventLog
-            raise RuntimeError("Please use the newer version of pm4py")
+            self.log = log
+        self.log_length = len(self.log)
 
     def get_log(self) -> EventLog:
         """
@@ -84,7 +81,7 @@ class D4PyEventLog:
             raise RuntimeError("You must load a log before.")
         return self.log_length
 
-    def get_log_alphabet_attribute(self, attribute_name: str = None) -> Set[str]:
+    def get_log_alphabet_attribute(self, attribute_name: str = None) -> List[str]:
         """
         Return the set of values for a given input attribute of the case.
 
@@ -92,15 +89,18 @@ class D4PyEventLog:
             attribute_name: the name of the attribute
 
         Returns:
-            resource set.
+            a list with the attribute values.
         """
         if self.log is None:
             raise RuntimeError("You must load a log before.")
-        resources = set()
-        for trace in self.log:
-            for event in trace:
-                resources.add(event[attribute_name])
-        return resources
+        attribute_values = set()
+        try:
+            for trace in self.log:
+                for event in trace:
+                    attribute_values.add(event[attribute_name])
+        except KeyError as e:
+            print(f"{e} attribute does not exist. Check the log.")
+        return list(attribute_values)
 
     def get_trace_keys(self) -> List[Tuple[int, str]]:
         """
@@ -126,15 +126,18 @@ class D4PyEventLog:
         projection = []
         if self.log is None:
             raise RuntimeError("You must load a log before.")
-        for trace in self.log:
-            tmp_trace = []
-            for event in trace:
-                tmp_trace.append(event[attribute_name])
-            projection.append(tmp_trace)
+        try:
+            for trace in self.log:
+                tmp_trace = []
+                for event in trace:
+                    tmp_trace.append(event[attribute_name])
+                projection.append(tmp_trace)
+        except KeyError as e:
+            print(f"{e} attribute does not exist. Check the log.")
         return projection
 
     def compute_frequent_itemsets(self, min_support: float, case_id_col: str, categorical_attributes: List[str] = None,
-                                  algorithm: str = 'fpgrowth', len_itemset: int = 2) -> None:
+                                  algorithm: str = 'fpgrowth', len_itemset: int = 2) -> DataFrame:
         """
         Compute the most frequent item sets with a support greater or equal than 'min_support' with the given algorithm
         and over the given dimension.
@@ -154,7 +157,7 @@ class D4PyEventLog:
         log_df = pm4py.convert_to_dataframe(self.log)
         for attr_name in categorical_attributes:
             if attr_name not in log_df.columns:
-                raise RuntimeError(f"{attr_name} is not a valid attribute. Check the log.")
+                raise RuntimeError(f"{attr_name} attribute does not exist. Check the log.")
 
         encoder: AggregateTransformer = AggregateTransformer(case_id_col=case_id_col, cat_cols=categorical_attributes,
                                                              num_cols=[], boolean=True)
@@ -167,19 +170,8 @@ class D4PyEventLog:
             raise RuntimeError(f"{algorithm} algorithm not supported. Choose between fpgrowth and apriori")
         frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
         if len_itemset is None:
-            self.frequent_item_sets = frequent_itemsets
+            return frequent_itemsets
         elif len_itemset < 1:
             raise RuntimeError(f"The parameter len_itemset must be greater than 0.")
         else:
-            self.frequent_item_sets = frequent_itemsets[(frequent_itemsets['length'] <= len_itemset)]
-
-    def get_frequent_item_sets(self):
-        """
-        Return the most frequent item sets.
-
-        Returns:
-            set of the most frequent items.
-        """
-        if self.frequent_item_sets is None:
-            raise RuntimeError("Please run the compute_frequent_itemsets function first.")
-        return self.frequent_item_sets
+            return frequent_itemsets[(frequent_itemsets['length'] <= len_itemset)]
