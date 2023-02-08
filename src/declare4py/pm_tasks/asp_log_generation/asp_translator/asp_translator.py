@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.declare4py.pm_tasks.log_generation.asp.asp_translator.declare_constraint_resolver import \
+from src.declare4py.pm_tasks.asp_log_generation.asp_translator.declare_constraint_resolver import \
     DeclareModelConditionResolver2ASP
 from src.declare4py.process_models.decl_model import DeclareModelAttributeType
 from src.declare4py.process_models.decl_model import DeclModel

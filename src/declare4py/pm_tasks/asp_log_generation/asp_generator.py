@@ -15,14 +15,14 @@ from clingo import Symbol
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
 
-from src.declare4py.pm_tasks.log_generation.asp.asp_utils.distribution import Distributor
+from src.declare4py.pm_tasks.asp_log_generation.asp_utils.distribution import Distributor
 from src.declare4py.pm_tasks.log_generator import LogGenerator
 from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedDataModel, DeclareModelAttributeType, \
     DeclareModelTemplateDataModel
-from src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator import TranslatedASPModel, ASPTranslator
-from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_encoding import ASPEncoding
-from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser import ASPResultTraceModel
-from src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_template import ASPTemplate
+from src.declare4py.pm_tasks.asp_log_generation.asp_translator.asp_translator import TranslatedASPModel, ASPTranslator
+from src.declare4py.pm_tasks.asp_log_generation.asp_utils.asp_encoding import ASPEncoding
+from src.declare4py.pm_tasks.asp_log_generation.asp_utils.asp_result_parser import ASPResultTraceModel
+from src.declare4py.pm_tasks.asp_log_generation.asp_utils.asp_template import ASPTemplate
 from src.declare4py.process_models.process_model import ProcessModel
 
 
@@ -394,7 +394,7 @@ class AspGenerator(LogGenerator):
     def set_activation_conditions(self, activations_list: dict[str, list[int]]):
         """
         the activation conditions are used TODO: add more info about it.
-        TODO: this method should be in the asp generator rather than abstract class and also self.activation_conditions.
+        TODO: this method should be in the asp_log_generation generator rather than abstract class and also self.activation_conditions.
 
         Parameters
         ----------
@@ -417,7 +417,7 @@ class AspGenerator(LogGenerator):
     def set_activation_conditions_by_template_index(self, activations_list: dict[int, list[int]]):
         """
         the activation conditions are used TODO: add more info about it.
-        TODO: this method should be in the asp generator rather than abstract class and also self.activation_conditions.
+        TODO: this method should be in the asp_log_generation generator rather than abstract class and also self.activation_conditions.
 
         Parameters
         ----------

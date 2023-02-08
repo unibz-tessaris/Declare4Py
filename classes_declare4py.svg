@@ -9,7 +9,7 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 2077)">
 <title>classes_declare4py</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-2077 7696.5,-2077 7696.5,4 -4,4"/>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_encoding.ASPEncoding -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_utils.asp_encoding.ASPEncoding -->
 <g id="node1" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_encoding.ASPEncoding</title>
 <polygon fill="none" stroke="black" points="3182,-68 3182,-152 3400,-152 3400,-68 3182,-68"/>
@@ -20,7 +20,7 @@
 <polyline fill="none" stroke="black" points="3182,-91 3400,-91"/>
 <text text-anchor="start" x="3190" y="-75.8" font-family="Times New Roman,serif" font-size="14.00">get_alp_encoding(facts_name: [str])</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser.ASPResultEventModel -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_utils.asp_result_parser.ASPResultEventModel -->
 <g id="node2" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser.ASPResultEventModel</title>
 <polygon fill="none" stroke="black" points="3418,-53 3418,-167 3564,-167 3564,-53 3418,-53"/>
@@ -33,7 +33,7 @@
 <polyline fill="none" stroke="black" points="3418,-76 3564,-76"/>
 <text text-anchor="start" x="3426" y="-60.8" font-family="Times New Roman,serif" font-size="14.00">parse_clingo_event()</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser.ASPResultTraceModel -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_utils.asp_result_parser.ASPResultTraceModel -->
 <g id="node3" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_result_parser.ASPResultTraceModel</title>
 <polygon fill="none" stroke="black" points="3582.5,-53 3582.5,-167 3939.5,-167 3939.5,-53 3582.5,-53"/>
@@ -46,7 +46,7 @@
 <text text-anchor="start" x="3590.5" y="-75.8" font-family="Times New Roman,serif" font-size="14.00">parse_clingo_trace()</text>
 <text text-anchor="start" x="3590.5" y="-60.8" font-family="Times New Roman,serif" font-size="14.00">parse_clingo_val_assignement(syb: [clingo.symbol.Symbol])</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_template.ASPTemplate -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_utils.asp_template.ASPTemplate -->
 <g id="node4" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_utils.asp_template.ASPTemplate</title>
 <polygon fill="none" stroke="black" points="3957.5,-75.5 3957.5,-144.5 4052.5,-144.5 4052.5,-75.5 3957.5,-75.5"/>
@@ -56,7 +56,7 @@
 <polyline fill="none" stroke="black" points="3957.5,-98.5 4052.5,-98.5"/>
 <text text-anchor="middle" x="4005" y="-83.3" font-family="Times New Roman,serif" font-size="14.00"> </text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.ASPTranslator -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.asp_translator.ASPTranslator -->
 <g id="node5" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.ASPTranslator</title>
 <polygon fill="none" stroke="black" points="24.5,-1208 24.5,-1277 641.5,-1277 641.5,-1208 24.5,-1208"/>
@@ -85,7 +85,7 @@
 <text text-anchor="start" x="4333.5" y="-30.8" font-family="Times New Roman,serif" font-size="14.00">get_feature_names()</text>
 <text text-anchor="start" x="4333.5" y="-15.8" font-family="Times New Roman,serif" font-size="14.00">transform(X, y)</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_generator.AspGenerator -->
 <g id="node7" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator</title>
 <polygon fill="none" stroke="black" points="660,-1061.5 660,-1423.5 1324,-1423.5 1324,-1061.5 660,-1061.5"/>
@@ -144,7 +144,7 @@
 <text text-anchor="start" x="1116.5" y="-1484.3" font-family="Times New Roman,serif" font-size="14.00">set_activation_conditions_by_template_index(activations_list: dict[int, list[int]])</text>
 <text text-anchor="start" x="1116.5" y="-1469.3" font-family="Times New Roman,serif" font-size="14.00">set_distribution(distributor_type: typing.Literal[&#39;uniform&#39;, &#39;gaussian&#39;, &#39;custom&#39;], custom_probabilities: typing.Optional[typing.List[float]], loc: Optional[float], scale: Optional[float])</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator&#45;&gt;src.declare4py.pm_tasks.log_generator.LogGenerator -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_generator.AspGenerator&#45;&gt;src.declare4py.pm_tasks.log_generator.LogGenerator -->
 <g id="edge6" class="edge">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator&#45;&gt;src.declare4py.pm_tasks.log_generator.LogGenerator</title>
 <path fill="none" stroke="black" d="M1281.6,-1423.69C1298.74,-1434.35 1315.97,-1445.07 1333.08,-1455.71"/>
@@ -588,7 +588,7 @@
 <polygon fill="black" stroke="black" points="4938,-259.45 4942,-265.45 4938,-271.45 4934,-265.45 4938,-259.45"/>
 <text text-anchor="middle" x="4998" y="-241.8" font-family="Times New Roman,serif" font-size="14.00" fill="green">declare_parser_utility</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_translator.declare_constraint_resolver.DeclareModelConditionResolver2ASP -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.declare_constraint_resolver.DeclareModelConditionResolver2ASP -->
 <g id="node24" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_translator.declare_constraint_resolver.DeclareModelConditionResolver2ASP</title>
 <polygon fill="none" stroke="black" points="0,-372.5 0,-554.5 836,-554.5 836,-372.5 0,-372.5"/>
@@ -606,7 +606,7 @@
 <polyline fill="none" stroke="black" points="0,-395.5 836,-395.5"/>
 <text text-anchor="start" x="8" y="-380.3" font-family="Times New Roman,serif" font-size="14.00">None</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.asp_translator.TranslatedASPModel -->
 <g id="node46" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel</title>
 <polygon fill="none" stroke="black" points="185,-707.5 185,-1009.5 651,-1009.5 651,-707.5 185,-707.5"/>
@@ -632,7 +632,7 @@
 <text text-anchor="start" x="193" y="-730.3" font-family="Times New Roman,serif" font-size="14.00">set_attr_value(attr: str, value: dict, is_encoded: bool)</text>
 <text text-anchor="start" x="193" y="-715.3" font-family="Times New Roman,serif" font-size="14.00">to_str()</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_translator.declare_constraint_resolver.DeclareModelConditionResolver2ASP&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.declare_constraint_resolver.DeclareModelConditionResolver2ASP&#45;&gt;src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.asp_translator.TranslatedASPModel -->
 <g id="edge25" class="edge">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_translator.declare_constraint_resolver.DeclareModelConditionResolver2ASP&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel</title>
 <path fill="none" stroke="black" d="M418,-554.66C418,-596.34 418,-647.15 418,-695.16"/>
@@ -745,7 +745,7 @@
 <path fill="none" stroke="black" d="M2225.4,-1666.21C2248.46,-1724.21 2295.76,-1843.19 2322.82,-1911.24"/>
 <polygon fill="none" stroke="black" points="2319.71,-1912.9 2326.66,-1920.9 2326.22,-1910.32 2319.71,-1912.9"/>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_utils.distribution.Distributor -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_utils.distribution.Distributor -->
 <g id="node30" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_utils.distribution.Distributor</title>
 <polygon fill="none" stroke="black" points="5065.5,-18 5065.5,-202 5628.5,-202 5628.5,-18 5065.5,-18"/>
@@ -835,7 +835,7 @@
 <path fill="none" stroke="black" d="M1988.11,-1801.59C2102.23,-1853.18 2215.1,-1904.19 2281.92,-1934.39"/>
 <polygon fill="none" stroke="black" points="2280.88,-1937.76 2291.44,-1938.69 2283.76,-1931.39 2280.88,-1937.76"/>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_generator.LogTracesType -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_generator.LogTracesType -->
 <g id="node36" class="node">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_generator.LogTracesType</title>
 <polygon fill="none" stroke="black" points="938.5,-816.5 938.5,-900.5 1045.5,-900.5 1045.5,-816.5 938.5,-816.5"/>
@@ -846,14 +846,14 @@
 <polyline fill="none" stroke="black" points="938.5,-839.5 1045.5,-839.5"/>
 <text text-anchor="middle" x="992" y="-824.3" font-family="Times New Roman,serif" font-size="14.00"> </text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_generator.LogTracesType&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_generator.LogTracesType&#45;&gt;src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_generator.AspGenerator -->
 <g id="edge20" class="edge">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_generator.LogTracesType&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator</title>
 <path fill="none" stroke="black" d="M969.2,-900.59C952.13,-933.82 930.21,-982.42 921,-1028 919.57,-1035.05 918.72,-1042.19 918.37,-1049.38"/>
 <polygon fill="black" stroke="black" points="918.37,-1049.5 922.3,-1055.54 918.23,-1061.5 914.3,-1055.45 918.37,-1049.5"/>
 <text text-anchor="middle" x="981.5" y="-1031.8" font-family="Times New Roman,serif" font-size="14.00" fill="green">asp_generated_traces</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_generator.LogTracesType&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_generator.LogTracesType&#45;&gt;src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_generator.AspGenerator -->
 <g id="edge21" class="edge">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_generator.LogTracesType&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator</title>
 <path fill="none" stroke="black" d="M1007.85,-900.64C1019.92,-934.31 1035.53,-983.46 1042,-1028 1043.02,-1035 1043.62,-1042.11 1043.87,-1049.27"/>
@@ -942,21 +942,21 @@
 <polyline fill="none" stroke="black" points="7615.5,-98.5 7692.5,-98.5"/>
 <text text-anchor="middle" x="7654" y="-83.3" font-family="Times New Roman,serif" font-size="14.00"> </text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.ASPTranslator -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.asp_translator.TranslatedASPModel&#45;&gt;src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.asp_translator.ASPTranslator -->
 <g id="edge23" class="edge">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.ASPTranslator</title>
 <path fill="none" stroke="black" d="M339.02,-1009.82C337.12,-1015.88 335.44,-1021.96 334,-1028 320.54,-1084.57 323.2,-1151.99 327.28,-1195.71"/>
 <polygon fill="black" stroke="black" points="327.28,-1195.72 331.86,-1201.29 328.49,-1207.66 323.9,-1202.09 327.28,-1195.72"/>
 <text text-anchor="middle" x="365" y="-1031.8" font-family="Times New Roman,serif" font-size="14.00" fill="green">asp_model</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.ASPTranslator -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.asp_translator.TranslatedASPModel&#45;&gt;src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.asp_translator.ASPTranslator -->
 <g id="edge24" class="edge">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.ASPTranslator</title>
 <path fill="none" stroke="black" d="M402.35,-1009.6C400.45,-1020.95 398.34,-1032.18 396,-1043 384.36,-1096.75 364.3,-1156.72 349.95,-1196.53"/>
 <polygon fill="black" stroke="black" points="349.89,-1196.68 351.6,-1203.69 345.78,-1207.95 344.08,-1200.95 349.89,-1196.68"/>
 <text text-anchor="middle" x="430" y="-1031.8" font-family="Times New Roman,serif" font-size="14.00" fill="green">asp_model</text>
 </g>
-<!-- src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator -->
+<!-- src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_translator.asp_translator.TranslatedASPModel&#45;&gt;src.declare4py.pm_tasks.log_generation.asp_log_generation.asp_generator.AspGenerator -->
 <g id="edge22" class="edge">
 <title>src.declare4py.pm_tasks.log_generation.asp.asp_translator.asp_translator.TranslatedASPModel&#45;&gt;src.declare4py.pm_tasks.log_generation.asp.asp_generator.AspGenerator</title>
 <path fill="none" stroke="black" d="M643.62,-1009.65C665.77,-1024.39 688.43,-1039.47 711.04,-1054.52"/>

@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import collections
 import logging
 import typing
 from abc import ABC
 
-from src.declare4py.pm_tasks.log_generation.asp.asp_utils.distribution import Distributor
 from src.declare4py.pm_tasks.pm_task import PMTask
 from src.declare4py.process_models.process_model import ProcessModel
 
