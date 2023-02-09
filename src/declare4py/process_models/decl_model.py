@@ -46,11 +46,11 @@ class DeclareModelTemplate(str, Enum):
     EXISTENCE = "Existence", False, False, True, False
     ABSENCE = "Absence", False, False, True, False
     EXACTLY = "Exactly", False, False, True, False
-
     INIT = "Init", False, False, False, False
 
     CHOICE = "Choice", True, False, False, True
     EXCLUSIVE_CHOICE = "Exclusive Choice", True, False, False, True
+
     RESPONDED_EXISTENCE = "Responded Existence", True, False, False, False
     RESPONSE = "Response", True, False, False, False
     ALTERNATE_RESPONSE = "Alternate Response", True, False, False, False
@@ -60,17 +60,17 @@ class DeclareModelTemplate(str, Enum):
     CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False
 
     SUCCESSION = "Succession", True, False, False, True  # TODO: check if it is defined correct
-    NOT_SUCCESSION = "Not Succession", True, True, False, True  # TODO: check if it is defined correct
     ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True  # TODO: check whether it is defined correct
-    Chain_SUCCESSION = "Chain Succession", True, False, False, True  # TODO: check whether it is defined correct
-    NOT_CHAIN_SUCCESSION = "Not Chain Succession", True, False, False, True  # TODO: check whether it is defined correct
     CO_EXISTENCE = "Co-Existence", True, False, False, True  # TODO: check whether it is defined correct, I dont think this one is correct
+    CHAIN_SUCCESSION = "Chain Succession", True, False, False, True  # TODO: check whether it is defined correct
+    NOT_CHAIN_SUCCESSION = "Not Chain Succession", True, False, False, True  # TODO: check whether it is defined correct
     NOT_CO_EXISTENCE = "Not Co-Existence", True, False, False, True  # TODO: check whether it is defined correct, I dont think this one is correct
+    NOT_SUCCESSION = "Not Succession", True, True, False, True  # TODO: check if it is defined correct
 
     NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False
     NOT_RESPONSE = "Not Response", True, True, False, False
-    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False
     NOT_PRECEDENCE = "Not Precedence", True, True, False, False
+    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False
     NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False
 
     @classmethod

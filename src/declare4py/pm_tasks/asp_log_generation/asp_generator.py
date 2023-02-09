@@ -271,7 +271,7 @@ class AspGenerator(LogGenerator):
 
     def __pm4py_log(self):
         self.py_logger.debug(f"Generating Pm4py log")
-        self.log_analyzer.log = lg.EventLog()
+        self.event_log.log = lg.EventLog()
         decl_encoded_model: DeclareParsedDataModel = self.process_model.parsed_model
         attr_list = decl_encoded_model.attributes_list
         tot_traces_generated = 0
@@ -313,7 +313,7 @@ class AspGenerator(LogGenerator):
                         event[res_name_decoded] = str(res_value_decoded).strip()
                         event["time:timestamp"] = formatted_time
                     trace_gen.append(event)
-                self.log_analyzer.log.append(trace_gen)
+                self.event_log.log.append(trace_gen)
         if tot_traces_generated != self.log_length:
             num = self.num_repetition_per_trace
             if num <= 0:
@@ -322,9 +322,9 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug(f"Pm4py generated but not saved yet")
 
     def to_xes(self, output_fn: str):
-        if self.log_analyzer.log is None:
+        if self.event_log.log is None:
             self.__pm4py_log()
-        exporter.apply(self.log_analyzer.log, output_fn)
+        exporter.apply(self.event_log.log, output_fn)
 
     def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
         """

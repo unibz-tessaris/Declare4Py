@@ -19,7 +19,7 @@ class PMTask:
         super().__init__()
         if log is None:
             log = D4PyEventLog()
-        self.log_analyzer: D4PyEventLog = log
+        self.event_log: D4PyEventLog = log
         self.process_model: ProcessModel = p_model
 
     @abstractmethod

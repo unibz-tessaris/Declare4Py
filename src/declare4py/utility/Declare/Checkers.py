@@ -1,13 +1,55 @@
 from __future__ import annotations
 
+from src.declare4py.process_models.decl_model import DeclModel
+
 from abc import ABC, abstractmethod
 from datetime import timedelta
 
 from src.declare4py.process_models.decl_model import DeclareModelConditionParserUtility, DeclareModelTemplate
-from src.declare4py.utility.template_checkers.checker_result import CheckerResult
 from src.declare4py.utility.trace_states import TraceState
 
 glob = {'__builtins__': None}
+
+
+class ConstraintChecker:
+
+    @staticmethod
+    def check_trace_conformance(trace: dict, decl_model: DeclModel, consider_vacuity: bool = None) -> dict:
+        """
+                Checks whether the constraints are fulfillment, violation, pendings, activations etc
+
+                Parameters
+                ----------
+                :param bool consider_vacuity: True means that vacuously satisfied traces are considered as satisfied, violated
+                 otherwise
+                :param d4pyEventLog trace: log
+                :param DeclModel decl_model: Process mining model
+
+                """
+
+        # Set containing all constraints that raised SyntaxError in checker functions
+        rules = {"vacuous_satisfaction": consider_vacuity}
+        error_constraint_set = set()
+        model: DeclModel = decl_model
+        trace_results = {}
+        for idx, constraint in enumerate(model.constraints):
+            constraint_str = model.serialized_constraints[idx]
+            rules["activation"] = constraint['condition'][0]
+            if constraint['template'].supports_cardinality:
+                rules["n"] = constraint['n']
+            if constraint['template'].is_binary:
+                rules["correlation"] = constraint['condition'][1]
+            rules["time"] = constraint['condition'][-1]  # time condition is always at last position
+            try:
+                constraint_template_cls = TemplateCheckers().get_template(constraint['template'], trace, True,
+                                                                          constraint['activities'], rules)
+                trace_results[constraint_str] = constraint_template_cls.get_check_result()
+            except SyntaxError:
+                # TODO: use python logger
+                if constraint_str not in error_constraint_set:
+                    error_constraint_set.add(constraint_str)
+                    print('Condition not properly formatted for constraint "' + constraint_str + '".')
+        return trace_results
 
 
 class TemplateConstraintChecker(ABC):
@@ -719,7 +761,6 @@ class TemplateConstraintChecker(ABC):
 
 
 class TemplateCheckers:
-
     def get_template(self, template: DeclareModelTemplate, traces: dict,
                      completed: bool, activities: [str], rules: dict) -> TemplateConstraintChecker:
         """
@@ -742,3 +783,11 @@ class TemplateCheckers:
         checker_instance: TemplateConstraintChecker = klass(traces, completed, activities, rules)
         return checker_instance
 
+
+class CheckerResult:
+    def __init__(self, num_fulfillments: int, num_violations: int, num_pendings: int, num_activations: int, state):
+        self.num_fulfillments = num_fulfillments
+        self.num_violations = num_violations
+        self.num_pendings = num_pendings
+        self.num_activations = num_activations
+        self.state = state

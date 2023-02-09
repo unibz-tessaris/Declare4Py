@@ -7,8 +7,8 @@ from src.declare4py.d4py_event_log import D4PyEventLog
 from src.declare4py.pm_tasks.discovery import Discovery
 from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate
 from src.declare4py.process_models.ltl_model import LTLModel
-from src.declare4py.utility.template_checkers.checker_result import CheckerResult
-from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
+from src.declare4py.utility.Declare.checker_result import CheckerResult
+from src.declare4py.utility.Declare.constraint_checker import ConstraintCheck
 from src.declare4py.utility.trace_states import TraceState
 
 """
@@ -81,36 +81,36 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
             is a CheckerResult object containing the number of pendings, activations, violations, fulfilments.
         """
         print("Computing discovery ...")
-        if self.log_analyzer is None:
+        if self.event_log is None:
             raise RuntimeError("You must load a log before.")
-        if self.log_analyzer.frequent_item_sets is None:
+        if self.event_log.frequent_item_sets is None:
             raise RuntimeError("You must discover frequent itemsets before.")
         if max_declare_cardinality <= 0:
             raise RuntimeError("Cardinality must be greater than 0.")
         self.init_discovery_result_instance()
 
-        for item_set in self.log_analyzer.frequent_item_sets['itemsets']:  # TODO: improve this key name?
+        for item_set in self.event_log.frequent_item_sets['itemsets']:  # TODO: improve this key name?
             length = len(item_set)
             if length == 1:
                 for templ in DeclareModelTemplate.get_unary_templates():
                     constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "")}
                     if not templ.supports_cardinality:
-                        self.basic_discovery_results,= self.discover_constraint(self.log_analyzer, constraint,
-                                                                                 consider_vacuity)
+                        self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
+                                                                                consider_vacuity)
                     else:
                         for i in range(max_declare_cardinality):
                             constraint['n'] = i + 1
-                            self.basic_discovery_results,= self.discover_constraint(self.log_analyzer, constraint,
-                                                                                     consider_vacuity)
+                            self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
+                                                                                    consider_vacuity)
             elif length == 2:
                 for templ in DeclareModelTemplate.get_binary_templates():
                     constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "", "")}
-                    self.basic_discovery_results,= self.discover_constraint(self.log_analyzer, constraint,
-                                                                             consider_vacuity)
+                    self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
+                                                                            consider_vacuity)
                     constraint['activities'] = ', '.join(reversed(list(item_set)))
-                    self.basic_discovery_results,= self.discover_constraint(self.log_analyzer, constraint,
-                                                                             consider_vacuity)
-        activities_decl_format = "activity " + "\nactivity ".join(self.log_analyzer.get_log_alphabet_activities()) + "\n"
+                    self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
+                                                                            consider_vacuity)
+        activities_decl_format = "activity " + "\nactivity ".join(self.event_log.get_log_alphabet_activities()) + "\n"
         if output_path is not None:
             with open(output_path, 'w+') as f:
                 f.write(activities_decl_format)
@@ -137,7 +137,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
             the tuples containing id and name of traces that satisfy the constraint. The values of this inner dictionary
             is a CheckerResult object containing the number of pendings, activations, violations, fulfilments.
         """
-        if self.log_analyzer is None:
+        if self.event_log is None:
             raise RuntimeError("You must load a log before.")
         if self.basic_discovery_results is None:
             raise RuntimeError("You must run a Discovery task before.")
@@ -146,13 +146,13 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
         result = {}
 
         for key, val in self.basic_discovery_results.items():
-            support = len(val) / len(self.log_analyzer.log)
+            support = len(val) / len(self.event_log.log)
             if support >= min_support:
                 result[key] = support
 
         if output_path is not None:
             with open(output_path, 'w') as f:
-                f.write("activity " + "\nactivity ".join(self.log_analyzer.get_log_alphabet_activities()) + "\n")
+                f.write("activity " + "\nactivity ".join(self.event_log.get_log_alphabet_activities()) + "\n")
                 f.write('\n'.join(result.keys()))
         return result
 

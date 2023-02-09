@@ -10,7 +10,7 @@ from numpy import product, ceil
 from src.declare4py.d4py_event_log import D4PyEventLog
 from src.declare4py.pm_tasks.query_checking import QueryChecking
 from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate
-from src.declare4py.utility.template_checkers.constraint_checker import ConstraintCheck
+from src.declare4py.utility.Declare.constraint_checker import ConstraintCheck
 from src.declare4py.utility.trace_states import TraceState
 
 """
@@ -134,7 +134,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
             raise RuntimeError("Min. support must be in range [0, 1].")
         if max_declare_cardinality <= 0:
             raise RuntimeError("Cardinality must be greater than 0.")
-        if self.log_analyzer is None:
+        if self.event_log is None:
             raise RuntimeError("You must load a log before.")
 
         templates_to_check = list()
@@ -150,8 +150,8 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
                     else:
                         templates_to_check.append(template.templ_str)
 
-        activations_to_check = self.log_analyzer.get_log_alphabet_activities() if activation is None else [activation]
-        targets_to_check = self.log_analyzer.get_log_alphabet_activities() if target is None else [target]
+        activations_to_check = self.event_log.get_log_alphabet_activities() if activation is None else [activation]
+        targets_to_check = self.event_log.get_log_alphabet_activities() if target is None else [target]
         activity_combos = tuple(filter(lambda c: c[0] != c[1], product(activations_to_check, targets_to_check)))
 
         self.basic_query_checking_results: BasicQueryCheckingResults = BasicQueryCheckingResults()
@@ -168,7 +168,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
                 for couple in activity_combos:
                     constraint['activities'] = ', '.join(couple)
 
-                    constraint_str = self.query_constraint(self.log_analyzer, constraint, consider_vacuity, min_support)
+                    constraint_str = self.query_constraint(self.event_log, constraint, consider_vacuity, min_support)
                     if constraint_str:
                         res_value = {
                             "template": template_str, "activation": couple[0], "target": couple[1],
@@ -181,7 +181,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
                 for activity in activations_to_check:
                     constraint['activities'] = activity
 
-                    constraint_str = self.query_constraint(self.log_analyzer, constraint, consider_vacuity, min_support)
+                    constraint_str = self.query_constraint(self.event_log, constraint, consider_vacuity, min_support)
                     if constraint_str:
                         res_value = {
                             "template": template_str, "activation": activity,

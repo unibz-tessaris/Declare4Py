@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.declare4py.utility.template_checkers.checker_result import CheckerResult
+from src.declare4py.utility.Declare.checker_result import CheckerResult
 
 """
 Initializes class ConformanceCheckingResults
