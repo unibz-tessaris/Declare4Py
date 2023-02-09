@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import copy
+import pdb
 import re
 from enum import Enum
 from typing import Dict, List, Union
@@ -744,12 +745,12 @@ class DeclModel(LTLModel):
     def __init__(self):
         super().__init__()
         # self.activities = []
-        self.serialized_constraints = []
-        self.constraints = []
-        self.parsed_model = DeclareParsedDataModel()
+        self.serialized_constraints: List = []
+        self.constraints: List = []
+        self.parsed_model: DeclareParsedDataModel = DeclareParsedDataModel()
         self.declare_model_lines: List[str] = []
         self.declare_model_violate_constraints: List[str] = []
-
+    """
     def set_constraints(self):
         constraint_str = ''
         if len(self.constraints) > 0:
@@ -757,8 +758,11 @@ class DeclModel(LTLModel):
                 constraint_str = constraint['template'].templ_str
                 if constraint['template'].supports_cardinality:
                     constraint_str += str(constraint['n'])
+                import pdb
+                pdb.set_trace()
                 constraint_str += '[' + ", ".join(constraint["activities"]) + '] |' + ' |'.join(constraint["condition"])
                 self.serialized_constraints.append(constraint_str)
+    """
 
     def get_decl_model_constraints(self):
         return self.serialized_constraints
@@ -778,7 +782,7 @@ class DeclModel(LTLModel):
         return self
 
     def parse(self, lines: [str]):
-        dpm = self.parsed_model
+        declare_parsed_model = self.parsed_model
         for line in lines:
             line = line.strip()
             if len(line) <= 1 or line.startswith("#"):  # line starting with # considered a comment line
@@ -786,13 +790,13 @@ class DeclModel(LTLModel):
             if DeclModel.is_event_name_definition(line):  # split[0].strip() == 'activity':
                 split = line.split(maxsplit=1)
                 self.activities.append(split[1].strip())
-                dpm.add_event(split[1], split[0])
+                declare_parsed_model.add_event(split[1], split[0])
             elif DeclModel.is_event_attributes_definition(line):
                 split = line.split(": ", maxsplit=1)  # Assume complex "bind act3: categorical, integer, org:group"
                 event_name = split[0].split(" ", maxsplit=1)[1].strip()
                 attrs = split[1].strip().split(",", )
                 for attr in attrs:
-                    dpm.add_attribute(event_name, attr.strip())
+                    declare_parsed_model.add_attribute(event_name, attr.strip())
             elif DeclModel.is_events_attrs_value_definition(line):
                 """
                 SOME OF Possible lines for assigning values to attribute
@@ -817,8 +821,9 @@ class DeclModel(LTLModel):
                 value = split[1].strip()
                 typ = DeclModel.detect_declare_attr_value_type(value)
                 for attr in attributes_list:
-                    dpm.add_attribute_value(attr, typ, value)
+                    declare_parsed_model.add_attribute_value(attr, typ, value)
             elif DeclModel.is_constraint_template_definition(line):
+                self.serialized_constraints.append(line)
                 split = line.split("[", 1)
                 template_search = re.search(r'(^.+?)(\d*$)', split[0])
                 if template_search is not None:
@@ -832,9 +837,9 @@ class DeclModel(LTLModel):
                             tmp['n'] = 1 if not cardinality else int(cardinality)
                             cardinality = tmp['n']
                         self.constraints.append(tmp)
-                        dpm.add_template(line, template, cardinality)
-        self.set_constraints()
-        dpm.template_constraints = self.constraints
+                        declare_parsed_model.add_template(line, template, cardinality)
+        #self.set_constraints()
+        declare_parsed_model.template_constraints = self.constraints
 
     @staticmethod
     def is_event_name_definition(line: str) -> bool:
