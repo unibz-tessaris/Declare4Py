@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from abc import ABC
 
-from src.declare4py.pm_tasks.pm_task import PMTask
-from src.declare4py.d4py_event_log import D4PyEventLog
-from src.declare4py.process_models.process_model import ProcessModel
+from src.declare4py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
+from src.declare4py.D4PyEventLog import D4PyEventLog
+from src.declare4py.ProcessModels.AbstractModel import ProcessModel
 
 """
 
@@ -19,9 +19,8 @@ Parameters
 """
 
 
-class ConformanceChecking(PMTask, ABC):
+class ConformanceChecking(AbstractPMTask, ABC):
 
-    def __init__(self, consider_vacuity: bool, log: D4PyEventLog, process_model: ProcessModel):
-        self.consider_vacuity = consider_vacuity
+    def __init__(self, log: D4PyEventLog, process_model: ProcessModel):
         super().__init__(log, process_model)
 

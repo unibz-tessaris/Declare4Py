@@ -15,15 +15,15 @@ from clingo import Symbol
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
 
-from src.declare4py.pm_tasks.asp_log_generation.asp_utils.distribution import Distributor
-from src.declare4py.pm_tasks.log_generator import LogGenerator
-from src.declare4py.process_models.decl_model import DeclModel, DeclareParsedDataModel, DeclareModelAttributeType, \
+from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.distribution import Distributor
+from src.declare4py.ProcessMiningTasks.log_generator import LogGenerator
+from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, DeclareModelAttributeType, \
     DeclareModelTemplateDataModel
-from src.declare4py.pm_tasks.asp_log_generation.asp_translator.asp_translator import TranslatedASPModel, ASPTranslator
-from src.declare4py.pm_tasks.asp_log_generation.asp_utils.asp_encoding import ASPEncoding
-from src.declare4py.pm_tasks.asp_log_generation.asp_utils.asp_result_parser import ASPResultTraceModel
-from src.declare4py.pm_tasks.asp_log_generation.asp_utils.asp_template import ASPTemplate
-from src.declare4py.process_models.process_model import ProcessModel
+from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_translator.asp_translator import TranslatedASPModel, ASPTranslator
+from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_encoding import ASPEncoding
+from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_result_parser import ASPResultTraceModel
+from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_template import ASPTemplate
+from src.declare4py.ProcessModels.AbstractModel import ProcessModel
 
 
 class LogTracesType(typing.TypedDict):
@@ -41,7 +41,7 @@ def custom_sort_trace_key(x):
 
 class AspGenerator(LogGenerator):
 
-    def __init__(self, decl_model: DeclModel, num_traces: int, min_event: int, max_event: int,
+    def __init__(self, decl_model: DeclareModel, num_traces: int, min_event: int, max_event: int,
                  encode_decl_model: bool = True):
         """
         ASPGenerator generates the log from declare model which translate declare model
@@ -375,7 +375,7 @@ class AspGenerator(LogGenerator):
         """
         self.num_repetition_per_trace = repetition
 
-    def __get_decl_model_with_violate_constraint(self) -> DeclModel | ProcessModel:
+    def __get_decl_model_with_violate_constraint(self) -> DeclareModel | ProcessModel:
         """
         Creates a duplicate process model with change in template list, assigning a boolean value to `violate` property
 

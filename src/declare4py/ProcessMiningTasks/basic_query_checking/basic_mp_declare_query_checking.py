@@ -8,10 +8,10 @@ from typing import Union, List, Optional
 from numpy import product, ceil
 
 from src.declare4py.d4py_event_log import D4PyEventLog
-from src.declare4py.pm_tasks.query_checking import QueryChecking
-from src.declare4py.process_models.decl_model import DeclModel, DeclareModelTemplate
-from src.declare4py.utility.Declare.constraint_checker import ConstraintCheck
-from src.declare4py.utility.trace_states import TraceState
+from src.declare4py.ProcessMiningTasks.query_checking import QueryChecking
+from src.declare4py.ProcessModels.decl_model import DeclModel, DeclareModelTemplate
+from src.declare4py.Utils.Declare.constraint_checker import ConstraintCheck
+from src.declare4py.Utils.trace_states import TraceState
 
 """
 Initializes class QueryCheckingResults

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from src.declare4py.process_models.decl_model import DeclModel
-
-from abc import ABC, abstractmethod
+from abc import ABC
 from datetime import timedelta
+from typing import List
 
-from src.declare4py.process_models.decl_model import DeclareModelConditionParserUtility, DeclareModelTemplate
-from src.declare4py.utility.trace_states import TraceState
+from src.declare4py.ProcessModels.DeclareModel import DeclareModel
+from src.declare4py.ProcessModels.DeclareModel import DeclareModelConditionParserUtility, DeclareModelTemplate
+from src.declare4py.Utils.TraceStates import TraceState
 
 glob = {'__builtins__': None}
 
@@ -14,24 +14,22 @@ glob = {'__builtins__': None}
 class ConstraintChecker:
 
     @staticmethod
-    def check_trace_conformance(trace: dict, decl_model: DeclModel, consider_vacuity: bool = None) -> dict:
+    def check_trace_conformance(trace: dict, decl_model: DeclareModel, consider_vacuity: bool = False) -> List[CheckerResult]:
         """
-                Checks whether the constraints are fulfillment, violation, pendings, activations etc
+        Checks whether the constraints are fulfillment, violation, pendings, activations etc
 
-                Parameters
-                ----------
-                :param bool consider_vacuity: True means that vacuously satisfied traces are considered as satisfied, violated
-                 otherwise
-                :param d4pyEventLog trace: log
-                :param DeclModel decl_model: Process mining model
-
-                """
+        Parameters
+        ----------
+        :param bool consider_vacuity: True means that vacuously satisfied traces are considered as satisfied, violated otherwise
+        :param d4pyEventLog trace: log
+        :param DeclareModel decl_model: Process mining model
+        """
 
         # Set containing all constraints that raised SyntaxError in checker functions
         rules = {"vacuous_satisfaction": consider_vacuity}
         error_constraint_set = set()
-        model: DeclModel = decl_model
-        trace_results = {}
+        model: DeclareModel = decl_model
+        trace_results = []
         for idx, constraint in enumerate(model.constraints):
             constraint_str = model.serialized_constraints[idx]
             rules["activation"] = constraint['condition'][0]
@@ -41,9 +39,13 @@ class ConstraintChecker:
                 rules["correlation"] = constraint['condition'][1]
             rules["time"] = constraint['condition'][-1]  # time condition is always at last position
             try:
-                constraint_template_cls = TemplateCheckers().get_template(constraint['template'], trace, True,
-                                                                          constraint['activities'], rules)
-                trace_results[constraint_str] = constraint_template_cls.get_check_result()
+                trace_results.append(TemplateConstraintChecker(trace, True, constraint['activities'], rules).get_template(constraint['template'])())
+                #import pdb
+                #pdb.set_trace()
+                #trace_results[-1].num_pendings
+                #trace_results[-1].num_activations
+                #trace_results[-1].num_fulfillments
+                #trace_results[-1].num_violations
             except SyntaxError:
                 # TODO: use python logger
                 if constraint_str not in error_constraint_set:
@@ -61,11 +63,26 @@ class TemplateConstraintChecker(ABC):
         self.activities: [str] = activities
         self.rules: dict = rules
 
-    @abstractmethod
-    def get_check_result(self) -> CheckerResult:
-        pass
+    def get_template(self, template: DeclareModelTemplate):
+        """
+        We have the classes with each template constraint checker and we invoke them dynamically
+        and they check the result on given parameters
+        Parameters
+        ----------
+        template: name of the declared model template
+        traces
+        completed
+        activities: activities of declare model template which should be checked. Can be one or two activities
+        rules: dict. conditions of template and 'n' for unary templates which represents 'n' times
 
-    def MPChoice(self):
+        Returns
+        -------
+
+        """
+        template_checker_name = f"mp{template.templ_str.replace(' ', '')}"
+        return getattr(self, template_checker_name)
+
+    def mpChoice(self) -> CheckerResult:
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
         a_or_b_occurs = False
@@ -86,7 +103,7 @@ class TemplateConstraintChecker(ABC):
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
                              state=state)
 
-    def MPExclusiveChoice(self):
+    def mpExclusiveChoice(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
         a_occurs = False
@@ -119,7 +136,7 @@ class TemplateConstraintChecker(ABC):
         Description: The future constraining constraint existence(n, a) indicates that
         event a must occur at least n-times in the trace.
     """
-    def MPExistence(self):
+    def mpExistence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
         num_activations = 0
@@ -144,7 +161,7 @@ class TemplateConstraintChecker(ABC):
         Description: The future constraining constraint absence(n + 1, a) indicates that
         event a may occur at most n − times in the trace.
     """
-    def MPAbsence(self):
+    def mpAbsence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
 
@@ -172,7 +189,7 @@ class TemplateConstraintChecker(ABC):
         Description: The future constraining constraint init(e) indicates
         that event e is the first event that occurs in the trace.
     """
-    def MPInit(self):
+    def mpInit(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
 
         state = TraceState.VIOLATED
@@ -187,7 +204,7 @@ class TemplateConstraintChecker(ABC):
     """
         mp-exactly constraint checker
     """
-    def MPExactly(self):
+    def mpExactly(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
         num_activations = 0
@@ -216,7 +233,7 @@ class TemplateConstraintChecker(ABC):
     # respondedExistence(a, b) indicates that, if event a occurs in the trace
     # then event b occurs in the trace as well.
     # Event a activates the constraint.
-    def MPRespondedExistence(self):
+    def mpRespondedExistence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -270,7 +287,7 @@ class TemplateConstraintChecker(ABC):
                              num_pendings=num_pendings,
                              num_activations=num_activations, state=state)
 
-    def MPResponse(self):
+    def mpResponse(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -326,7 +343,7 @@ class TemplateConstraintChecker(ABC):
     # each time event a occurs in the trace then event b occurs afterwards
     # before event a recurs.
     # Event a activates the constraint.
-    def MPAlternateResponse(self):
+    def mpAlternateResponse(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -379,7 +396,7 @@ class TemplateConstraintChecker(ABC):
     # The future constraining constraint chain_response(a, b) indicates that,
     # each time event a occurs in the trace, event b occurs immediately afterwards.
     # Event a activates the constraint.
-    def MPChainResponse(self):
+    def mpChainResponse(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -432,7 +449,7 @@ class TemplateConstraintChecker(ABC):
     # Description:
     # The history-based constraint precedence(a,b) indicates that event b occurs
     # only in the trace, if preceded by a. Event b activates the constraint.
-    def MPPrecedence(self):
+    def mpPrecedence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -482,7 +499,7 @@ class TemplateConstraintChecker(ABC):
     # each time event b occurs in the trace
     # it is preceded by event a and no other event b can recur in between.
     # Event b activates the constraint.
-    def MPAlternatePrecedence(self):
+    def mpAlternatePrecedence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -527,7 +544,7 @@ class TemplateConstraintChecker(ABC):
     # The history-based constraint chain_precedence(a, b) indicates that,
     # each time event b occurs in the trace, event a occurs immediately beforehand.
     # Event b activates the constraint.
-    def MPChainPrecedence(self):
+    def mpChainPrecedence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -569,7 +586,7 @@ class TemplateConstraintChecker(ABC):
 
     # mp-not-responded-existence constraint checker
     # Description:
-    def MPNotRespondedExistence(self):
+    def mpNotRespondedExistence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -623,7 +640,7 @@ class TemplateConstraintChecker(ABC):
 
     # mp-not-response constraint checker
     # Description:
-    def MPNotResponse(self):
+    def mpNotResponse(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -673,7 +690,7 @@ class TemplateConstraintChecker(ABC):
 
     # mp-not-precedence constraint checker
     # Description:
-    def MPNotPrecedence(self):
+    def mpNotPrecedence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -719,7 +736,7 @@ class TemplateConstraintChecker(ABC):
 
     # mp-not-chain-precedence constraint checker
     # Description:
-    def MPNotChainPrecedence(self):
+    def mpNotChainPrecedence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
@@ -758,30 +775,6 @@ class TemplateConstraintChecker(ABC):
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations, num_pendings=None,
                              num_activations=num_activations, state=state)
-
-
-class TemplateCheckers:
-    def get_template(self, template: DeclareModelTemplate, traces: dict,
-                     completed: bool, activities: [str], rules: dict) -> TemplateConstraintChecker:
-        """
-        We have the classes with each template constraint checker and we invoke them dynamically
-        and they check the result on given parameters
-        Parameters
-        ----------
-        template: name of the declared model template
-        traces
-        completed
-        activities: activities of declare model template which should be checked. Can be one or two activities
-        rules: dict. conditions of template and 'n' for unary templates which represents 'n' times
-
-        Returns
-        -------
-
-        """
-        template_checker_name = f"MP{template.templ_str.replace(' ', '')}"
-        klass = globals()[template_checker_name]
-        checker_instance: TemplateConstraintChecker = klass(traces, completed, activities, rules)
-        return checker_instance
 
 
 class CheckerResult:

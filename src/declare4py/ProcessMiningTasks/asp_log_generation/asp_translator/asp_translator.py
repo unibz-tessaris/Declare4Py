@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from src.declare4py.pm_tasks.asp_log_generation.asp_translator.declare_constraint_resolver import \
+from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_translator.declare_constraint_resolver import \
     DeclareModelConditionResolver2ASP
-from src.declare4py.process_models.decl_model import DeclareModelAttributeType
-from src.declare4py.process_models.decl_model import DeclModel
-from src.declare4py.process_models.decl_model import DeclareModelTemplateDataModel
+from src.declare4py.ProcessModels.DeclareModel import DeclareModelAttributeType
+from src.declare4py.ProcessModels.DeclareModel import DeclareModel
+from src.declare4py.ProcessModels.DeclareModel import DeclareModelTemplateDataModel
 
 """
 Abductive logic programming (ALP) is a high-level knowledge-representation framework that can be used to solve
@@ -107,7 +107,7 @@ class ASPTranslator:
     def __init__(self) -> None:
         self.asp_model: TranslatedASPModel
 
-    def from_decl_model(self, model: DeclModel, use_encoding: bool = True,
+    def from_decl_model(self, model: DeclareModel, use_encoding: bool = True,
                         constraint_violation: dict = None) -> TranslatedASPModel:
         """
         Translate to declare model into LP model or ASP which is, then, fed into Clingo.

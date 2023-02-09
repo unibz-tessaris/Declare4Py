@@ -6,11 +6,11 @@ from packaging import version
 from mlxtend.frequent_patterns import fpgrowth, apriori
 
 import pm4py
-from pm4py.objects.log.obj import EventLog
+from pm4py.objects.log.obj import EventLog, Trace
 
 from typing import List, Tuple, Optional
 
-from src.declare4py.encodings.AggregateTransformer import AggregateTransformer
+from src.declare4py.Encodings.AggregateTransformer import AggregateTransformer
 
 from pandas import DataFrame
 
@@ -102,19 +102,15 @@ class D4PyEventLog:
             print(f"{e} attribute does not exist. Check the log.")
         return list(attribute_values)
 
-    def get_trace_keys(self) -> List[Tuple[int, str]]:
-        """
-        Returns the name of each trace, along with the position in the log.
-
-        Returns:
-            a list containing the position in the log and the name of the trace.
-        """
+    def get_trace(self, id_trace: int = None) -> Trace:
         if self.log is None:
             raise RuntimeError("You must load a log before.")
-        trace_ids = []
-        for trace_id, trace in enumerate(self.log):
-            trace_ids.append((trace_id, trace.attributes["concept:name"]))
-        return trace_ids
+        try:
+            return self.log[id_trace]
+        except IndexError:
+            print("The index of the trace must be lower than the log size.")
+        except TypeError as e:
+            print(f"The index of the trace must be integers or slices, not {e}.")
 
     def attribute_log_projection(self, attribute_name: str = None) -> List[List[str]]:
         """

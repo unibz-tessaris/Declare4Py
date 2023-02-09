@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from src.declare4py.utility.Declare.checker_result import CheckerResult
+import pdb
+from typing import List, Union
+
+from src.declare4py.Utils.Declare.Checkers import CheckerResult
 
 """
 Initializes class ConformanceCheckingResults
@@ -12,14 +15,32 @@ Attributes
 """
 
 
-class BasicConformanceCheckingResults(dict):
+class ResultsBrowser:
 
-    def __init__(self, dict_results: dict, **kwargs):
-        super().__init__(kwargs)
-        self.basic_conformance_checking_results: dict = dict_results
-        self.model_check_res: [CheckerResult] = []
+    def __init__(self, matrix_results: List[List[CheckerResult]]):
+        self.model_check_res: List[List[CheckerResult]] = matrix_results
 
-    def activations(self, trace_id: int, constr_id: int) -> int:
+    def get_metric(self, metric: str, trace_id: int = None, constr_id: int = None) -> Union[List, int]:
+        if metric is None:
+            raise RuntimeError("You must specify a metric among num_activations, num_violations, num_fulfillments, "
+                               "num_pendings, state.")
+        results = None
+        if trace_id is None and constr_id is None:
+            results = []
+            for trace_res in self.model_check_res:
+                tmp_list = []
+                for result_checker in trace_res:
+                    try:
+                        tmp_list.append(getattr(result_checker, metric))
+                    except AttributeError:
+                        print("You must specify a metric among num_activations, num_violations, num_fulfillments, "
+                               "num_pendings, state.")
+                results.append(tmp_list)
+        if trace_id is not None:
+            pass
+        return results
+
+    def get_activations(self, trace_id: int, constr_id: int) -> int:
         if trace_id is None and constr_id is None:
             print("ERROR: at least one parameter is expected.")
         elif trace_id is None:
@@ -29,7 +50,7 @@ class BasicConformanceCheckingResults(dict):
         else:
             return self.model_check_res[trace_id][constr_id].num_activations
 
-    def violations(self, trace_id: int, constr_id: int) -> int:
+    def get_violations(self, trace_id: int, constr_id: int) -> int:
         if trace_id is None and constr_id is None:
             print("ERROR: at least one parameter is expected.")
         elif trace_id is None:
@@ -39,7 +60,7 @@ class BasicConformanceCheckingResults(dict):
         else:
             return self.model_check_res[trace_id][constr_id].num_violations
 
-    def fulfillments(self, trace_id: int, constr_id: int) -> int:
+    def get_fulfillments(self, trace_id: int, constr_id: int) -> int:
         if trace_id is None and constr_id is None:
             print("ERROR: at least one parameter is expected.")
         elif trace_id is None:
@@ -49,7 +70,7 @@ class BasicConformanceCheckingResults(dict):
         else:
             return self.model_check_res[trace_id][constr_id].num_fulfillments
 
-    def state(self, trace_id: int, constr_id: int) -> bool:
+    def get_states(self, trace_id: int, constr_id: int) -> bool:
         if trace_id is None and constr_id is None:
             print("ERROR: at least one parameter is expected.")
         elif trace_id is None:
@@ -58,6 +79,3 @@ class BasicConformanceCheckingResults(dict):
             return self.model_check_res[trace_id].state
         else:
             return self.model_check_res[trace_id][constr_id].state
-
-    def clean(self):
-        return self.basic_conformance_checking_results

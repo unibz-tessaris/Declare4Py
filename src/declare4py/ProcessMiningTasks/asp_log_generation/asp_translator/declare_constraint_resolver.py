@@ -5,7 +5,7 @@ import typing
 
 import boolean
 
-from src.declare4py.process_models.decl_model import DeclareModelTemplateDataModel, DeclareModelAttributeType
+from src.declare4py.ProcessModels.DeclareModel import DeclareModelTemplateDataModel, DeclareModelAttributeType
 
 
 class DeclareModelConditionResolver2ASP:

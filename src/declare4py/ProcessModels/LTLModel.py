@@ -1,6 +1,6 @@
 from abc import ABC
 
-from src.declare4py.process_models.process_model import ProcessModel
+from src.declare4py.ProcessModels.AbstractModel import ProcessModel
 
 
 class LTLModel(ProcessModel, ABC):

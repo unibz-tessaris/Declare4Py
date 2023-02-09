@@ -4,10 +4,9 @@ import logging
 import typing
 from abc import ABC
 
-from src.declare4py.pm_tasks.pm_task import PMTask
-from src.declare4py.process_models.process_model import ProcessModel
+from src.declare4py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
+from src.declare4py.ProcessModels.AbstractModel import ProcessModel
 
-# from src.declare4py.process_models.ltl_model import LTLModel
 
 """
 
@@ -21,7 +20,7 @@ PMTask inheriting from PMTask
 """
 
 
-class LogGenerator(PMTask, ABC):
+class LogGenerator(AbstractPMTask, ABC):
 
     def __init__(self, num_traces: int, min_event: int, max_event: int, p_model: ProcessModel):
         super().__init__(None, p_model)
