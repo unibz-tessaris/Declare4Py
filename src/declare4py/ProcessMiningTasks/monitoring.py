@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from abc import ABC
 
-from src.declare4py.ProcessMiningTasks.pm_task import PMTask
-from src.declare4py.d4py_event_log import D4PyEventLog
-from src.declare4py.ProcessModels.process_model import ProcessModel
+from src.declare4py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
+from src.declare4py.D4PyEventLog import D4PyEventLog
+from src.declare4py.ProcessModels.AbstractModel import ProcessModel
 from typing import Union
 
 """
@@ -17,7 +17,7 @@ Parameters
 """
 
 
-class Monitoring(PMTask, ABC):
+class Monitoring(AbstractPMTask, ABC):
 
     def __init__(self, log: Union[D4PyEventLog, None], p_model: ProcessModel):
         super().__init__(log, p_model)

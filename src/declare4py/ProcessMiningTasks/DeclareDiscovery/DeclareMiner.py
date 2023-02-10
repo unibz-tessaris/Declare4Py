@@ -3,13 +3,13 @@ from __future__ import annotations
 from abc import ABC
 from typing import Union, Dict, Tuple
 
-from src.declare4py.d4py_event_log import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.discovery import Discovery
-from src.declare4py.ProcessModels.decl_model import DeclModel, DeclareModelTemplate
-from src.declare4py.ProcessModels.ltl_model import LTLModel
-from src.declare4py.Utils.Declare.checker_result import CheckerResult
-from src.declare4py.Utils.Declare.constraint_checker import ConstraintCheck
-from src.declare4py.Utils.trace_states import TraceState
+from src.declare4py.D4PyEventLog import D4PyEventLog
+from src.declare4py.ProcessMiningTasks.Discovery import Discovery
+from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
+from src.declare4py.ProcessModels.LTLModel import LTLModel
+from src.declare4py.Utils.Declare.Checkers import CheckerResult
+from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
+from src.declare4py.Utils.TraceStates import TraceState
 
 """
 
@@ -48,7 +48,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
                  log: Union[D4PyEventLog, None], ltl_model: LTLModel):
         super().__init__(consider_vacuity, support, max_declare_cardinality, log, ltl_model)
         self.init_discovery_result_instance()
-        self.constraint_checker = ConstraintCheck(consider_vacuity)
+        self.constraint_checker = ConstraintChecker(consider_vacuity)
         self.support: float = support
         self.max_declare_cardinality: Union[int, None] = max_declare_cardinality
         self.basic_discovery_results: Union[BasicDiscoveryResults, None] = None
@@ -158,7 +158,7 @@ class BasicMPDeclareDiscovery(Discovery, ABC):
 
     def discover_constraint(self, log: D4PyEventLog, constraint: dict, consider_vacuity: bool):
         # Fake model composed by a single constraint
-        model = DeclModel()
+        model = DeclareModel()
         model.constraints.append(constraint)
         discovery_res: BasicDiscoveryResults = {}
         for i, trace in enumerate(log.log):

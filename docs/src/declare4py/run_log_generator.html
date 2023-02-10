@@ -55,8 +55,8 @@ src<wbr>.<a href="./../declare4py.html">declare4py</a><wbr>.run_log_generator   
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">logging</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">src.declare4py.process_models.decl_model</span> <span class="kn">import</span> <span class="n">DeclModel</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">src.declare4py.pm_tasks.log_generation.asp.asp_generator</span> <span class="kn">import</span> <span class="n">AspGenerator</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">src.declare4py.ProcessMiningTasks.asp_log_generation.asp_generator</span> <span class="kn">import</span> <span class="n">AspGenerator</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">src.declare4py.ProcessModels.DeclareModel</span> <span class="kn">import</span> <span class="n">DeclareModel</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
@@ -155,56 +155,88 @@ src<wbr>.<a href="./../declare4py.html">declare4py</a><wbr>.run_log_generator   
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="s2">Existence[act4] | |</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="s2">&quot;&quot;&quot;</span>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="n">model</span><span class="p">:</span> <span class="n">DeclModel</span> <span class="o">=</span> <span class="n">DeclModel</span><span class="p">()</span><span class="o">.</span><span class="n">parse_from_string</span><span class="p">(</span><span class="n">decl</span><span class="p">)</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="n">num_of_traces</span> <span class="o">=</span> <span class="mi">4</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="n">num_min_events</span> <span class="o">=</span> <span class="mi">2</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="n">num_max_events</span> <span class="o">=</span> <span class="mi">6</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="n">asp</span> <span class="o">=</span> <span class="n">AspGenerator</span><span class="p">(</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="n">model</span><span class="p">,</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="n">num_of_traces</span><span class="p">,</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="n">num_min_events</span><span class="p">,</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="n">num_max_events</span><span class="p">,</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="n">encode_decl_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="p">)</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="c1"># asp.set_distribution( distributor_type=&quot;gaussian&quot;, loc=3, scale=0.8)</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="c1"># TODO: wrap next 3 methods into one method</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="c1"># asp.set_constraints_to_violate(1, True, [</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="c1">#     # &quot;Existence[act2] | |&quot;,</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="c1">#     # &quot;Existence[act4] | |&quot;</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="c1">#     &quot;Response[Driving_Test, Resit] |A.Grade&lt;=2 | |&quot;</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="c1">#     # &quot;Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s&quot;,</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="c1">#     # &quot;Chain Response[LacticAcid, Leucocytes] |A.LacticAcid &lt;= 0.8 |T.Leucocytes &gt;= 13.8 |0,2778,m&quot;,</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="c1"># ])</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="n">asp</span><span class="o">.</span><span class="n">set_constraints_to_violate_by_template_index</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="c1"># asp.set_activation_conditions({</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="c1">#     # &#39;Response[A,B] | A.attribute is value1 | |&#39;: [3, 5],</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="c1">#     # &#39;Existence5[A] | A.attribute is True | |&#39;: [3, 3],</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="c1">#     &#39;Response[Driving_Test, Resit] |A.Grade&lt;=2 | |&#39;: [2, 4]</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="c1"># })</span>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="c1">## OR</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="c1"># asp.set_activation_conditions_by_template_index({</span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="c1">#     2: [2, 4]</span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="c1"># })</span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a><span class="n">asp</span><span class="o">.</span><span class="n">set_number_of_repetition_per_trace</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>
-</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="c1"># asp.run(&#39;./generated_asp.lp&#39;)</span>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="n">asp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a><span class="n">asp</span><span class="o">.</span><span class="n">to_xes</span><span class="p">(</span><span class="s2">&quot;../../generated_xes1.xes&quot;</span><span class="p">)</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="c1"># TODO: ask how to implement TIME CONDITION in asp</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="c1"># TODO: Ask Chiarello whether the generated output of lp is correct</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="n">decl4</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="s2">activity A</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="s2">bind A: ax, ay</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="s2">ax: integer between 0 and 1000</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="s2">ay: integer between 0 and 1000</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="s2">activity B</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="s2">bind B: bs, bt</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="s2">bs: float between -50.25 and 50.75</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="s2">bt: float between -50.25 and 50.75</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="s2">activity C</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="s2">bind C: name, surname</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="s2">name: axel, susi, csaba</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="s2">surname: mezini, loddi, toth</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="s2">activity D</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="s2">bind D: boolean, grade</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="s2">boolean: true, false, maybe</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="s2">grade: integer between 1 and 10</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="s2">activity E</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="s2">Exactly2[B] | A.bt &gt; 100 |</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="s2">Absence[A] | A.ax &gt; 20 |</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="s2">Existence[E] | |</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="s2">Choice[C, D] | A.name in (axel, susi) | T.grade = 20</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="s2">&quot;&quot;&quot;</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="n">model</span><span class="p">:</span> <span class="n">DeclareModel</span> <span class="o">=</span> <span class="n">DeclareModel</span><span class="p">()</span><span class="o">.</span><span class="n">parse_from_string</span><span class="p">(</span><span class="n">decl4</span><span class="p">)</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="n">num_of_traces</span> <span class="o">=</span> <span class="mi">30</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="n">num_min_events</span> <span class="o">=</span> <span class="mi">10</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="n">num_max_events</span> <span class="o">=</span> <span class="mi">15</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="n">asp</span> <span class="o">=</span> <span class="n">AspGenerator</span><span class="p">(</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="n">model</span><span class="p">,</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="n">num_of_traces</span><span class="p">,</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="n">num_min_events</span><span class="p">,</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="n">num_max_events</span><span class="p">,</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="n">encode_decl_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="p">)</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="n">asp</span><span class="o">.</span><span class="n">set_distribution</span><span class="p">(</span><span class="s2">&quot;uniform&quot;</span><span class="p">)</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a><span class="c1"># asp_log_generation.set_distribution( distributor_type=&quot;gaussian&quot;, loc=3, scale=0.8)</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="c1"># TODO: wrap next 3 methods into one method</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="c1"># asp_log_generation.set_constraints_to_violate(1, True, [</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="c1">#     # &quot;Existence[act2] | |&quot;,</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a><span class="c1">#     # &quot;Existence[act4] | |&quot;</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="c1">#     &quot;Response[Driving_Test, Resit] |A.Grade&lt;=2 | |&quot;</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="c1">#     # &quot;Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s&quot;,</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="c1">#     # &quot;Chain Response[LacticAcid, Leucocytes] |A.LacticAcid &lt;= 0.8 |T.Leucocytes &gt;= 13.8 |0,2778,m&quot;,</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="c1"># ])</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="c1"># asp_log_generation.set_constraints_to_violate(3, True, [</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>     <span class="c1"># &quot;Existence[act2] | |&quot;,</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>     <span class="c1"># &quot;Existence[act4] | |</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>     <span class="c1"># &quot;Absence[A] | A.ax &gt; 20 |&quot;,</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>     <span class="c1"># &quot;Existence[E] | |&quot;</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>     <span class="c1"># &quot;Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s&quot;,</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>     <span class="c1"># &quot;Chain Response[LacticAcid, Leucocytes] |A.LacticAcid &lt;= 0.8 |T.Leucocytes &gt;= 13.8 |0,2778,m&quot;,</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="c1"># ])</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="c1"># asp_log_generation.set_constraints_to_violate_by_template_index(1, True, [2])</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="c1"># asp_log_generation.set_activation_conditions({</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="c1">#     # &#39;Response[A,B] | A.attribute is value1 | |&#39;: [3, 5],</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="c1">#     # &#39;Existence5[A] | A.attribute is True | |&#39;: [3, 3],</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="c1">#     &#39;Response[Driving_Test, Resit] |A.Grade&lt;=2 | |&#39;: [2, 4]</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="c1"># })</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="c1">## OR</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="c1"># asp_log_generation.set_activation_conditions_by_template_index({</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="c1">#     2: [2, 4]</span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="c1"># })</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="c1"># asp_log_generation.set_number_of_repetition_per_trace(8)</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="n">asp</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;./generated_asp.lp&#39;</span><span class="p">)</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="c1"># asp_log_generation.run()</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="n">asp</span><span class="o">.</span><span class="n">to_xes</span><span class="p">(</span><span class="s2">&quot;../../generated_xes1.xes&quot;</span><span class="p">)</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a><span class="c1"># TODO: ask how to implement TIME CONDITION in asp_log_generation</span>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="c1"># TODO: Ask Chiarello whether the generated output of lp is correct</span>
 </span></pre></div>
 
 

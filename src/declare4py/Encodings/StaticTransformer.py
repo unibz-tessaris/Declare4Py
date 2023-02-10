@@ -1,10 +1,13 @@
 from sklearn.base import TransformerMixin
 import pandas as pd
 from time import time
+from typing import Union, List, Tuple, Set
+from pandas import DataFrame, Index
+
 
 class StaticTransformer(TransformerMixin):
     
-    def __init__(self, case_id_col, cat_cols, num_cols, fillna=True):
+    def __init__(self, case_id_col: str , cat_cols: List[str], num_cols: List[str], fillna: bool=True):
         """
         Parameters
         -------------------
@@ -22,31 +25,29 @@ class StaticTransformer(TransformerMixin):
         self.cat_cols = cat_cols
         self.num_cols = num_cols
         self.fillna = fillna
-        
         self.columns = None
-        
         self.fit_time = 0
         self.transform_time = 0
     
     
-    def fit(self, X, y=None):
+    def fit(self, X: DataFrame, y=None) -> None:
         return self
     
     
-    def transform(self, X, y=None):
+    def transform(self, X: DataFrame, y=None) -> DataFrame:
         """
-        Tranforms the event log into a static encoded matrix (calling the first state for each case id):
-
+        Tranforms the event log X into a static encoded matrix (calling the first state for each case id):
 
         Parameters
         -------------------
-        X
-            Event log / Pandas dataframe
+        X: DataFrame
+            Event log / Pandas DataFrame to be transformed
+            
         Returns
         ------------------
-        transformed_log
+        :rtype: DataFrame
             Transformed event log
-        """  
+        """ 
 
         start = time()
         
@@ -73,5 +74,14 @@ class StaticTransformer(TransformerMixin):
         self.transform_time = time() - start
         return dt_transformed
     
-    def get_feature_names(self):
+    
+    def get_feature_names(self) -> Index:
+        """
+        Print all attribute names in a Pandas DataFrame:
+
+        Returns
+        ------------------
+        :rtype: Index
+            column names of a Pandas DataFrame
+        """
         return self.columns

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from datetime import timedelta
-from typing import List
+from typing import List, Optional
 
 from src.declare4py.ProcessModels.DeclareModel import DeclareModel
 from src.declare4py.ProcessModels.DeclareModel import DeclareModelConditionParserUtility, DeclareModelTemplate
@@ -14,7 +14,8 @@ glob = {'__builtins__': None}
 class ConstraintChecker:
 
     @staticmethod
-    def check_trace_conformance(trace: dict, decl_model: DeclareModel, consider_vacuity: bool = False) -> List[CheckerResult]:
+    def check_trace_conformance(trace: dict, decl_model: DeclareModel, consider_vacuity: bool = False) -> \
+            List[CheckerResult]:
         """
         Checks whether the constraints are fulfillment, violation, pendings, activations etc
 
@@ -40,12 +41,6 @@ class ConstraintChecker:
             rules["time"] = constraint['condition'][-1]  # time condition is always at last position
             try:
                 trace_results.append(TemplateConstraintChecker(trace, True, constraint['activities'], rules).get_template(constraint['template'])())
-                #import pdb
-                #pdb.set_trace()
-                #trace_results[-1].num_pendings
-                #trace_results[-1].num_activations
-                #trace_results[-1].num_fulfillments
-                #trace_results[-1].num_violations
             except SyntaxError:
                 # TODO: use python logger
                 if constraint_str not in error_constraint_set:
@@ -56,11 +51,11 @@ class ConstraintChecker:
 
 class TemplateConstraintChecker(ABC):
 
-    def __init__(self, traces: dict, completed: bool, activities: [str], rules: dict):
+    def __init__(self, traces: dict, completed: bool, activities: List[str], rules: dict):
         self.declare_parser_utility = DeclareModelConditionParserUtility()
         self.traces: dict = traces
         self.completed: bool = completed
-        self.activities: [str] = activities
+        self.activities: List[str] = activities
         self.rules: dict = rules
 
     def get_template(self, template: DeclareModelTemplate):
@@ -778,7 +773,8 @@ class TemplateConstraintChecker(ABC):
 
 
 class CheckerResult:
-    def __init__(self, num_fulfillments: int, num_violations: int, num_pendings: int, num_activations: int, state):
+    def __init__(self, num_fulfillments: Optional[int], num_violations: Optional[int], num_pendings: Optional[int],
+                 num_activations: Optional[int], state: TraceState):
         self.num_fulfillments = num_fulfillments
         self.num_violations = num_violations
         self.num_pendings = num_pendings

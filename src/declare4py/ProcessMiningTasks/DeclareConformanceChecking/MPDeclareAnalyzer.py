@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pdb
-
 from src.declare4py.D4PyEventLog import D4PyEventLog
 from src.declare4py.ProcessMiningTasks.ConformanceChecking import ConformanceChecking
 from src.declare4py.ProcessMiningTasks.DeclareConformanceChecking.ResultsBrowser import ResultsBrowser

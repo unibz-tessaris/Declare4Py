@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_generator import AspGenerator
-from src.declare4py.ProcessModels.decl_model import DeclModel
+from src.declare4py.ProcessModels.DeclareModel import DeclareModel
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -126,7 +126,7 @@ Existence[E] | |
 Choice[C, D] | A.name in (axel, susi) | T.grade = 20
 """
 
-model: DeclModel = DeclModel().parse_from_string(decl4)
+model: DeclareModel = DeclareModel().parse_from_string(decl4)
 
 num_of_traces = 30
 num_min_events = 10

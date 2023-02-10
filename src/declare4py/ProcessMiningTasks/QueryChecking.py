@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC
-from src.declare4py.d4py_event_log import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.pm_task import PMTask
-from src.declare4py.ProcessModels.ltl_model import LTLModel
+from src.declare4py.D4PyEventLog import D4PyEventLog
+from src.declare4py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
+from src.declare4py.ProcessModels.LTLModel import LTLModel
 
 """
 Initializes class QueryChecking, inheriting from class PMTask
@@ -43,7 +43,7 @@ Attributes
 """
 
 
-class QueryChecking(PMTask, ABC):
+class QueryChecking(AbstractPMTask, ABC):
 
     def __init__(self, consider_vacuity: bool,
                  log: D4PyEventLog, ltl_model: LTLModel):

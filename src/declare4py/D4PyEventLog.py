@@ -8,7 +8,7 @@ from mlxtend.frequent_patterns import fpgrowth, apriori
 import pm4py
 from pm4py.objects.log.obj import EventLog, Trace
 
-from typing import List, Tuple, Optional
+from typing import List, Optional
 
 from src.declare4py.Encodings.AggregateTransformer import AggregateTransformer
 

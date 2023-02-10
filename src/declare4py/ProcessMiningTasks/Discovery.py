@@ -3,9 +3,9 @@ from __future__ import annotations
 from abc import ABC
 from typing import Union
 
-from src.declare4py.ProcessMiningTasks.pm_task import PMTask
-from src.declare4py.d4py_event_log import D4PyEventLog
-from src.declare4py.ProcessModels.process_model import ProcessModel
+from src.declare4py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
+from src.declare4py.D4PyEventLog import D4PyEventLog
+from src.declare4py.ProcessModels.AbstractModel import ProcessModel
 
 """
 Initializes class Discovery, inheriting from class PMTask
@@ -27,7 +27,7 @@ Attributes
 """
 
 
-class Discovery(PMTask, ABC):
+class Discovery(AbstractPMTask, ABC):
 
     def __init__(self, consider_vacuity: bool, log: Union[D4PyEventLog, None], model: ProcessModel):
         self.consider_vacuity = consider_vacuity

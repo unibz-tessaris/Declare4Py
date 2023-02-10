@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import pdb
-from typing import List, Union
+from typing import List, Union, Optional
 
 from src.declare4py.Utils.Declare.Checkers import CheckerResult
 
@@ -20,62 +19,47 @@ class ResultsBrowser:
     def __init__(self, matrix_results: List[List[CheckerResult]]):
         self.model_check_res: List[List[CheckerResult]] = matrix_results
 
-    def get_metric(self, metric: str, trace_id: int = None, constr_id: int = None) -> Union[List, int]:
-        if metric is None:
+    def get_metric(self, metric: str, trace_id: int = None, constr_id: int = None) -> Union[List[List], int]:
+        if type(metric) is not str:
             raise RuntimeError("You must specify a metric among num_activations, num_violations, num_fulfillments, "
                                "num_pendings, state.")
-        results = None
+        if metric not in ["num_activations", "num_violations", "num_fulfillments", "num_pendings", "state"]:
+            raise RuntimeError("You must specify a metric among num_activations, num_violations, num_fulfillments, "
+                               "num_pendings, state.")
+        results = []
         if trace_id is None and constr_id is None:
-            results = []
             for trace_res in self.model_check_res:
                 tmp_list = []
                 for result_checker in trace_res:
-                    try:
-                        tmp_list.append(getattr(result_checker, metric))
-                    except AttributeError:
-                        print("You must specify a metric among num_activations, num_violations, num_fulfillments, "
-                               "num_pendings, state.")
+                    tmp_list.append(self.retrieve_metric(result_checker, metric))
                 results.append(tmp_list)
-        if trace_id is not None:
-            pass
+        elif trace_id is not None and constr_id is None:
+            for result_checker in self.model_check_res[trace_id]:
+                results.append(self.retrieve_metric(result_checker, metric))
+        elif trace_id is None and constr_id is not None:
+            for trace_res in self.model_check_res:
+                result_checker = trace_res[constr_id]
+                results.append(self.retrieve_metric(result_checker, metric))
+        else:
+            try:
+                results = getattr(self.model_check_res[trace_id][constr_id], metric)
+            except IndexError:
+                print("The index of the trace must be lower than the log size. The index of the constraint must be "
+                      "lower than the total number of constraints in the Declare model.")
+            except TypeError as e:
+                print(f"The index of the trace/constraint must be integers or slices, not {e}.")
+            except AttributeError:
+                print("You must specify a metric among num_activations, num_violations, num_fulfillments, "
+                      "num_pendings, state.")
         return results
 
-    def get_activations(self, trace_id: int, constr_id: int) -> int:
-        if trace_id is None and constr_id is None:
-            print("ERROR: at least one parameter is expected.")
-        elif trace_id is None:
-            return self.model_check_res[constr_id].num_activations
-        elif constr_id is None:
-            return self.model_check_res[trace_id].num_activations
-        else:
-            return self.model_check_res[trace_id][constr_id].num_activations
-
-    def get_violations(self, trace_id: int, constr_id: int) -> int:
-        if trace_id is None and constr_id is None:
-            print("ERROR: at least one parameter is expected.")
-        elif trace_id is None:
-            return self.model_check_res[constr_id].num_violations
-        elif constr_id is None:
-            return self.model_check_res[trace_id].num_violations
-        else:
-            return self.model_check_res[trace_id][constr_id].num_violations
-
-    def get_fulfillments(self, trace_id: int, constr_id: int) -> int:
-        if trace_id is None and constr_id is None:
-            print("ERROR: at least one parameter is expected.")
-        elif trace_id is None:
-            return self.model_check_res[constr_id].num_fulfillments
-        elif constr_id is None:
-            return self.model_check_res[trace_id].num_fulfillments
-        else:
-            return self.model_check_res[trace_id][constr_id].num_fulfillments
-
-    def get_states(self, trace_id: int, constr_id: int) -> bool:
-        if trace_id is None and constr_id is None:
-            print("ERROR: at least one parameter is expected.")
-        elif trace_id is None:
-            return self.model_check_res[constr_id].state
-        elif constr_id is None:
-            return self.model_check_res[trace_id].state
-        else:
-            return self.model_check_res[trace_id][constr_id].state
+    @staticmethod
+    def retrieve_metric(result_checker: CheckerResult, metric: str) -> Optional[int]:
+        try:
+            if metric == "state":
+                return 0 if getattr(result_checker, metric).value == 'Violated' else 1
+            else:
+                return getattr(result_checker, metric)
+        except AttributeError:
+            print("You must specify a metric among num_activations, num_violations, num_fulfillments, "
+                  "num_pendings, state.")

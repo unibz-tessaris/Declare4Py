@@ -3,15 +3,15 @@ from __future__ import annotations
 import re
 import sys
 from abc import ABC
-from typing import Union, List, Optional
+from typing import List, Optional
 
 from numpy import product, ceil
 
-from src.declare4py.d4py_event_log import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.query_checking import QueryChecking
-from src.declare4py.ProcessModels.decl_model import DeclModel, DeclareModelTemplate
-from src.declare4py.Utils.Declare.constraint_checker import ConstraintCheck
-from src.declare4py.Utils.trace_states import TraceState
+from src.declare4py.D4PyEventLog import D4PyEventLog
+from src.declare4py.ProcessMiningTasks.QueryChecking import QueryChecking
+from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
+from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
+from src.declare4py.Utils.TraceStates import TraceState
 
 """
 Initializes class QueryCheckingResults
@@ -50,7 +50,7 @@ Attributes
 """
 
 
-class BasicMPDeclareQueryChecking(QueryChecking, ABC):
+class QueryChecker(QueryChecking, ABC):
 
     def __init__(self, consider_vacuity, template_str, max_declare_cardinality, activation,
                  target, act_cond, trg_cond, time_cond: Optional[str] = None, min_support: float = 0.1):
@@ -64,7 +64,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
         self.time_cond: Optional[str] = time_cond
         self.min_support: float = min_support  # or 1.0
         self.max_declare_cardinality: int = max_declare_cardinality
-        self.constraint_checker = ConstraintCheck(consider_vacuity)
+        self.constraint_checker = ConstraintChecker(consider_vacuity)
 
     def run(self, consider_vacuity: bool, template_str: str = None, max_declare_cardinality: int = 1,
             activation: str = None, target: str = None, act_cond: str = None,
@@ -225,7 +225,7 @@ class BasicMPDeclareQueryChecking(QueryChecking, ABC):
 
     def query_constraint(self, log: D4PyEventLog, constraint: dict, consider_vacuity: bool, min_support: float):
         # Fake model composed by a single constraint
-        model = DeclModel()
+        model = DeclareModel()
         model.constraints.append(constraint)
         sat_ctr = 0
         for i, trace in enumerate(log.log):

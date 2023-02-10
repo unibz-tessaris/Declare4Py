@@ -58,7 +58,9 @@ class DeclareModelTemplate(str, Enum):
     PRECEDENCE = "Precedence", True, False, False, False
     ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False
     CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False
+    # response(A, b) and precedence(a, b) = succession(a, b)
 
+    # responded_existence(A, b) and responded_existence(b, a) = coexistence(a, b)
     SUCCESSION = "Succession", True, False, False, True  # TODO: check if it is defined correct
     ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True  # TODO: check whether it is defined correct
     CO_EXISTENCE = "Co-Existence", True, False, False, True  # TODO: check whether it is defined correct, I dont think this one is correct
@@ -750,7 +752,7 @@ class DeclareModel(LTLModel):
         self.parsed_model: DeclareParsedDataModel = DeclareParsedDataModel()
         self.declare_model_lines: List[str] = []
         self.declare_model_violate_constraints: List[str] = []
-    """
+
     def set_constraints(self):
         constraint_str = ''
         if len(self.constraints) > 0:
@@ -758,11 +760,8 @@ class DeclareModel(LTLModel):
                 constraint_str = constraint['template'].templ_str
                 if constraint['template'].supports_cardinality:
                     constraint_str += str(constraint['n'])
-                import pdb
-                pdb.set_trace()
                 constraint_str += '[' + ", ".join(constraint["activities"]) + '] |' + ' |'.join(constraint["condition"])
                 self.serialized_constraints.append(constraint_str)
-    """
 
     def get_decl_model_constraints(self):
         return self.serialized_constraints
@@ -823,7 +822,6 @@ class DeclareModel(LTLModel):
                 for attr in attributes_list:
                     declare_parsed_model.add_attribute_value(attr, typ, value)
             elif DeclareModel.is_constraint_template_definition(line):
-                self.serialized_constraints.append(line)
                 split = line.split("[", 1)
                 template_search = re.search(r'(^.+?)(\d*$)', split[0])
                 if template_search is not None:
@@ -831,6 +829,7 @@ class DeclareModel(LTLModel):
                     template = DeclareModelTemplate.get_template_from_string(template_str)
                     if template is not None:
                         activities = split[1].split("]")[0]
+                        activities = activities.split(", ")
                         tmp = {"template": template, "activities": activities,
                                "condition": re.split(r'\s+\|', line)[1:]}
                         if template.supports_cardinality:
@@ -838,7 +837,7 @@ class DeclareModel(LTLModel):
                             cardinality = tmp['n']
                         self.constraints.append(tmp)
                         declare_parsed_model.add_template(line, template, cardinality)
-        #self.set_constraints()
+        self.set_constraints()
         declare_parsed_model.template_constraints = self.constraints
 
     @staticmethod
