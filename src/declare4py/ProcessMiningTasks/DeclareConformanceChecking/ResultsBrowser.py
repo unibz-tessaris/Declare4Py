@@ -42,7 +42,10 @@ class ResultsBrowser:
                 results.append(self.retrieve_metric(result_checker, metric))
         else:
             try:
-                results = getattr(self.model_check_res[trace_id][constr_id], metric)
+                if metric == "state":
+                    results = 0 if getattr(self.model_check_res[trace_id][constr_id], metric).value == 'Violated' else 1
+                else:
+                    results = getattr(self.model_check_res[trace_id][constr_id], metric)
             except IndexError:
                 print("The index of the trace must be lower than the log size. The index of the constraint must be "
                       "lower than the total number of constraints in the Declare model.")
