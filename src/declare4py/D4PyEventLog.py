@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import packaging
 from packaging import version
-
+import warnings
 from mlxtend.frequent_patterns import fpgrowth, apriori
 
 import pm4py
@@ -52,11 +52,13 @@ class D4PyEventLog:
             d4py_log = D4PyEventLog()
             d4py_log.parse_xes_log(log_path)
         """
-        log = pm4py.read_xes(log_path)
-        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
-            self.log = pm4py.convert_to_event_log(log)
-        else:
-            self.log = log
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            log = pm4py.read_xes(log_path)
+            if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+                self.log = pm4py.convert_to_event_log(log)
+            else:
+                self.log = log
         self.log_length = len(self.log)
 
     def get_log(self) -> EventLog:

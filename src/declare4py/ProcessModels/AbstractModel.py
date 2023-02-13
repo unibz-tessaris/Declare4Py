@@ -14,16 +14,13 @@ class ProcessModel(Generic[T]):
     def parse_from_file(self, model_path: str, **kwargs) -> T:
         pass
 
+    @abstractmethod
+    def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> T:
+        pass
+
     def get_model_activities(self):
         return self.activities
 
-    # @abstractmethod
-    # def parse_from_file(self, filename: str) -> T:
-    #     pass
-    #
-    # @abstractmethod
-    # def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> T:
-    #     pass
     #
     # @abstractmethod
     # def parse_model(self) -> T:

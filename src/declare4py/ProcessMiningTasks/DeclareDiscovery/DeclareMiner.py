@@ -9,7 +9,7 @@ from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModel
 from src.declare4py.ProcessModels.LTLModel import LTLModel
 from src.declare4py.Utils.Declare.Checkers import CheckerResult
 from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
-from src.declare4py.Utils.TraceStates import TraceState
+from src.declare4py.Utils.Declare.TraceStates import TraceState
 
 """
 

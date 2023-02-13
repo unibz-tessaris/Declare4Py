@@ -767,6 +767,8 @@ class DeclareModel(LTLModel):
         return self.serialized_constraints
 
     def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> DeclareModel:
+        if type(content) is not str:
+            raise RuntimeError("You must specify a string as input model.")
         lines = content.split(new_line_ctrl)
         self.declare_model_lines = lines
         self.parse(lines)

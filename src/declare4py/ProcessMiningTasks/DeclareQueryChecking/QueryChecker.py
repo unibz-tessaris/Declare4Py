@@ -1,17 +1,14 @@
 from __future__ import annotations
 
 import re
-import sys
 from abc import ABC
-from typing import List, Optional
-
-from numpy import product, ceil
-
+from typing import Optional
+import pandas as pd
 from src.declare4py.D4PyEventLog import D4PyEventLog
+from src.declare4py.ProcessMiningTasks.DeclareQueryChecking.ResultsBrowser import ResultsBrowser
 from src.declare4py.ProcessMiningTasks.QueryChecking import QueryChecking
 from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
 from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
-from src.declare4py.Utils.TraceStates import TraceState
 
 """
 Initializes class QueryCheckingResults
@@ -24,10 +21,7 @@ Attributes
 """
 
 
-class BasicQueryCheckingResults(dict):
 
-    def __init__(self, **kwargs):
-        super().__init__(kwargs)
 
 
 """
@@ -52,23 +46,24 @@ Attributes
 
 class QueryChecker(QueryChecking, ABC):
 
-    def __init__(self, consider_vacuity, template_str, max_declare_cardinality, activation,
-                 target, act_cond, trg_cond, time_cond: Optional[str] = None, min_support: float = 0.1):
-        super().__init__(consider_vacuity, None, None)  # TODO: create/pass logAnalyzer?
-        self.basic_query_checking_results: Optional[BasicQueryCheckingResults] = None
-        self.template_str: Optional[str] = template_str
+    def __init__(self, log: D4PyEventLog, template: Optional[str] = None,
+                 activation: Optional[str] = None, target: Optional[str] = None,
+                 activation_condition: Optional[str] = None, target_condition: Optional[str] = None,
+                 time_condition: Optional[str] = None, min_support: float = 0.1, consider_vacuity: bool = False,
+                 max_declare_cardinality: int = 1, activity_attribute: str = "concept:name"):
+        super().__init__(log, DeclareModel())
+        self.template: Optional[str] = template
         self.activation: Optional[str] = activation
         self.target: Optional[str] = target
-        self.act_cond: Optional[str] = act_cond
-        self.trg_cond: Optional[str] = trg_cond
-        self.time_cond: Optional[str] = time_cond
-        self.min_support: float = min_support  # or 1.0
+        self.activation_condition: Optional[str] = activation_condition if activation_condition is not None else ""
+        self.target_condition: Optional[str] = target_condition if target_condition is not None else ""
+        self.time_condition: Optional[str] = time_condition if time_condition is not None else ""
+        self.min_support: float = min_support
+        self.consider_vacuity = consider_vacuity
         self.max_declare_cardinality: int = max_declare_cardinality
-        self.constraint_checker = ConstraintChecker(consider_vacuity)
+        self.activity_attribute: str = activity_attribute
 
-    def run(self, consider_vacuity: bool, template_str: str = None, max_declare_cardinality: int = 1,
-            activation: str = None, target: str = None, act_cond: str = None,
-            trg_cond: str = None, time_cond: str = None, min_support: float = 1.0) -> BasicQueryCheckingResults:
+    def run(self) -> ResultsBrowser:
         """
         Performs query checking for a (list of) template, activation activity and target activity. Optional
         activation, target and time conditions can be specified.
@@ -112,49 +107,51 @@ class QueryChecker(QueryChecking, ABC):
             representations of these constraints.
         """
 
-        is_template_given = bool(template_str)
-        is_activation_given = bool(activation)
-        is_target_given = bool(target)
-        if not act_cond:
-            act_cond = ""
-        if not trg_cond:
-            trg_cond = ""
-        if not time_cond:
-            time_cond = ""
+        is_template_given = bool(self.template)
+        is_activation_given = bool(self.activation)
+        is_target_given = bool(self.target)
 
         if not is_template_given and not is_activation_given and not is_target_given:
             raise RuntimeError("You must set at least one parameter among (template, activation, target).")
         if is_template_given:
-            template = DeclareModelTemplate.get_template_from_string(template_str)
+            template = DeclareModelTemplate.get_template_from_string(self.template)
             if template is None:
                 raise RuntimeError("You must insert a supported DECLARE template.")
             if not template.is_binary and is_target_given:
                 raise RuntimeError("You cannot specify a target activity for unary templates.")
-        if not 0 <= min_support <= 1:
+        if not 0 <= self.min_support <= 1:
             raise RuntimeError("Min. support must be in range [0, 1].")
-        if max_declare_cardinality <= 0:
+        if self.max_declare_cardinality <= 0:
             raise RuntimeError("Cardinality must be greater than 0.")
         if self.event_log is None:
             raise RuntimeError("You must load a log before.")
 
         templates_to_check = list()
         if is_template_given:
-            templates_to_check.append(template_str)
+            templates_to_check.append(self.template)
         else:
             templates_to_check += list(map(lambda t: t.templ_str, DeclareModelTemplate.get_binary_templates()))
             if not is_target_given:
                 for template in DeclareModelTemplate.get_unary_templates():
                     if template.supports_cardinality:
-                        for card in range(max_declare_cardinality):
+                        for card in range(self.max_declare_cardinality):
                             templates_to_check.append(template.templ_str + str(card + 1))
                     else:
                         templates_to_check.append(template.templ_str)
 
-        activations_to_check = self.event_log.get_log_alphabet_activities() if activation is None else [activation]
-        targets_to_check = self.event_log.get_log_alphabet_activities() if target is None else [target]
-        activity_combos = tuple(filter(lambda c: c[0] != c[1], product(activations_to_check, targets_to_check)))
+        activations_to_check = self.event_log.get_log_alphabet_attribute(self.activity_attribute) \
+            if self.activation is None else [self.activation]
+        targets_to_check = self.event_log.get_log_alphabet_attribute(self.activity_attribute) \
+            if self.target is None else [self.target]
 
-        self.basic_query_checking_results: BasicQueryCheckingResults = BasicQueryCheckingResults()
+        activity_combos = []
+        for activation in activations_to_check:
+            for target in targets_to_check:
+                if activation != target:
+                    activity_combos.append((activation, target))
+
+        #activity_combos = tuple(filter(lambda c: c[0] != c[1], product(activations_to_check, targets_to_check)))
+        query_checker_results_df = []
         for template_str in templates_to_check:
             template_str, cardinality = re.search(r'(^.+?)(\d*$)', template_str).groups()
             template = DeclareModelTemplate.get_template_from_string(template_str)
@@ -164,84 +161,46 @@ class QueryChecker(QueryChecking, ABC):
                 constraint['n'] = int(cardinality)
 
             if template.is_binary:
-                constraint['condition'] = (act_cond, trg_cond, time_cond)
+                constraint['condition'] = (self.activation_condition, self.target_condition, self.time_condition)
                 for couple in activity_combos:
-                    constraint['activities'] = ', '.join(couple)
+                    #constraint['activities'] = ', '.join(couple)
+                    constraint['activities'] = couple
 
-                    constraint_str = self.query_constraint(self.event_log, constraint, consider_vacuity, min_support)
+                    #constraint_str = self.constraint_checking_with_support(constraint)
+                    constraint_str = ConstraintChecker().constraint_checking_with_support(constraint, self.event_log, self.consider_vacuity, self.min_support)
                     if constraint_str:
-                        res_value = {
-                            "template": template_str, "activation": couple[0], "target": couple[1],
-                            "act_cond": act_cond, "trg_cond": trg_cond, "time_cond": time_cond
-                        }
-                        self.basic_query_checking_results[constraint_str] = res_value
+                        #res_value = {
+                        #    "template": template_str, "activation": couple[0], "target": couple[1],
+                        #    "activation_condition": self.activation_condition, "target_condition": self.target_condition,
+                        #    "time_condition": self.time_condition
+                        #}
+                        #self.basic_query_checking_results[constraint_str] = res_value
+                        query_checker_results_df.append([template_str, couple[0], couple[1], self.activation_condition,
+                                                         self.target_condition, self.time_condition])
 
             else:  # unary template
-                constraint['condition'] = (act_cond, time_cond)
+                constraint['condition'] = (self.activation_condition, self.time_condition)
                 for activity in activations_to_check:
                     constraint['activities'] = activity
 
-                    constraint_str = self.query_constraint(self.event_log, constraint, consider_vacuity, min_support)
+                    #constraint_str = self.constraint_checking_with_support(constraint)
+                    constraint_str = ConstraintChecker().constraint_checking_with_support(constraint, self.event_log, self.consider_vacuity, self. min_support)
+
                     if constraint_str:
-                        res_value = {
-                            "template": template_str, "activation": activity,
-                            "act_cond": act_cond, "time_cond": time_cond
-                        }
-                        self.basic_query_checking_results[constraint_str] = res_value
-        return self.basic_query_checking_results
+                        query_checker_results_df.append([template_str, activity, None, self.activation_condition, None,
+                                                         self.time_condition])
+                        #res_value = {
+                        #    "template": template_str, "activation": activity,
+                        #    "activation_condition": self.activation_condition, "time_condition": self.time_condition
+                        #}
+                        #self.basic_query_checking_results[constraint_str] = res_value
 
-    def filter_query_checking(self, queries) -> List[List[str]]:
-        """
-        The function outputs, for each constraint of the query checking result, only the elements of the constraint
-        specified in the 'queries' list.
+        query_checker_results_df = pd.DataFrame(query_checker_results_df, columns=["template", "activation", "target",
+                                                                                   "activation_condition",
+                                                                                   "target_condition",
+                                                                                   "time_condition"])
+        return ResultsBrowser(query_checker_results_df)
 
-        Parameters
-        ----------
-        queries : list[str]
-            elements of the constraint that the user want to retain from query checking result. Choose one (or more)
-            elements among: 'template', 'activation', 'target'.
 
-        Returns
-        -------
-        assignments
-            list containing an entry for each constraint of query checking result. Each entry of the list is a list
-            itself, containing the queried constraint elements.
-        """
-        if self.basic_query_checking_results is None:
-            raise RuntimeError("You must run a query checking task before.")
-        if len(queries) == 0 or len(queries) > 3:
-            raise RuntimeError("The list of queries has to contain at least one query and three queries as maximum")
-        assignments = []
-        for constraint in self.basic_query_checking_results.keys():
-            tmp_answer = []
-            for query in queries:
-                try:
-                    tmp_answer.append(self.basic_query_checking_results[constraint][query])
-                except KeyError:
-                    print(f"{query} is not a valid query. Valid queries are template, activation, target.")
-                    sys.exit(1)
-            assignments.append(tmp_answer)
-        return assignments
 
-    def query_constraint(self, log: D4PyEventLog, constraint: dict, consider_vacuity: bool, min_support: float):
-        # Fake model composed by a single constraint
-        model = DeclareModel()
-        model.constraints.append(constraint)
-        sat_ctr = 0
-        for i, trace in enumerate(log.log):
-            trc_res = self.constraint_checker.check_trace_conformance(trace, model, consider_vacuity)
-            if not trc_res:  # Occurring when constraint data conditions are formatted bad
-                break
 
-            constraint_str, checker_res = next(
-                iter(trc_res.items()))  # trc_res will always have only one element inside
-            if checker_res.state == TraceState.SATISFIED:
-                sat_ctr += 1
-                # If the constraint is already above the minimum support, return it directly
-                if sat_ctr / len(log.log) >= min_support:
-                    return constraint_str
-            # If there aren't enough more traces to reach the minimum support, return nothing
-            if len(log.log) - (i + 1) < ceil(len(log.log) * min_support) - sat_ctr:
-                return None
-
-        return None

@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from abc import ABC
 from datetime import timedelta
+from math import ceil
 from typing import List, Optional
 
+from src.declare4py.D4PyEventLog import D4PyEventLog
 from src.declare4py.ProcessModels.DeclareModel import DeclareModel
 from src.declare4py.ProcessModels.DeclareModel import DeclareModelConditionParserUtility, DeclareModelTemplate
-from src.declare4py.Utils.TraceStates import TraceState
+from src.declare4py.Utils.Declare.TraceStates import TraceState
 
 glob = {'__builtins__': None}
 
@@ -47,6 +49,42 @@ class ConstraintChecker:
                     error_constraint_set.add(constraint_str)
                     print('Condition not properly formatted for constraint "' + constraint_str + '".')
         return trace_results
+
+    def constraint_checking_with_support(self, constraint: dict, event_log: D4PyEventLog, consider_vacuity: bool,
+                                         min_support: float) -> bool:
+        """
+        Check wheter a constraint is satisfied in a log up to a given minimum support
+        Args:
+            consider_vacuity:
+            event_log:
+            min_support:
+            constraint:
+
+        Returns:
+
+        """
+        # Fake model composed by a single constraint
+        tmp_model = DeclareModel()
+        tmp_model.constraints.append(constraint)
+        tmp_model.set_constraints()
+        sat_ctr = 0
+        log_checkers_results = []
+
+        for i, trace in enumerate(event_log.get_log()):
+            trc_res = self.check_trace_conformance(trace, tmp_model, consider_vacuity)
+            if not trc_res:  # Occurring when constraint data conditions are formatted bad
+                break
+            #constraint_str, checker_res = next(iter(trc_res.items()))  # trc_res will always have only one element inside
+            checker_res = trc_res[0]
+            if checker_res.state == TraceState.SATISFIED:
+                sat_ctr += 1
+                # If the constraint is already above the minimum support, return it directly
+                if sat_ctr / len(event_log.log) >= min_support:
+                    return True #constraint_str
+            # If there aren't enough more traces to reach the minimum support, return nothing
+            if event_log.get_length() - (i + 1) < ceil(event_log.get_length() * min_support) - sat_ctr:
+                return False # None
+        return False # None
 
 
 class TemplateConstraintChecker(ABC):
