@@ -15,10 +15,7 @@ An abstract class for process tasking
 
 class AbstractPMTask:
 
-    def __init__(self, log: Union[D4PyEventLog], process_model: ProcessModel):
-        super().__init__()
-        if log is None:
-            log = D4PyEventLog()
+    def __init__(self, log: D4PyEventLog, process_model: ProcessModel):
         self.event_log: D4PyEventLog = log
         self.process_model: ProcessModel = process_model
 

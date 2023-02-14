@@ -31,5 +31,6 @@ class LTLAnalyzer(AbstractConformanceChecking):
             raise RuntimeError("You must load the log before checking the model.")
         if self.process_model is None:
             raise RuntimeError("You must load the LTL model before checking the model.")
-
+        self.process_model.parsed_formula # @DL costruire l'automa
+        # fare il for del event log
         pass

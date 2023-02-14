@@ -29,7 +29,8 @@ Attributes
 
 class AbstractDiscovery(AbstractPMTask, ABC):
 
-    def __init__(self, consider_vacuity: bool, log: Union[D4PyEventLog, None], model: ProcessModel):
-        self.consider_vacuity = consider_vacuity
-        super().__init__(log, model)
+    def __init__(self, log: D4PyEventLog, process_model: ProcessModel, min_support: float = 0.1):
+        super().__init__(log, process_model)
+        self.min_support: float = min_support
+
 

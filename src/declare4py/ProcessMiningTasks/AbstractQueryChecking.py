@@ -45,6 +45,9 @@ Attributes
 
 class AbstractQueryChecking(AbstractPMTask, ABC):
 
-    def __init__(self, log: D4PyEventLog, process_model: ProcessModel):
+    def __init__(self, log: D4PyEventLog, process_model: ProcessModel, min_support: float = 0.1,
+                 return_first: bool = False):
         super().__init__(log, process_model)
+        self.min_support: float = min_support
+        self.return_first: bool = return_first
 

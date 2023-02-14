@@ -51,16 +51,14 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
                  activation_condition: Optional[str] = None, target_condition: Optional[str] = None,
                  time_condition: Optional[str] = None, min_support: float = 0.1, consider_vacuity: bool = False,
                  max_declare_cardinality: int = 1, return_first: bool = False):
-        super().__init__(log, DeclareModel())
-        self.return_first: bool = return_first
+        super().__init__(log, DeclareModel(), min_support, return_first)
+        self.consider_vacuity = consider_vacuity
         self.template: Optional[str] = template
         self.activation: Optional[str] = activation
         self.target: Optional[str] = target
         self.activation_condition: Optional[str] = activation_condition if activation_condition is not None else ""
         self.target_condition: Optional[str] = target_condition if target_condition is not None else ""
         self.time_condition: Optional[str] = time_condition if time_condition is not None else ""
-        self.min_support: float = min_support
-        self.consider_vacuity = consider_vacuity
         self.max_declare_cardinality: int = max_declare_cardinality
 
     def run(self) -> DeclareResultsBrowser:

@@ -44,20 +44,18 @@ Attributes
 
 class DeclareMiner(AbstractDiscovery, ABC):
 
-    def __init__(self, consider_vacuity: bool, support: float, max_declare_cardinality: int,
-                 log: Union[D4PyEventLog, None], ltl_model: LTLModel):
-        super().__init__(consider_vacuity, support, max_declare_cardinality, log, ltl_model)
-        self.init_discovery_result_instance()
-        self.constraint_checker = ConstraintChecker(consider_vacuity)
-        self.support: float = support
+    def __init__(self, log: D4PyEventLog, consider_vacuity: bool, min_support: float, max_declare_cardinality: int = 1):
+        super().__init__(log, DeclareModel(), min_support)
+        self.min_support: float = min_support
         self.max_declare_cardinality: Union[int, None] = max_declare_cardinality
         self.basic_discovery_results: Union[BasicDiscoveryResults, None] = None
+        self.init_discovery_result_instance()
+        self.constraint_checker = ConstraintChecker(consider_vacuity)
 
     def init_discovery_result_instance(self):
         self.basic_discovery_results: BasicDiscoveryResults = BasicDiscoveryResults()
 
-    def run(self, consider_vacuity: bool, max_declare_cardinality: int = 3, output_path: str = None) \
-            -> BasicDiscoveryResults:
+    def run(self, output_path: str = None) -> BasicDiscoveryResults:
         """
         Performs discovery of the supported DECLARE templates for the provided log by using the computed frequent item
         sets.
@@ -85,7 +83,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
             raise RuntimeError("You must load a log before.")
         if self.event_log.frequent_item_sets is None:
             raise RuntimeError("You must discover frequent itemsets before.")
-        if max_declare_cardinality <= 0:
+        if self.max_declare_cardinality <= 0:
             raise RuntimeError("Cardinality must be greater than 0.")
         self.init_discovery_result_instance()
 
@@ -96,20 +94,20 @@ class DeclareMiner(AbstractDiscovery, ABC):
                     constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "")}
                     if not templ.supports_cardinality:
                         self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
-                                                                                consider_vacuity)
+                                                                                self.consider_vacuity)
                     else:
-                        for i in range(max_declare_cardinality):
+                        for i in range(self.max_declare_cardinality):
                             constraint['n'] = i + 1
                             self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
-                                                                                    consider_vacuity)
+                                                                                    self.consider_vacuity)
             elif length == 2:
                 for templ in DeclareModelTemplate.get_binary_templates():
                     constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "", "")}
                     self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
-                                                                            consider_vacuity)
+                                                                            self.consider_vacuity)
                     constraint['activities'] = ', '.join(reversed(list(item_set)))
                     self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
-                                                                            consider_vacuity)
+                                                                            self.consider_vacuity)
         activities_decl_format = "activity " + "\nactivity ".join(self.event_log.get_log_alphabet_activities()) + "\n"
         if output_path is not None:
             with open(output_path, 'w+') as f:
