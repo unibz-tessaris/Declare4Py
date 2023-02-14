@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pdb
 import re
 from abc import ABC
 from typing import Optional
@@ -49,7 +50,7 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
                  activation: Optional[str] = None, target: Optional[str] = None,
                  activation_condition: Optional[str] = None, target_condition: Optional[str] = None,
                  time_condition: Optional[str] = None, min_support: float = 0.1, consider_vacuity: bool = False,
-                 max_declare_cardinality: int = 1, activity_attribute: str = "concept:name", return_first: bool = False):
+                 max_declare_cardinality: int = 1, return_first: bool = False):
         super().__init__(log, DeclareModel())
         self.return_first: bool = return_first
         self.template: Optional[str] = template
@@ -61,7 +62,6 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
         self.min_support: float = min_support
         self.consider_vacuity = consider_vacuity
         self.max_declare_cardinality: int = max_declare_cardinality
-        self.activity_attribute: str = activity_attribute
 
     def run(self) -> DeclareResultsBrowser:
         """
@@ -130,7 +130,10 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
         if is_template_given:
             templates_to_check.append(self.template)
         else:
-            templates_to_check += list(map(lambda t: t.templ_str, DeclareModelTemplate.get_binary_templates()))
+            #pdb.set_trace()
+            #templates_to_check = DeclareModelTemplate.get_binary_not_shortcut_templates()
+            templates_to_check += list(map(lambda t: t.templ_str, DeclareModelTemplate.get_binary_not_shortcut_templates()))
+            #templates_to_check += list(map(lambda t: t.templ_str, DeclareModelTemplate.get_binary_templates()))
             if not is_target_given:
                 for template in DeclareModelTemplate.get_unary_templates():
                     if template.supports_cardinality:
@@ -139,9 +142,9 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
                     else:
                         templates_to_check.append(template.templ_str)
 
-        activations_to_check = self.event_log.get_log_alphabet_attribute(self.activity_attribute) \
+        activations_to_check = self.event_log.get_log_alphabet_attribute(self.event_log.concept_name) \
             if self.activation is None else [self.activation]
-        targets_to_check = self.event_log.get_log_alphabet_attribute(self.activity_attribute) \
+        targets_to_check = self.event_log.get_log_alphabet_attribute(self.event_log.concept_name) \
             if self.target is None else [self.target]
 
         activity_combos = []

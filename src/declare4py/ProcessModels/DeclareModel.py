@@ -23,9 +23,8 @@ class DeclareModelTemplate(str, Enum):
         obj._value_ = value
         return obj
 
-    def __init__(self, templ_str: str, is_binary: bool, is_negative: bool,
-                 supports_cardinality: bool,
-                 both_activation_condition: bool = False):
+    def __init__(self, templ_str: str, is_binary: bool, is_negative: bool, supports_cardinality: bool,
+                 both_activation_condition: bool = False, is_shortcut: bool = False):
         """
 
         Parameters
@@ -42,39 +41,40 @@ class DeclareModelTemplate(str, Enum):
         self.is_negative = is_negative
         self.supports_cardinality = supports_cardinality
         self.both_activation_condition = both_activation_condition
+        self.is_shortcut = is_shortcut
 
-    EXISTENCE = "Existence", False, False, True, False
-    ABSENCE = "Absence", False, False, True, False
-    EXACTLY = "Exactly", False, False, True, False
-    INIT = "Init", False, False, False, False
+    EXISTENCE = "Existence", False, False, True, False, False
+    ABSENCE = "Absence", False, False, True, False, False
+    EXACTLY = "Exactly", False, False, True, False, False
+    INIT = "Init", False, False, False, False, False
 
-    CHOICE = "Choice", True, False, False, True
-    EXCLUSIVE_CHOICE = "Exclusive Choice", True, False, False, True
+    CHOICE = "Choice", True, False, False, True, False
+    EXCLUSIVE_CHOICE = "Exclusive Choice", True, False, False, True, False
 
-    RESPONDED_EXISTENCE = "Responded Existence", True, False, False, False
-    RESPONSE = "Response", True, False, False, False
-    ALTERNATE_RESPONSE = "Alternate Response", True, False, False, False
-    CHAIN_RESPONSE = "Chain Response", True, False, False, False
-    PRECEDENCE = "Precedence", True, False, False, False
-    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False
-    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False
+    RESPONDED_EXISTENCE = "Responded Existence", True, False, False, False, False
+    RESPONSE = "Response", True, False, False, False, False
+    ALTERNATE_RESPONSE = "Alternate Response", True, False, False, False, False
+    CHAIN_RESPONSE = "Chain Response", True, False, False, False, False
+    PRECEDENCE = "Precedence", True, False, False, False, False
+    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False, False
+    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False, False
 
     # response(A, b) and precedence(a, b) = succession(a, b)
     # responded_existence(A, b) and responded_existence(b, a) = coexistence(a, b)
     # TODO implementare i checker
-    SUCCESSION = "Succession", True, False, False, True
-    ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True
-    CO_EXISTENCE = "Co-Existence", True, False, False, True
-    CHAIN_SUCCESSION = "Chain Succession", True, False, False, True
-    NOT_CHAIN_SUCCESSION = "Not Chain Succession", True, True, False, True
-    NOT_CO_EXISTENCE = "Not Co-Existence", True, True, False, True
-    NOT_SUCCESSION = "Not Succession", True, True, False, True
+    SUCCESSION = "Succession", True, False, False, True, True
+    ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True, True
+    CO_EXISTENCE = "Co-Existence", True, False, False, True, True
+    CHAIN_SUCCESSION = "Chain Succession", True, False, False, True, True
+    NOT_CHAIN_SUCCESSION = "Not Chain Succession", True, True, False, True, True
+    NOT_CO_EXISTENCE = "Not Co-Existence", True, True, False, True, True
+    NOT_SUCCESSION = "Not Succession", True, True, False, True, True
 
-    NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False
-    NOT_RESPONSE = "Not Response", True, True, False, False
-    NOT_PRECEDENCE = "Not Precedence", True, True, False, False
-    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False
-    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False
+    NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False, False
+    NOT_RESPONSE = "Not Response", True, True, False, False, False
+    NOT_PRECEDENCE = "Not Precedence", True, True, False, False, False
+    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False, False
+    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False, False
 
     @classmethod
     def get_template_from_string(cls, template_str):
@@ -95,6 +95,14 @@ class DeclareModelTemplate(str, Enum):
     @classmethod
     def get_negative_templates(cls):
         return tuple(filter(lambda t: t.is_negative, DeclareModelTemplate))
+
+    @classmethod
+    def get_shortcut_templates(cls):
+        return tuple(filter(lambda t: t.is_shortcut, DeclareModelTemplate))
+
+    @classmethod
+    def get_binary_not_shortcut_templates(cls):
+        return tuple(filter(lambda t: t.is_binary and not t.is_shortcut, DeclareModelTemplate))
 
     def __str__(self):
         return "<Template." + str(self.templ_str) + ": " + str(self.value) + " >"

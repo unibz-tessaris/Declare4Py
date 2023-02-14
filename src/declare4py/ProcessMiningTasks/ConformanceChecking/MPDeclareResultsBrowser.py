@@ -16,7 +16,7 @@ Attributes
 """
 
 
-class ResultsBrowser:
+class MPDeclareResultsBrowser:
 
     def __init__(self, matrix_results: List[List[CheckerResult]], serialized_constraints: List[str]):
         self.serialized_constraints = serialized_constraints

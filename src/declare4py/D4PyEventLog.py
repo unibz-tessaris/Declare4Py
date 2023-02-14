@@ -25,7 +25,7 @@ class D4PyEventLog:
         frequent_item_sets: list of the most frequent item sets found along the log traces, together with their support and length
     """
 
-    def __init__(self):
+    def __init__(self, concept_name: str = "concept:name"):
         """The class constructor
 
         Example::
@@ -34,6 +34,7 @@ class D4PyEventLog:
         """
         self.log: Optional[EventLog] = None
         self.log_length: Optional[int] = None
+        self.concept_name = concept_name
 
     def parse_xes_log(self, log_path: str) -> None:
         """
