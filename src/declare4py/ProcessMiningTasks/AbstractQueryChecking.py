@@ -43,7 +43,7 @@ Attributes
 """
 
 
-class QueryChecking(AbstractPMTask, ABC):
+class AbstractQueryChecking(AbstractPMTask, ABC):
 
     def __init__(self, log: D4PyEventLog, process_model: ProcessModel):
         super().__init__(log, process_model)

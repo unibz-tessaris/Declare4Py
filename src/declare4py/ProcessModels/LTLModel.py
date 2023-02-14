@@ -13,7 +13,8 @@ class LTLModel(ProcessModel, ABC):
     def parse_from_string(self, content: str, new_line_ctrl: str = "\n"):
         if type(content) is not str:
             raise RuntimeError("You must specify a string as input formula.")
-        # Diell, usare il parsing in logaut
+        # @Diellsimeone, usare il parsing in logaut
         # ma prima devi sostituire i numeri con lettere e mettere tutto in lowercase
+        # raccogliere la expception del parser se la formula di input non è ben formata
         self.formula = content
         self.parsed_formula = None

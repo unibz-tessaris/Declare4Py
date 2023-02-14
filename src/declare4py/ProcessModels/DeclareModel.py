@@ -58,16 +58,17 @@ class DeclareModelTemplate(str, Enum):
     PRECEDENCE = "Precedence", True, False, False, False
     ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False
     CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False
-    # response(A, b) and precedence(a, b) = succession(a, b)
 
+    # response(A, b) and precedence(a, b) = succession(a, b)
     # responded_existence(A, b) and responded_existence(b, a) = coexistence(a, b)
-    SUCCESSION = "Succession", True, False, False, True  # TODO: check if it is defined correct
-    ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True  # TODO: check whether it is defined correct
-    CO_EXISTENCE = "Co-Existence", True, False, False, True  # TODO: check whether it is defined correct, I dont think this one is correct
-    CHAIN_SUCCESSION = "Chain Succession", True, False, False, True  # TODO: check whether it is defined correct
-    NOT_CHAIN_SUCCESSION = "Not Chain Succession", True, False, False, True  # TODO: check whether it is defined correct
-    NOT_CO_EXISTENCE = "Not Co-Existence", True, False, False, True  # TODO: check whether it is defined correct, I dont think this one is correct
-    NOT_SUCCESSION = "Not Succession", True, True, False, True  # TODO: check if it is defined correct
+    # TODO implementare i checker
+    SUCCESSION = "Succession", True, False, False, True
+    ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True
+    CO_EXISTENCE = "Co-Existence", True, False, False, True
+    CHAIN_SUCCESSION = "Chain Succession", True, False, False, True
+    NOT_CHAIN_SUCCESSION = "Not Chain Succession", True, True, False, True
+    NOT_CO_EXISTENCE = "Not Co-Existence", True, True, False, True
+    NOT_SUCCESSION = "Not Succession", True, True, False, True
 
     NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False
     NOT_RESPONSE = "Not Response", True, True, False, False
@@ -747,7 +748,8 @@ class DeclareModel(LTLModel):
     def __init__(self):
         super().__init__()
         # self.activities = []
-        self.serialized_constraints: List = []
+        self.payload: List[str] = []
+        self.serialized_constraints: List[str] = []
         self.constraints: List = []
         self.parsed_model: DeclareParsedDataModel = DeclareParsedDataModel()
         self.declare_model_lines: List[str] = []
@@ -765,7 +767,13 @@ class DeclareModel(LTLModel):
 
     def get_decl_model_constraints(self):
         return self.serialized_constraints
-
+    """
+    def to_file(self, model_path: str, **kwargs):
+        if model_path is not None:
+            with open(model_path, 'w') as f:
+                f.write("activity " + "\nactivity ".join(self.event_log.get_log_alphabet_activities()) + "\n")
+                f.write('\n'.join(result.keys()))
+    """
     def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> DeclareModel:
         if type(content) is not str:
             raise RuntimeError("You must specify a string as input model.")

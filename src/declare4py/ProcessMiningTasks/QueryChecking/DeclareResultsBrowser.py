@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import List
-from pandas import DataFrame
+import pandas as pd
 
 """
 Initializes class ConformanceCheckingResults
@@ -13,12 +13,15 @@ Attributes
 """
 
 
-class ResultsBrowser:
+class DeclareResultsBrowser:
 
-    def __init__(self, df_results: DataFrame):
-        self.df_results: DataFrame = df_results
+    def __init__(self, query_checker_results: List[List[str]]):
+        self.df_results: pd.DataFrame = pd.DataFrame(query_checker_results, columns=["template", "activation", "target",
+                                                                                     "activation_condition",
+                                                                                     "target_condition",
+                                                                                     "time_condition"])
 
-    def filter_query_checking(self, queries: List[str]) -> DataFrame:
+    def filter_query_checking(self, queries: List[str]) -> pd.DataFrame:
         """
         The function outputs, for each constraint of the query checking result, only the elements of the constraint
         specified in the 'queries' list.

@@ -17,8 +17,7 @@ Parameters
 """
 
 
-class Monitoring(AbstractPMTask, ABC):
+class AbstractMonitoring(AbstractPMTask, ABC):
 
-    def __init__(self, log: Union[D4PyEventLog, None], p_model: ProcessModel):
-        super().__init__(log, p_model)
-
+    def __init__(self, log: D4PyEventLog, process_model: ProcessModel):
+        super().__init__(log, process_model)

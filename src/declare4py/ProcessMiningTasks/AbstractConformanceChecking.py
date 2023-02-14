@@ -19,7 +19,7 @@ Parameters
 """
 
 
-class ConformanceChecking(AbstractPMTask, ABC):
+class AbstractConformanceChecking(AbstractPMTask, ABC):
 
     def __init__(self, log: D4PyEventLog, process_model: ProcessModel):
         super().__init__(log, process_model)

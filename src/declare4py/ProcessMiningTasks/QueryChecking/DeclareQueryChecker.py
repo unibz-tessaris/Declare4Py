@@ -3,10 +3,9 @@ from __future__ import annotations
 import re
 from abc import ABC
 from typing import Optional
-import pandas as pd
 from src.declare4py.D4PyEventLog import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.DeclareQueryChecking.ResultsBrowser import ResultsBrowser
-from src.declare4py.ProcessMiningTasks.QueryChecking import QueryChecking
+from src.declare4py.ProcessMiningTasks.AbstractQueryChecking import AbstractQueryChecking
+from src.declare4py.ProcessMiningTasks.QueryChecking.DeclareResultsBrowser import DeclareResultsBrowser
 from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
 from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
 
@@ -44,14 +43,15 @@ Attributes
 """
 
 
-class QueryChecker(QueryChecking, ABC):
+class DeclareQueryChecker(AbstractQueryChecking, ABC):
 
     def __init__(self, log: D4PyEventLog, template: Optional[str] = None,
                  activation: Optional[str] = None, target: Optional[str] = None,
                  activation_condition: Optional[str] = None, target_condition: Optional[str] = None,
                  time_condition: Optional[str] = None, min_support: float = 0.1, consider_vacuity: bool = False,
-                 max_declare_cardinality: int = 1, activity_attribute: str = "concept:name"):
+                 max_declare_cardinality: int = 1, activity_attribute: str = "concept:name", return_first: bool = False):
         super().__init__(log, DeclareModel())
+        self.return_first: bool = return_first
         self.template: Optional[str] = template
         self.activation: Optional[str] = activation
         self.target: Optional[str] = target
@@ -63,7 +63,7 @@ class QueryChecker(QueryChecking, ABC):
         self.max_declare_cardinality: int = max_declare_cardinality
         self.activity_attribute: str = activity_attribute
 
-    def run(self) -> ResultsBrowser:
+    def run(self) -> DeclareResultsBrowser:
         """
         Performs query checking for a (list of) template, activation activity and target activity. Optional
         activation, target and time conditions can be specified.
@@ -151,7 +151,7 @@ class QueryChecker(QueryChecking, ABC):
                     activity_combos.append((activation, target))
 
         #activity_combos = tuple(filter(lambda c: c[0] != c[1], product(activations_to_check, targets_to_check)))
-        query_checker_results_df = []
+        query_checker_results = []
         for template_str in templates_to_check:
             template_str, cardinality = re.search(r'(^.+?)(\d*$)', template_str).groups()
             template = DeclareModelTemplate.get_template_from_string(template_str)
@@ -175,8 +175,10 @@ class QueryChecker(QueryChecking, ABC):
                         #    "time_condition": self.time_condition
                         #}
                         #self.basic_query_checking_results[constraint_str] = res_value
-                        query_checker_results_df.append([template_str, couple[0], couple[1], self.activation_condition,
+                        query_checker_results.append([template_str, couple[0], couple[1], self.activation_condition,
                                                          self.target_condition, self.time_condition])
+                        if self.return_first:
+                            return DeclareResultsBrowser(query_checker_results)
 
             else:  # unary template
                 constraint['condition'] = (self.activation_condition, self.time_condition)
@@ -187,19 +189,17 @@ class QueryChecker(QueryChecking, ABC):
                     constraint_str = ConstraintChecker().constraint_checking_with_support(constraint, self.event_log, self.consider_vacuity, self. min_support)
 
                     if constraint_str:
-                        query_checker_results_df.append([template_str, activity, None, self.activation_condition, None,
+                        query_checker_results.append([template_str, activity, None, self.activation_condition, None,
                                                          self.time_condition])
+                        if self.return_first:
+                            return DeclareResultsBrowser(query_checker_results)
                         #res_value = {
                         #    "template": template_str, "activation": activity,
                         #    "activation_condition": self.activation_condition, "time_condition": self.time_condition
                         #}
                         #self.basic_query_checking_results[constraint_str] = res_value
 
-        query_checker_results_df = pd.DataFrame(query_checker_results_df, columns=["template", "activation", "target",
-                                                                                   "activation_condition",
-                                                                                   "target_condition",
-                                                                                   "time_condition"])
-        return ResultsBrowser(query_checker_results_df)
+        return DeclareResultsBrowser(query_checker_results)
 
 
 

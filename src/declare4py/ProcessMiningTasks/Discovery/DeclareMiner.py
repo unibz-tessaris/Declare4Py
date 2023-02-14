@@ -4,7 +4,7 @@ from abc import ABC
 from typing import Union, Dict, Tuple
 
 from src.declare4py.D4PyEventLog import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.Discovery import Discovery
+from src.declare4py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
 from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
 from src.declare4py.ProcessModels.LTLModel import LTLModel
 from src.declare4py.Utils.Declare.Checkers import CheckerResult
@@ -42,7 +42,7 @@ Attributes
 """
 
 
-class BasicMPDeclareDiscovery(Discovery, ABC):
+class DeclareMiner(AbstractDiscovery, ABC):
 
     def __init__(self, consider_vacuity: bool, support: float, max_declare_cardinality: int,
                  log: Union[D4PyEventLog, None], ltl_model: LTLModel):

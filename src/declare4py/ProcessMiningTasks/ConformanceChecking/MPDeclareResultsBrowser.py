@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import List, Union, Optional
 
+import pandas as pd
+
 from src.declare4py.Utils.Declare.Checkers import CheckerResult
 
 """
@@ -16,10 +18,11 @@ Attributes
 
 class ResultsBrowser:
 
-    def __init__(self, matrix_results: List[List[CheckerResult]]):
+    def __init__(self, matrix_results: List[List[CheckerResult]], serialized_constraints: List[str]):
+        self.serialized_constraints = serialized_constraints
         self.model_check_res: List[List[CheckerResult]] = matrix_results
 
-    def get_metric(self, metric: str, trace_id: int = None, constr_id: int = None) -> Union[List[List], int]:
+    def get_metric(self, metric: str, trace_id: int = None, constr_id: int = None) -> Union[pd.DataFrame, List, int]:
         if type(metric) is not str:
             raise RuntimeError("You must specify a metric among num_activations, num_violations, num_fulfillments, "
                                "num_pendings, state.")
@@ -33,6 +36,7 @@ class ResultsBrowser:
                 for result_checker in trace_res:
                     tmp_list.append(self.retrieve_metric(result_checker, metric))
                 results.append(tmp_list)
+            results = pd.DataFrame(results, columns=self.serialized_constraints)
         elif trace_id is not None and constr_id is None:
             for result_checker in self.model_check_res[trace_id]:
                 results.append(self.retrieve_metric(result_checker, metric))

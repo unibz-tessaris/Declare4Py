@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from src.declare4py.D4PyEventLog import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.ConformanceChecking import ConformanceChecking
-from src.declare4py.ProcessMiningTasks.DeclareConformanceChecking.ResultsBrowser import ResultsBrowser
+from src.declare4py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
+from src.declare4py.ProcessMiningTasks.ConformanceChecking.MPDeclareResultsBrowser import ResultsBrowser
 from src.declare4py.ProcessModels.DeclareModel import DeclareModel
 from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
 
@@ -11,7 +11,7 @@ Provides basic conformance checking functionalities
 """
 
 
-class MPDeclareAnalyzer(ConformanceChecking):
+class MPDeclareAnalyzer(AbstractConformanceChecking):
 
     def __init__(self, log: D4PyEventLog, declare_model: DeclareModel, consider_vacuity: bool):
         super().__init__(log, declare_model)
@@ -43,5 +43,4 @@ class MPDeclareAnalyzer(ConformanceChecking):
         for trace in self.event_log.get_log():
             log_checkers_results.append(ConstraintChecker().check_trace_conformance(trace, self.process_model,
                                                                                     self.consider_vacuity))
-
-        return ResultsBrowser(log_checkers_results)
+        return ResultsBrowser(log_checkers_results, self.process_model.serialized_constraints)

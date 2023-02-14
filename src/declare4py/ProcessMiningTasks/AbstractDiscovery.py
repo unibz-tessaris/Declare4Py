@@ -27,7 +27,7 @@ Attributes
 """
 
 
-class Discovery(AbstractPMTask, ABC):
+class AbstractDiscovery(AbstractPMTask, ABC):
 
     def __init__(self, consider_vacuity: bool, log: Union[D4PyEventLog, None], model: ProcessModel):
         self.consider_vacuity = consider_vacuity
