@@ -1,27 +1,16 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Union, Dict, Tuple
+from typing import Dict, Tuple
 
 from src.declare4py.D4PyEventLog import D4PyEventLog
 from src.declare4py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
 from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
-from src.declare4py.ProcessModels.LTLModel import LTLModel
 from src.declare4py.Utils.Declare.Checkers import CheckerResult
 from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
 from src.declare4py.Utils.Declare.TraceStates import TraceState
 
-"""
 
-Dictionary type object to save some value
-
-"""
-
-
-class BasicDiscoveryResults(dict):
-
-    def __init__(self, **kwargs):
-        super().__init__(kwargs)
 
 
 """
@@ -44,18 +33,14 @@ Attributes
 
 class DeclareMiner(AbstractDiscovery, ABC):
 
-    def __init__(self, log: D4PyEventLog, consider_vacuity: bool, min_support: float, max_declare_cardinality: int = 1):
+    def __init__(self, log: D4PyEventLog, consider_vacuity: bool, min_support: float, itemsets_support: float = 0.9,
+                 max_declare_cardinality: int = 1):
         super().__init__(log, DeclareModel(), min_support)
-        self.min_support: float = min_support
-        self.max_declare_cardinality: Union[int, None] = max_declare_cardinality
-        self.basic_discovery_results: Union[BasicDiscoveryResults, None] = None
-        self.init_discovery_result_instance()
-        self.constraint_checker = ConstraintChecker(consider_vacuity)
+        self.consider_vacuity: bool = consider_vacuity
+        self.itemsets_support: float = itemsets_support
+        self.max_declare_cardinality: int = max_declare_cardinality
 
-    def init_discovery_result_instance(self):
-        self.basic_discovery_results: BasicDiscoveryResults = BasicDiscoveryResults()
-
-    def run(self, output_path: str = None) -> BasicDiscoveryResults:
+    def run(self, output_path: str = None) -> DeclareModel:
         """
         Performs discovery of the supported DECLARE templates for the provided log by using the computed frequent item
         sets.
@@ -81,60 +66,70 @@ class DeclareMiner(AbstractDiscovery, ABC):
         print("Computing discovery ...")
         if self.event_log is None:
             raise RuntimeError("You must load a log before.")
-        if self.event_log.frequent_item_sets is None:
-            raise RuntimeError("You must discover frequent itemsets before.")
         if self.max_declare_cardinality <= 0:
             raise RuntimeError("Cardinality must be greater than 0.")
-        self.init_discovery_result_instance()
 
-        for item_set in self.event_log.frequent_item_sets['itemsets']:  # TODO: improve this key name?
+        frequent_item_sets = self.event_log.compute_frequent_itemsets(min_support=self.itemsets_support,
+                                                                      case_id_col=self.event_log.get_case_name(),
+                                                                      categorical_attributes=[self.event_log.get_concept_name()],
+                                                                      algorithm= 'fpgrowth', remove_column_prefix=True)
+        output_declare_model: DeclareModel = DeclareModel()
+        for item_set in frequent_item_sets['itemsets']:
             length = len(item_set)
             if length == 1:
-                for templ in DeclareModelTemplate.get_unary_templates():
-                    constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "")}
-                    if not templ.supports_cardinality:
-                        self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
-                                                                                self.consider_vacuity)
+                for template in DeclareModelTemplate.get_unary_templates():
+                    constraint = {"template": template, "activities": list(item_set), "condition": ("", "")}
+
+                    if not template.supports_cardinality:
+                        constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint,
+                                                                                                       self.event_log,
+                                                                                                       self.consider_vacuity,
+                                                                                                       self.min_support)
+                        # self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
+                        #                                                        self.consider_vacuity)
+                        if constraint_satisfaction:
+                            output_declare_model.constraints.append(constraint)
                     else:
                         for i in range(self.max_declare_cardinality):
                             constraint['n'] = i + 1
-                            self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
-                                                                                    self.consider_vacuity)
+                            constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint,
+                                                                                                  self.event_log,
+                                                                                                  self.consider_vacuity,
+                                                                                                  self.min_support)
+                            # self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
+                            #                                                        self.consider_vacuity)
+                            if constraint_satisfaction:
+                                output_declare_model.constraints.append(constraint)
             elif length == 2:
-                for templ in DeclareModelTemplate.get_binary_templates():
-                    constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "", "")}
-                    self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
-                                                                            self.consider_vacuity)
-                    constraint['activities'] = ', '.join(reversed(list(item_set)))
-                    self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
-                                                                            self.consider_vacuity)
-        activities_decl_format = "activity " + "\nactivity ".join(self.event_log.get_log_alphabet_activities()) + "\n"
-        if output_path is not None:
-            with open(output_path, 'w+') as f:
-                f.write(activities_decl_format)
-                f.write('\n'.join(self.basic_discovery_results.keys()))
-        return self.basic_discovery_results
+                for template in DeclareModelTemplate.get_binary_not_shortcut_templates():
+                    # constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "", "")}
+                    constraint = {"template": template, "activities": list(item_set), "condition": ("", "")}
+                    # self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
+                    #                                                        self.consider_vacuity)
+                    constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint,
+                                                                                                   self.event_log,
+                                                                                                   self.consider_vacuity,
+                                                                                                   self.min_support)
+                    if constraint_satisfaction:
+                        output_declare_model.constraints.append(constraint)
+                    # constraint['activities'] = ', '.join(reversed(list(item_set)))
 
+                    constraint['activities'] = list(reversed(list(item_set)))
+                    # self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
+                    #                                                        self.consider_vacuity)
+                    constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint,
+                                                                                                   self.event_log,
+                                                                                                   self.consider_vacuity,
+                                                                                                   self.min_support)
+                    if constraint_satisfaction:
+                        output_declare_model.constraints.append(constraint)
+        output_declare_model.set_constraints()
+        return output_declare_model
+
+    """
     def filter_discovery(self, min_support: float = 0, output_path: str = None) \
             -> Dict[str: Dict[Tuple[int, str]: CheckerResult]]:
-        """
-        Filters discovery results by means of minimum support.
 
-        Parameters
-        ----------
-        min_support : float, optional
-            the minimum support that a discovered constraint needs to have to be included in the filtered result.
-
-        output_path : str, optional
-            if specified, save the filtered constraints in a DECLARE model to the provided path.
-
-        Returns
-        -------
-        result
-            dictionary containing the results indexed by discovered constraints. The value is a dictionary with keys
-            the tuples containing id and name of traces that satisfy the constraint. The values of this inner dictionary
-            is a CheckerResult object containing the number of pendings, activations, violations, fulfilments.
-        """
         if self.event_log is None:
             raise RuntimeError("You must load a log before.")
         if self.basic_discovery_results is None:
@@ -172,4 +167,4 @@ class DeclareMiner(AbstractDiscovery, ABC):
                 else:
                     discovery_res[constraint_str] = new_val
         return discovery_res
-
+    """

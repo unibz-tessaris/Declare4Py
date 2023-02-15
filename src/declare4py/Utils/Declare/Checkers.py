@@ -73,7 +73,6 @@ class ConstraintChecker:
         tmp_model.constraints.append(constraint)
         tmp_model.set_constraints()
         sat_ctr = 0
-        log_checkers_results = []
 
         for i, trace in enumerate(event_log.get_log()):
             trc_res = self.check_trace_conformance(trace, tmp_model, consider_vacuity, event_log.concept_name)

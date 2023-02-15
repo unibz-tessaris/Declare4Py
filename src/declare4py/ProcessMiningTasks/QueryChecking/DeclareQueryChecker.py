@@ -168,8 +168,8 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
                     constraint['activities'] = couple
 
                     #constraint_str = self.constraint_checking_with_support(constraint)
-                    constraint_str = ConstraintChecker().constraint_checking_with_support(constraint, self.event_log, self.consider_vacuity, self.min_support)
-                    if constraint_str:
+                    constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint, self.event_log, self.consider_vacuity, self.min_support)
+                    if constraint_satisfaction:
                         #res_value = {
                         #    "template": template_str, "activation": couple[0], "target": couple[1],
                         #    "activation_condition": self.activation_condition, "target_condition": self.target_condition,
@@ -187,9 +187,9 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
                     constraint['activities'] = activity
 
                     #constraint_str = self.constraint_checking_with_support(constraint)
-                    constraint_str = ConstraintChecker().constraint_checking_with_support(constraint, self.event_log, self.consider_vacuity, self. min_support)
+                    constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint, self.event_log, self.consider_vacuity, self. min_support)
 
-                    if constraint_str:
+                    if constraint_satisfaction:
                         query_checker_results.append([template_str, activity, None, self.activation_condition, None,
                                                          self.time_condition])
                         if self.return_first:

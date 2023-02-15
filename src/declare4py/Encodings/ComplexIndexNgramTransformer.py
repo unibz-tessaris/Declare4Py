@@ -50,7 +50,7 @@ class ComplexIndexNgramTransformer(TransformerMixin):
         self.create_dummies = create_dummies
     
     
-    def fit(self, X: DataFrame, y=None) -> None:
+    def fit(self, X: DataFrame, y=None):
         return self
     
     def transform(self, X: DataFrame, y=None) -> DataFrame:

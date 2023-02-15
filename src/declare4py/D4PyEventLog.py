@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pdb
+
 import packaging
 from packaging import version
 import warnings
@@ -25,7 +27,7 @@ class D4PyEventLog:
         frequent_item_sets: list of the most frequent item sets found along the log traces, together with their support and length
     """
 
-    def __init__(self, concept_name: str = "concept:name"):
+    def __init__(self, case_name: str = "case:concept:name"):
         """The class constructor
 
         Example::
@@ -34,7 +36,8 @@ class D4PyEventLog:
         """
         self.log: Optional[EventLog] = None
         self.log_length: Optional[int] = None
-        self.concept_name = concept_name
+        self.concept_name: Optional[str] = None
+        self.case_name: str = case_name
 
     def parse_xes_log(self, log_path: str) -> None:
         """
@@ -61,6 +64,7 @@ class D4PyEventLog:
             else:
                 self.log = log
         self.log_length = len(self.log)
+        self.concept_name = self.log._properties['pm4py:param:activity_key']
 
     def get_log(self) -> EventLog:
         """
@@ -83,6 +87,16 @@ class D4PyEventLog:
         if self.log_length is None:
             raise RuntimeError("You must load a log before.")
         return self.log_length
+
+    def get_concept_name(self) -> str:
+        if self.log_length is None:
+            raise RuntimeError("You must load a log before.")
+        return self.concept_name
+
+    def get_case_name(self) -> str:
+        if self.log_length is None:
+            raise RuntimeError("You must load a log before.")
+        return self.case_name
 
     def get_log_alphabet_attribute(self, attribute_name: str = None) -> List[str]:
         """
@@ -136,7 +150,8 @@ class D4PyEventLog:
         return projection
 
     def compute_frequent_itemsets(self, min_support: float, case_id_col: str, categorical_attributes: List[str] = None,
-                                  algorithm: str = 'fpgrowth', len_itemset: int = 2) -> DataFrame:
+                                  algorithm: str = 'fpgrowth', len_itemset: int = 2,
+                                  remove_column_prefix: bool = False) -> DataFrame:
         """
         Compute the most frequent item sets with a support greater or equal than 'min_support' with the given algorithm
         and over the given dimension.
@@ -161,6 +176,14 @@ class D4PyEventLog:
         encoder: AggregateTransformer = AggregateTransformer(case_id_col=case_id_col, cat_cols=categorical_attributes,
                                                              num_cols=[], boolean=True)
         binary_encoded_log = encoder.fit_transform(log_df)
+        if remove_column_prefix:
+            new_col_names = {}
+            for col_name in binary_encoded_log.columns:
+                column_tokens = col_name.split('_')
+                new_col_names[col_name] = '_'.join(column_tokens[1:])
+
+            binary_encoded_log.rename(columns=new_col_names, inplace=True)
+
         if algorithm == 'fpgrowth':
             frequent_itemsets = fpgrowth(binary_encoded_log, min_support=min_support, use_colnames=True)
         elif algorithm == 'apriori':

@@ -30,7 +30,7 @@ class StaticTransformer(TransformerMixin):
         self.transform_time = 0
     
     
-    def fit(self, X: DataFrame, y=None) -> None:
+    def fit(self, X: DataFrame, y=None):
         return self
     
     

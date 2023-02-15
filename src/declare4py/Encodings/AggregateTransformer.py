@@ -2,14 +2,14 @@ from sklearn.base import TransformerMixin
 import pandas as pd
 import numpy as np
 from time import time
-import sys
 from typing import Union, List, Tuple, Set
 from pandas import DataFrame, Index
 
 
 class AggregateTransformer(TransformerMixin):
     
-    def __init__(self, case_id_col: str , cat_cols: List[str], num_cols: List[str], boolean: bool=False, fillna: bool=True):
+    def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], boolean: bool = False,
+                 fillna: bool = True):
         """
         Parameters
         -------------------
@@ -33,9 +33,8 @@ class AggregateTransformer(TransformerMixin):
         self.columns = None
         self.fit_time = 0
         self.transform_time = 0
-    
-    
-    def fit(self, X: DataFrame, y=None) -> None:
+
+    def fit(self, X: DataFrame, y=None):
         return self
     
     def transform(self, X: DataFrame, y=None) -> DataFrame:
@@ -68,7 +67,7 @@ class AggregateTransformer(TransformerMixin):
             dt_transformed = dt_transformed.groupby(self.case_id_col).max()
         else:
             dt_transformed = dt_transformed.groupby(self.case_id_col).sum()
-        
+
         # concatenate
         if len(self.num_cols) > 0:
             dt_transformed = pd.concat([dt_transformed, dt_numeric], axis=1)
@@ -89,8 +88,7 @@ class AggregateTransformer(TransformerMixin):
         
         self.transform_time = time() - start
         return dt_transformed
-    
-    
+
     def get_feature_names(self) -> Index:
         """
         Print all attribute names in a Pandas DataFrame:
