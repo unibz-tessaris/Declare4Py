@@ -3,12 +3,12 @@ from __future__ import annotations
 from abc import ABC
 from typing import Dict, Tuple
 
-from src.declare4py.D4PyEventLog import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
-from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
-from src.declare4py.Utils.Declare.Checkers import CheckerResult
-from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
-from src.declare4py.Utils.Declare.TraceStates import TraceState
+from src.Declare4Py.D4PyEventLog import D4PyEventLog
+from src.Declare4Py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
+from src.Declare4Py.Utils.Declare.Checkers import CheckerResult
+from src.Declare4Py.Utils.Declare.Checkers import ConstraintChecker
+from src.Declare4Py.Utils.Declare.TraceStates import TraceState
 
 
 

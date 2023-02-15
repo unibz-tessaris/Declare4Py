@@ -4,8 +4,8 @@ import logging
 import typing
 from abc import ABC
 
-from src.declare4py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
-from src.declare4py.ProcessModels.AbstractModel import ProcessModel
+from src.Declare4Py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
+from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 
 
 """

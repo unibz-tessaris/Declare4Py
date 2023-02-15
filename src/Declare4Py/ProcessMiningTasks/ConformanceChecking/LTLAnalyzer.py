@@ -3,9 +3,9 @@ from __future__ import annotations
 import pdb
 from typing import Any
 
-from src.declare4py.D4PyEventLog import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
-from src.declare4py.ProcessModels.LTLModel import LTLModel
+from src.Declare4Py.D4PyEventLog import D4PyEventLog
+from src.Declare4Py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
+from src.Declare4Py.ProcessModels.LTLModel import LTLModel
 
 """
 Provides basic conformance checking functionalities

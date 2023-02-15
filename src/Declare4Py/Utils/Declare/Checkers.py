@@ -5,10 +5,10 @@ from datetime import timedelta
 from math import ceil
 from typing import List, Optional
 
-from src.declare4py.D4PyEventLog import D4PyEventLog
-from src.declare4py.ProcessModels.DeclareModel import DeclareModel
-from src.declare4py.ProcessModels.DeclareModel import DeclareModelConditionParserUtility, DeclareModelTemplate
-from src.declare4py.Utils.Declare.TraceStates import TraceState
+from src.Declare4Py.D4PyEventLog import D4PyEventLog
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelConditionParserUtility, DeclareModelTemplate
+from src.Declare4Py.Utils.Declare.TraceStates import TraceState
 
 glob = {'__builtins__': None}
 

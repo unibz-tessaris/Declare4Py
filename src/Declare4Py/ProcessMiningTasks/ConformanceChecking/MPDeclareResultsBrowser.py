@@ -4,7 +4,7 @@ from typing import List, Union, Optional
 
 import pandas as pd
 
-from src.declare4py.Utils.Declare.Checkers import CheckerResult
+from src.Declare4Py.Utils.Declare.Checkers import CheckerResult
 
 """
 Initializes class ConformanceCheckingResults

@@ -12,7 +12,7 @@ from pm4py.objects.log.obj import EventLog, Trace
 
 from typing import List, Optional
 
-from src.declare4py.Encodings.AggregateTransformer import AggregateTransformer
+from src.Declare4Py.Encodings.AggregateTransformer import AggregateTransformer
 
 from pandas import DataFrame
 

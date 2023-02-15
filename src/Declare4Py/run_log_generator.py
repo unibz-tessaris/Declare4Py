@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_generator import AspGenerator
-from src.declare4py.ProcessModels.DeclareModel import DeclareModel
+from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_generator import AspGenerator
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
 
 logging.basicConfig(level=logging.DEBUG)
 
