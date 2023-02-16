@@ -128,10 +128,9 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
         if is_template_given:
             templates_to_check.append(self.template)
         else:
-            #pdb.set_trace()
-            #templates_to_check = DeclareModelTemplate.get_binary_not_shortcut_templates()
+            # templates_to_check = DeclareModelTemplate.get_binary_not_shortcut_templates()
             templates_to_check += list(map(lambda t: t.templ_str, DeclareModelTemplate.get_binary_not_shortcut_templates()))
-            #templates_to_check += list(map(lambda t: t.templ_str, DeclareModelTemplate.get_binary_templates()))
+            # templates_to_check += list(map(lambda t: t.templ_str, DeclareModelTemplate.get_binary_templates()))
             if not is_target_given:
                 for template in DeclareModelTemplate.get_unary_templates():
                     if template.supports_cardinality:
@@ -151,7 +150,7 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
                 if activation != target:
                     activity_combos.append((activation, target))
 
-        #activity_combos = tuple(filter(lambda c: c[0] != c[1], product(activations_to_check, targets_to_check)))
+        # activity_combos = tuple(filter(lambda c: c[0] != c[1], product(activations_to_check, targets_to_check)))
         query_checker_results = []
         for template_str in templates_to_check:
             template_str, cardinality = re.search(r'(^.+?)(\d*$)', template_str).groups()
@@ -164,18 +163,21 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
             if template.is_binary:
                 constraint['condition'] = (self.activation_condition, self.target_condition, self.time_condition)
                 for couple in activity_combos:
-                    #constraint['activities'] = ', '.join(couple)
+                    # constraint['activities'] = ', '.join(couple)
                     constraint['activities'] = couple
 
-                    #constraint_str = self.constraint_checking_with_support(constraint)
-                    constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint, self.event_log, self.consider_vacuity, self.min_support)
+                    # constraint_str = self.constraint_checking_with_support(constraint)
+                    constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint,
+                                                                                                   self.event_log,
+                                                                                                   self.consider_vacuity,
+                                                                                                   self.min_support)
                     if constraint_satisfaction:
-                        #res_value = {
+                        # res_value = {
                         #    "template": template_str, "activation": couple[0], "target": couple[1],
                         #    "activation_condition": self.activation_condition, "target_condition": self.target_condition,
                         #    "time_condition": self.time_condition
-                        #}
-                        #self.basic_query_checking_results[constraint_str] = res_value
+                        # }
+                        # self.basic_query_checking_results[constraint_str] = res_value
                         query_checker_results.append([template_str, couple[0], couple[1], self.activation_condition,
                                                          self.target_condition, self.time_condition])
                         if self.return_first:
@@ -186,19 +188,22 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
                 for activity in activations_to_check:
                     constraint['activities'] = activity
 
-                    #constraint_str = self.constraint_checking_with_support(constraint)
-                    constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint, self.event_log, self.consider_vacuity, self. min_support)
+                    # constraint_str = self.constraint_checking_with_support(constraint)
+                    constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint,
+                                                                                                   self.event_log,
+                                                                                                   self.consider_vacuity,
+                                                                                                   self. min_support)
 
                     if constraint_satisfaction:
                         query_checker_results.append([template_str, activity, None, self.activation_condition, None,
-                                                         self.time_condition])
+                                                      self.time_condition])
                         if self.return_first:
                             return DeclareResultsBrowser(query_checker_results)
-                        #res_value = {
+                        # res_value = {
                         #    "template": template_str, "activation": activity,
                         #    "activation_condition": self.activation_condition, "time_condition": self.time_condition
-                        #}
-                        #self.basic_query_checking_results[constraint_str] = res_value
+                        # }
+                        # self.basic_query_checking_results[constraint_str] = res_value
 
         return DeclareResultsBrowser(query_checker_results)
 

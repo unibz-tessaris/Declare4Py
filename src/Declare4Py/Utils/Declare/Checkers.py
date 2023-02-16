@@ -78,7 +78,7 @@ class ConstraintChecker:
             trc_res = self.check_trace_conformance(trace, tmp_model, consider_vacuity, event_log.concept_name)
             if not trc_res:  # Occurring when constraint data conditions are formatted bad
                 break
-            #constraint_str, checker_res = next(iter(trc_res.items()))  # trc_res will always have only one element inside
+            # constraint_str, checker_res = next(iter(trc_res.items()))  # trc_res will always have only one element inside
             checker_res = trc_res[0]
             if checker_res.state == TraceState.SATISFIED:
                 sat_ctr += 1

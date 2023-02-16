@@ -168,7 +168,10 @@ class D4PyEventLog:
         if not 0 <= min_support <= 1:
             raise RuntimeError("Min. support must be in range [0, 1].")
 
-        log_df = pm4py.convert_to_dataframe(self.log)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            log_df = pm4py.convert_to_dataframe(self.log)
+
         for attr_name in categorical_attributes:
             if attr_name not in log_df.columns:
                 raise RuntimeError(f"{attr_name} attribute does not exist. Check the log.")

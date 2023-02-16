@@ -764,24 +764,24 @@ class DeclareModel(LTLModel):
         self.declare_model_violate_constraints: List[str] = []
 
     def set_constraints(self):
-        constraint_str = ''
-        if len(self.constraints) > 0:
-            for constraint in self.constraints:
-                constraint_str = constraint['template'].templ_str
-                if constraint['template'].supports_cardinality:
-                    constraint_str += str(constraint['n'])
-                constraint_str += '[' + ", ".join(constraint["activities"]) + '] |' + ' |'.join(constraint["condition"])
-                self.serialized_constraints.append(constraint_str)
+        for constraint in self.constraints:
+            constraint_str = constraint['template'].templ_str
+            if constraint['template'].supports_cardinality:
+                constraint_str += str(constraint['n'])
+            constraint_str += '[' + ", ".join(constraint["activities"]) + '] |' + ' |'.join(constraint["condition"])
+            self.serialized_constraints.append(constraint_str)
 
     def get_decl_model_constraints(self):
         return self.serialized_constraints
-    """
+
     def to_file(self, model_path: str, **kwargs):
         if model_path is not None:
             with open(model_path, 'w') as f:
-                f.write("activity " + "\nactivity ".join(self.event_log.get_log_alphabet_activities()) + "\n")
-                f.write('\n'.join(result.keys()))
-    """
+                for activity_name in self.activities:
+                    f.write(f"activity {activity_name}\n")
+                for constraint in self.serialized_constraints:
+                    f.write(f"{constraint}\n")
+
     def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> DeclareModel:
         if type(content) is not str:
             raise RuntimeError("You must specify a string as input model.")

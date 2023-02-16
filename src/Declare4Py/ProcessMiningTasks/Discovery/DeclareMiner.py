@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pdb
 from abc import ABC
 from typing import Dict, Tuple
 
@@ -73,7 +74,9 @@ class DeclareMiner(AbstractDiscovery, ABC):
                                                                       case_id_col=self.event_log.get_case_name(),
                                                                       categorical_attributes=[self.event_log.get_concept_name()],
                                                                       algorithm= 'fpgrowth', remove_column_prefix=True)
+
         output_declare_model: DeclareModel = DeclareModel()
+        output_declare_model.activities = self.event_log.get_log_alphabet_attribute(self.event_log.get_concept_name())
         for item_set in frequent_item_sets['itemsets']:
             length = len(item_set)
             if length == 1:
@@ -88,7 +91,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
                         # self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
                         #                                                        self.consider_vacuity)
                         if constraint_satisfaction:
-                            output_declare_model.constraints.append(constraint)
+                            output_declare_model.constraints.append(constraint.copy())
                     else:
                         for i in range(self.max_declare_cardinality):
                             constraint['n'] = i + 1
@@ -99,7 +102,8 @@ class DeclareMiner(AbstractDiscovery, ABC):
                             # self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
                             #                                                        self.consider_vacuity)
                             if constraint_satisfaction:
-                                output_declare_model.constraints.append(constraint)
+                                output_declare_model.constraints.append(constraint.copy())
+
             elif length == 2:
                 for template in DeclareModelTemplate.get_binary_not_shortcut_templates():
                     # constraint = {"template": templ, "activities": ', '.join(item_set), "condition": ("", "", "")}
@@ -111,7 +115,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
                                                                                                    self.consider_vacuity,
                                                                                                    self.min_support)
                     if constraint_satisfaction:
-                        output_declare_model.constraints.append(constraint)
+                        output_declare_model.constraints.append(constraint.copy())
                     # constraint['activities'] = ', '.join(reversed(list(item_set)))
 
                     constraint['activities'] = list(reversed(list(item_set)))
@@ -122,7 +126,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
                                                                                                    self.consider_vacuity,
                                                                                                    self.min_support)
                     if constraint_satisfaction:
-                        output_declare_model.constraints.append(constraint)
+                        output_declare_model.constraints.append(constraint.copy())
         output_declare_model.set_constraints()
         return output_declare_model
 
