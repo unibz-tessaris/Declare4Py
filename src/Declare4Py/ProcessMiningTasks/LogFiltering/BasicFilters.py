@@ -29,8 +29,11 @@ class BasicFilters:
             the filtered log in the timeframe.
 
         """
-
-        return pm4py.filter_time_range(self.event_log.log, start_date, end_date, mode, timestamp_key, case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.filter_time_range(self.event_log.log, start_date, end_date, mode, timestamp_key, case_id_key)
+        else:
+            filtered_time_range = pm4py.filter_time_range(self.event_log.log, start_date, end_date, mode)
+            return filtered_time_range
 
     def filter_case_performance(self, min_performance: float, max_performance: float,
                                 timestamp_key: str = "time:timestamp",
@@ -48,9 +51,13 @@ class BasicFilters:
             Returns the filtered log containing cases in the range of the specified performance interval.
 
         """
-
-        return pm4py.filter_case_performance(self.event_log.log, min_performance, max_performance, timestamp_key,
-                                             case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.filter_case_performance(self.event_log.log, min_performance, max_performance, timestamp_key,
+                                                 case_id_key)
+        else:
+            filtered_case_performance = pm4py.filter_case_performance(self.event_log.log, min_performance,
+                                                                      max_performance)
+            return filtered_case_performance
 
     def get_start_activities(self, activity_key: str = "concept:name", timestamp_key: str = "time:timestamp",
                              case_id_key: str = "case:concept:name") -> Dict[str, int]:
@@ -66,8 +73,11 @@ class BasicFilters:
             Returns a dictionary containing all start activities.
 
         """
-
-        return pm4py.get_start_activities(self.event_log.log, activity_key, timestamp_key, case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.get_start_activities(self.event_log.log, activity_key, timestamp_key, case_id_key)
+        else:
+            start_activities = pm4py.get_start_activities(self.event_log.log)
+            return start_activities
 
     def filter_start_activities(self, activities: Union[Set[str], List[str]], retain: bool = True,
                                 activity_key: str = "concept:name",
@@ -75,7 +85,7 @@ class BasicFilters:
                                 case_id_key: str = "case:concept:name") -> EventLog:
         """
         Filters all activities that start with the specified start activities
-        
+
         Args:
             activities: Union[set[str], list[str]] Collection of start activities
             retain: if True, we retain the traces containing the given start activities, if false, we drop the traces
@@ -87,9 +97,12 @@ class BasicFilters:
             Returns filtered log that contains cases having a start activities in the specified list.
 
         """
-
-        return pm4py.filter_start_activities(self.event_log.log, activities, retain, activity_key, timestamp_key,
-                                             case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.filter_start_activities(self.event_log.log, activities, retain, activity_key, timestamp_key,
+                                                 case_id_key)
+        else:
+            filtered_start_activities = pm4py.filter_start_activities(self.event_log.log, activities)
+            return filtered_start_activities
 
     def get_end_activities(self, activity_key: str = "concept:name",
                            timestamp_key: str = "time:timestamp",
@@ -131,9 +144,12 @@ class BasicFilters:
             Returns filtered log containing cases having an end activity in the provided list.
 
         """
-
-        return pm4py.filter_end_activities(self.event_log.log, activities, retain, activity_key, timestamp_key,
-                                           case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.filter_end_activities(self.event_log.log, activities, retain, activity_key, timestamp_key,
+                                               case_id_key)
+        else:
+            filter_activities = pm4py.filter_end_activities(self.event_log.log, activities)
+            return filter_activities
 
     def get_variants(self, activity_key: str = "concept:name", timestamp_key: str = "time:timestamp",
                      case_id_key: str = "case:concept:name") -> Dict[Tuple[str], List[Trace]]:
@@ -148,8 +164,11 @@ class BasicFilters:
         Returns:
             Returns a dictionary containing all variants in the log.
         """
-
-        return pm4py.get_variants(self.event_log.log, activity_key, timestamp_key, case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.get_variants(self.event_log.log, activity_key, timestamp_key, case_id_key)
+        else:
+            variants = pm4py.filter_end_activities(self.event_log.log)
+            return variants
 
     def filter_variants_top_k(self, k: int, activity_key: str = "concept:name", timestamp_key: str = "time:timestamp",
                               case_id_key: str = "case:concept:name") -> EventLog:
@@ -166,8 +185,11 @@ class BasicFilters:
             Returns log containing top-k variants.
 
         """
-
-        return pm4py.filter_variants_top_k(self.event_log.log, k, activity_key, timestamp_key, case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.filter_variants_top_k(self.event_log.log, k, activity_key, timestamp_key, case_id_key)
+        else:
+            variants_top_k = pm4py.filter_variants_top_k(self.event_log.log, k)
+            return variants_top_k
 
     def filter_variants(self, variants: [Set[str], List[str]], retain: bool = True, activity_key: str = "concept:name",
                         timestamp_key: str = "time:timestamp",
@@ -186,8 +208,11 @@ class BasicFilters:
         Returns:
             Returns filtered log on specified variants.
         """
-
-        return pm4py.filter_variants(self.event_log.log, variants, retain, activity_key, timestamp_key, case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.filter_variants(self.event_log.log, variants, retain, activity_key, timestamp_key, case_id_key)
+        else:
+            filtered_variants = pm4py.filter_variants(self.event_log.log, variants)
+            return filtered_variants
 
     def get_event_attribute_values(self, attribute: str, count_once_per_case: bool = False,
                                    case_id_key: str = "case:concept:name") -> Dict[str, int]:
@@ -204,8 +229,11 @@ class BasicFilters:
             Returns filtered log on specified variants.
 
         """
-
-        return pm4py.get_event_attribute_values(self.event_log.log, attribute, count_once_per_case, case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.get_event_attribute_values(self.event_log.log, attribute, count_once_per_case, case_id_key)
+        else:
+            event_attribute_val = pm4py.get_event_attribute_values(self.event_log.log, attribute)
+            return event_attribute_val
 
     def filter_event_attribute_values(self, attribute_key: str, values: Union[Set[str], List[str]], level: str = "case",
                                       retain: bool = True, case_id_key: str = "case:concept:name") -> EventLog:
@@ -225,5 +253,10 @@ class BasicFilters:
             Returns filtered eventlog object on the values of some event attribute.
 
         """
-
-        return pm4py.filter_event_attribute_values(self.event_log.log, attribute_key, values, level, retain, case_id_key)
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.filter_event_attribute_values(self.event_log.log, attribute_key, values, level, retain,
+                                                       case_id_key)
+        else:
+            filtered_event_attribute_val = pm4py.filter_event_attribute_values(self.event_log.log, attribute_key,
+                                                                               values, level, retain)
+            return filtered_event_attribute_val
