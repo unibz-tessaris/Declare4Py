@@ -1,15 +1,15 @@
-from sklearn.base import TransformerMixin
+from sklearn.base import TransformerMixin, BaseEstimator
 import pandas as pd
 import numpy as np
 from time import time
-from typing import Union, List, Tuple, Set
+from typing import Union, List
 from pandas import DataFrame, Index
 
 
-class AggregateTransformer(TransformerMixin):
+class AggregateTransformer(BaseEstimator, TransformerMixin):
     
     def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], boolean: bool = False,
-                 fillna: bool = True):
+                 fillna: bool = True, aggregation_functions: List[str] = ('mean', 'max', 'min', 'sum')):
         """
         Parameters
         -------------------
@@ -33,11 +33,12 @@ class AggregateTransformer(TransformerMixin):
         self.columns = None
         self.fit_time = 0
         self.transform_time = 0
+        self.aggregation_functions = aggregation_functions
 
-    def fit(self, X: DataFrame, y=None):
+    def fit(self, X: Union[np.array, DataFrame], y=None):
         return self
     
-    def transform(self, X: DataFrame, y=None) -> DataFrame:
+    def transform(self, X: Union[np.array, DataFrame], y=None) -> DataFrame:
         """
         Tranforms the event log X into an aggregated numeric matrix:
 
@@ -56,7 +57,7 @@ class AggregateTransformer(TransformerMixin):
         
         # transform numeric cols
         if len(self.num_cols) > 0:
-            dt_numeric = X.groupby(self.case_id_col)[self.num_cols].agg(['mean', 'max', 'min', 'sum', 'std']) 
+            dt_numeric = X.groupby(self.case_id_col)[self.num_cols].agg(self.aggregation_functions)
             dt_numeric.columns = ['_'.join(col).strip() for col in dt_numeric.columns.values]
             
         # transform cat cols

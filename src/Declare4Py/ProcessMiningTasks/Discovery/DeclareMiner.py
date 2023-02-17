@@ -41,7 +41,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
         self.itemsets_support: float = itemsets_support
         self.max_declare_cardinality: int = max_declare_cardinality
 
-    def run(self, output_path: str = None) -> DeclareModel:
+    def run(self) -> DeclareModel:
         """
         Performs discovery of the supported DECLARE templates for the provided log by using the computed frequent item
         sets.
@@ -75,8 +75,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
                                                                       categorical_attributes=[self.event_log.get_concept_name()],
                                                                       algorithm= 'fpgrowth', remove_column_prefix=True)
 
-        output_declare_model: DeclareModel = DeclareModel()
-        output_declare_model.activities = self.event_log.get_log_alphabet_attribute(self.event_log.get_concept_name())
+        self.process_model.activities = self.event_log.get_log_alphabet_attribute(self.event_log.get_concept_name())
         for item_set in frequent_item_sets['itemsets']:
             length = len(item_set)
             if length == 1:
@@ -91,7 +90,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
                         # self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
                         #                                                        self.consider_vacuity)
                         if constraint_satisfaction:
-                            output_declare_model.constraints.append(constraint.copy())
+                            self.process_model.constraints.append(constraint.copy())
                     else:
                         for i in range(self.max_declare_cardinality):
                             constraint['n'] = i + 1
@@ -102,7 +101,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
                             # self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
                             #                                                        self.consider_vacuity)
                             if constraint_satisfaction:
-                                output_declare_model.constraints.append(constraint.copy())
+                                self.process_model.constraints.append(constraint.copy())
 
             elif length == 2:
                 for template in DeclareModelTemplate.get_binary_not_shortcut_templates():
@@ -115,7 +114,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
                                                                                                    self.consider_vacuity,
                                                                                                    self.min_support)
                     if constraint_satisfaction:
-                        output_declare_model.constraints.append(constraint.copy())
+                        self.process_model.constraints.append(constraint.copy())
                     # constraint['activities'] = ', '.join(reversed(list(item_set)))
 
                     constraint['activities'] = list(reversed(list(item_set)))
@@ -126,9 +125,9 @@ class DeclareMiner(AbstractDiscovery, ABC):
                                                                                                    self.consider_vacuity,
                                                                                                    self.min_support)
                     if constraint_satisfaction:
-                        output_declare_model.constraints.append(constraint.copy())
-        output_declare_model.set_constraints()
-        return output_declare_model
+                        self.process_model.constraints.append(constraint.copy())
+        self.process_model.set_constraints()
+        return self.process_model
 
     """
     def filter_discovery(self, min_support: float = 0, output_path: str = None) \

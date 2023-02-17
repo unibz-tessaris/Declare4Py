@@ -1,14 +1,15 @@
-from sklearn.base import TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin
 import pandas as pd
 import numpy as np
 from time import time
-from typing import Union, List, Tuple, Set
+from typing import Union, List
 from pandas import DataFrame, Index
 
 
-class IndexBasedTransformer(TransformerMixin):
+class IndexBasedTransformer(BaseEstimator, TransformerMixin):
     
-    def __init__(self, case_id_col: str , cat_cols: List[str], num_cols: List[str], max_events: int = None, fillna: bool = True, create_dummies: bool = True):
+    def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], max_events: int = None,
+                 fillna: bool = True, create_dummies: bool = True):
         """
         Parameters
         -------------------
@@ -35,12 +36,11 @@ class IndexBasedTransformer(TransformerMixin):
         self.columns = None
         self.fit_time = 0
         self.transform_time = 0
-    
-    
-    def fit(self, X: DataFrame, y=None) -> None:
+
+    def fit(self, X: Union[np.array, DataFrame], y=None):
         return self
     
-    def transform(self, X: DataFrame, y=None) -> DataFrame:
+    def transform(self, X: Union[np.array, DataFrame], y=None) -> DataFrame:
         """
         Tranforms the event log X into an index-based encoded matrix:
 
@@ -60,20 +60,21 @@ class IndexBasedTransformer(TransformerMixin):
         grouped = X.groupby(self.case_id_col, as_index=False)
         
         if self.max_events is None:
-            self.max_events = max(grouped.size()['size'] ) 
+            self.max_events = max(grouped.size()['size'])
         
         dt_transformed = pd.DataFrame(grouped.apply(lambda x: x.name), columns=[self.case_id_col])
 
         for i in range(self.max_events):
             dt_index = grouped.nth(i)[[self.case_id_col] + self.cat_cols + self.num_cols]
-            dt_index.columns = [self.case_id_col] + ["%s_%s"%(col, i) for col in self.cat_cols] + ["%s_%s"%(col, i) for col in self.num_cols]
+            dt_index.columns = [self.case_id_col] + [f"{col}_{i}" for col in self.cat_cols] + \
+                               [f"{col}_{i}" for col in self.num_cols]
             dt_transformed = pd.merge(dt_transformed, dt_index, on=self.case_id_col, how="left")
         dt_transformed.index = dt_transformed[self.case_id_col]
 
         # one-hot-encode cat cols
         if self.create_dummies:
             
-            all_cat_cols = ["%s_%s"%(col, i) for col in self.cat_cols for i in range(self.max_events)]
+            all_cat_cols = [f"{col}_{i}" for col in self.cat_cols for i in range(self.max_events)]
             dt_transformed = pd.get_dummies(dt_transformed, columns=all_cat_cols).drop(self.case_id_col, axis=1)
         
         # fill missing values with 0-s
@@ -91,8 +92,7 @@ class IndexBasedTransformer(TransformerMixin):
 
         self.transform_time = time() - start
         return dt_transformed
-    
-    
+
     def get_feature_names(self) -> Index:
         """
         Print all attribute names in a Pandas DataFrame:

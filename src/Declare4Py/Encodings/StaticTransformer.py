@@ -1,13 +1,14 @@
-from sklearn.base import TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin
 import pandas as pd
 from time import time
-from typing import Union, List, Tuple, Set
+from typing import Union, List
 from pandas import DataFrame, Index
+import numpy as np
 
 
-class StaticTransformer(TransformerMixin):
+class StaticTransformer(BaseEstimator, TransformerMixin):
     
-    def __init__(self, case_id_col: str , cat_cols: List[str], num_cols: List[str], fillna: bool=True):
+    def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], fillna: bool = True):
         """
         Parameters
         -------------------
@@ -29,12 +30,10 @@ class StaticTransformer(TransformerMixin):
         self.fit_time = 0
         self.transform_time = 0
     
-    
-    def fit(self, X: DataFrame, y=None):
+    def fit(self, X: Union[DataFrame, np.ndarray], y=None):
         return self
     
-    
-    def transform(self, X: DataFrame, y=None) -> DataFrame:
+    def transform(self, X: Union[DataFrame, np.ndarray], y=None) -> DataFrame:
         """
         Tranforms the event log X into a static encoded matrix (calling the first state for each case id):
 
@@ -73,8 +72,7 @@ class StaticTransformer(TransformerMixin):
         
         self.transform_time = time() - start
         return dt_transformed
-    
-    
+
     def get_feature_names(self) -> Index:
         """
         Print all attribute names in a Pandas DataFrame:

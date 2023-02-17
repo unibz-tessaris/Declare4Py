@@ -1,13 +1,14 @@
-from sklearn.base import TransformerMixin
+from sklearn.base import TransformerMixin, BaseEstimator
 import pandas as pd
 from time import time
-from typing import Union, List, Tuple, Set
+from typing import Union, List
 from pandas import DataFrame, Index
+import numpy as np
 
 
-class LastStateTransformer(TransformerMixin):
+class LastStateTransformer(BaseEstimator, TransformerMixin):
     
-    def __init__(self, case_id_col: str , cat_cols: List[str], num_cols: List[str], fillna: bool=True):
+    def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], fillna: bool = True):
         """
         Parameters
         -------------------
@@ -28,13 +29,11 @@ class LastStateTransformer(TransformerMixin):
         self.columns = None
         self.fit_time = 0
         self.transform_time = 0
-        
-    
-    def fit(self, X: DataFrame, y=None) -> None:
+
+    def fit(self, X: Union[np.array, DataFrame], y=None):
         return self
-    
-    
-    def transform(self, X: DataFrame, y=None) -> DataFrame:
+
+    def transform(self, X: Union[np.array, DataFrame], y=None) -> DataFrame:
         """
         Tranforms the event log X into a last-state encoded matrix:
 
@@ -77,7 +76,6 @@ class LastStateTransformer(TransformerMixin):
         self.transform_time = time() - start
         return dt_transformed
 
-
     def get_feature_names(self) -> Index:
         """
         Print all attribute names in a Pandas DataFrame:
@@ -88,4 +86,4 @@ class LastStateTransformer(TransformerMixin):
             column names of a Pandas DataFrame
         """
         return self.columns
-    
+
