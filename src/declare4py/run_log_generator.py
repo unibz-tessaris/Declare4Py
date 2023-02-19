@@ -128,9 +128,9 @@ Choice[C, D] | A.name in (axel, susi) | T.grade = 20
 
 model: DeclareModel = DeclareModel().parse_from_string(decl4)
 
-num_of_traces = 30
-num_min_events = 10
-num_max_events = 15
+num_of_traces = 4
+num_min_events = 2
+num_max_events = 3
 asp = AspGenerator(
     model,
     num_of_traces,

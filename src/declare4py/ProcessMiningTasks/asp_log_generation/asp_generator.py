@@ -11,6 +11,8 @@ from random import randrange
 
 import copy
 import clingo
+import pandas as pd
+import pm4py
 from clingo import Symbol
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
@@ -322,6 +324,15 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug(f"Pm4py generated but not saved yet")
 
     def to_xes(self, output_fn: str):
+
+        # dt = pd.DataFrame(lines)
+        # dt = pm4py.format_dataframe(dt, case_id='case_id', activity_key='concept:name',
+        #                             timestamp_key='time:timestamp')
+        # logger = pm4py.convert_to_event_log(dt)
+        # pm4py.write_xes(logger, output_fn)
+
+
+        print(self.event_log.log)
         if self.event_log.log is None:
             self.__pm4py_log()
         exporter.apply(self.event_log.log, output_fn)

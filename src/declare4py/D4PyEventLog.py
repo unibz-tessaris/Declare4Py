@@ -10,9 +10,9 @@ from pm4py.objects.log.obj import EventLog, Trace
 
 from typing import List, Optional
 
-from src.declare4py.Encodings.AggregateTransformer import AggregateTransformer
-
 from pandas import DataFrame
+
+from src.declare4py.encodings.AggregateTransformer import AggregateTransformer
 
 
 class D4PyEventLog:
