@@ -129,7 +129,7 @@ Existence[E] | |
 Choice[C, D] | A.name in (axel, susi) | T.grade = 20
 """
 
-model: DeclareModel = DeclareModel().parse_from_string(decl4)
+model: DeclareModel = DeclareModel().parse_from_string(decl2)
 
 num_of_traces = 4
 num_min_events = 1

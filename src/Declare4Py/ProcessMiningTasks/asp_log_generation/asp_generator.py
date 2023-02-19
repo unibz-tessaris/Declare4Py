@@ -334,6 +334,7 @@ class AspGenerator(LogGenerator):
                         else:
                             event[res_name_decoded] = res_value_decoded
                         event["time:timestamp"] = formatted_time
+                        event["time:timestamp"] = datetime.now()
                     trace_gen.append(event)
                 self.event_log.log.append(trace_gen)
         if tot_traces_generated != self.log_length:
