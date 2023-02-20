@@ -545,6 +545,8 @@ class DeclareParsedDataModel(CustomUtilityDict):
 class DeclareModelCoder:
     def __init__(self):
         self.encoded_dict: dict = {}
+        """STRING THAT WILL BE APPEND TO ENCODED STRING"""
+        self.encoding_str: str = "EsNtCROIDnEg"
         self.model: DeclareParsedDataModel
 
     def encode(self, dpm_orig: DeclareParsedDataModel) -> DeclareParsedDataModel:
@@ -561,7 +563,6 @@ class DeclareModelCoder:
                 if prop == "attributes":
                     event_obj.attributes = self.encode_attributes_list(event_obj["attributes"])
         # self.encode_attributes_list(dpm.attributes_list)
-
         # self.model.templates = copy.deepcopy(dpm_orig.templates)
         self.model.templates = []
         for tmpl in dpm_orig.templates:
@@ -593,7 +594,6 @@ class DeclareModelCoder:
             template.condition_line = "| " + " | ".join(encoded_conditions)
             a = ", ".join(template.activities)
             template.template_line = f"{template.template_name}[{a}] {template.condition_line}"
-
         return self.model
 
     def encode_attributes_list(self, attr_list: Dict):
@@ -707,7 +707,7 @@ class DeclareModelCoder:
                 ss.append(se)
         return ss
 
-    def encode_value(self, s) -> str:
+    def encode_value_(self, s) -> str:
         if "ENCODEDSTRINGENCODEDSTRING" in s:  # s is already encoded
             return s
         if s not in self.encoded_dict:
@@ -728,7 +728,7 @@ class DeclareModelCoder:
             self.encoded_dict[s] = b64_str
         return self.encoded_dict[s]
 
-    def decode_value(self, s: str) -> str:
+    def decode_value_(self, s: str) -> str:
         if not isinstance(s, str):
             return s
         if "ENCODEDSTRINGENCODEDSTRING" not in s:  # s doesn't have ENCODEDSTRINGENCODEDSTRING then its already decoded
@@ -747,6 +747,38 @@ class DeclareModelCoder:
             s = n_val.decode("utf-8")
             if s.__contains__("ENCODEDSTRINGENCODEDSTRING"):
                 return self.decode_value(s)
+        return s
+
+    def encode_value(self, s) -> str:
+        if self.encoding_str in s:  # s is already encoded
+            return s
+        if s and s not in self.encoded_dict:
+            first_letter = s[0]
+            if first_letter.isupper():
+                first_letter = "lowerLetter" + first_letter + "lowerLetter"
+            encoded_str = first_letter + s[1:] + self.encoding_str
+            encoded_str = encoded_str.replace(":", "sEmIcOlUmN")
+            encoded_str = encoded_str.replace("_", "uNdErScOrE")
+            encoded_str = encoded_str.replace(",", "cOmMa")
+            encoded_str = encoded_str.replace(".", "dOt")
+            self.encoded_dict[s] = encoded_str
+        return self.encoded_dict[s]
+
+    def decode_value(self, s: str) -> str:
+        if not isinstance(s, str):
+            return s
+        # s doesn't contain {self.encoding_str} then its already decoded
+        if len(s) <= len(self.encoding_str):
+            return s
+
+        if self.encoding_str != s[-len(self.encoding_str):]:
+            return s
+
+        for key in self.encoded_dict:
+            print("Key", key)
+            enc_str = self.encoded_dict[key]
+            if enc_str == s:
+                return key
         return s
 
 

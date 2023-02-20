@@ -167,6 +167,4 @@ class ASPTranslator:
         else:
             for ct in keys.templates:
                 self.asp_model.add_asp_line(f'sat({ct.template_index_id}).')  # no constraints to violate
-
         return self.asp_model
-
