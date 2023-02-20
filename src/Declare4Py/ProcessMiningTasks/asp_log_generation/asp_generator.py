@@ -17,16 +17,16 @@ from clingo import Symbol
 from pm4py.objects.log import obj as lg
 from pm4py.objects.log.exporter.xes import exporter
 
-from src.declare4py.D4PyEventLog import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_translator.asp_translator import TranslatedASPModel, \
+from src.Declare4py.D4PyEventLog import D4PyEventLog
+from src.Declare4py.ProcessMiningTasks.asp_log_generation.asp_translator.asp_translator import TranslatedASPModel, \
     ASPTranslator
-from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_encoding import ASPEncoding
-from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_result_parser import ASPResultTraceModel
-from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_template import ASPTemplate
-from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.distribution import Distributor
-from src.declare4py.ProcessMiningTasks.log_generator import LogGenerator
-from src.declare4py.ProcessModels.AbstractModel import ProcessModel
-from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
+from src.Declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_encoding import ASPEncoding
+from src.Declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_result_parser import ASPResultTraceModel
+from src.Declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_template import ASPTemplate
+from src.Declare4py.ProcessMiningTasks.asp_log_generation.asp_utils.distribution import Distributor
+from src.Declare4py.ProcessMiningTasks.log_generator import LogGenerator
+from src.Declare4py.ProcessModels.AbstractModel import ProcessModel
+from src.Declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
     DeclareModelTemplateDataModel, DeclareModelAttributeType
 
 

@@ -4,10 +4,10 @@ import pdb
 from abc import ABC
 from typing import Dict, Tuple
 
-from src.declare4py.D4PyEventLog import D4PyEventLog
-from src.declare4py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
-from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
-from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
+from src.Declare4py.D4PyEventLog import D4PyEventLog
+from src.Declare4py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
+from src.Declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
+from src.Declare4py.Utils.Declare.Checkers import ConstraintChecker
 
 
 

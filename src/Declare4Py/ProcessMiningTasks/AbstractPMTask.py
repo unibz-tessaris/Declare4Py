@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Any
 from abc import abstractmethod
 
-from src.declare4py.D4PyEventLog import D4PyEventLog
-from src.declare4py.ProcessModels.AbstractModel import ProcessModel
+from src.Declare4py.D4PyEventLog import D4PyEventLog
+from src.Declare4py.ProcessModels.AbstractModel import ProcessModel
 
 
 class AbstractPMTask:

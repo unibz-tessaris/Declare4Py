@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import base64
 import copy
-import pdb
 import re
 from enum import Enum
 from typing import Dict, List, Union
 
-from src.declare4py.ProcessModels.LTLModel import LTLModel
-from src.declare4py.Utils.custom_utility_dict import CustomUtilityDict
+from src.Declare4py.ProcessModels.LTLModel import LTLModel
+from src.Declare4py.Utils.custom_utility_dict import CustomUtilityDict
+
 
 """
 Class which holds most of the Constraint Template List with some information about templates themself.
