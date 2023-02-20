@@ -345,7 +345,6 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug(f"Pm4py generated but not saved yet")
 
     def to_xes(self, output_fn: str):
-
         # dt = pd.DataFrame(lines)
         # dt = pm4py.format_dataframe(dt, case_id='case_id', activity_key='concept:name',
         #                             timestamp_key='time:timestamp')

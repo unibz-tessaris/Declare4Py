@@ -1,10 +1,7 @@
 from __future__ import annotations
-
 from typing import List, Union, Optional
-
+from src.declare4py.Utils.Declare.Checkers import CheckerResult
 import pandas as pd
-
-from src.Declare4Py.Utils.Declare.Checkers import CheckerResult
 
 """
 Initializes class ConformanceCheckingResults

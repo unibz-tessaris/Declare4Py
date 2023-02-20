@@ -5,6 +5,7 @@ from pandas import DataFrame
 from pm4py.objects.log.obj import EventLog
 import pdb
 
+
 # TODO capire se event_executions è utile
 # TODO capire come codificare questi dizionari
 class InterCaseFeatures():
@@ -102,10 +103,6 @@ class InterCaseFeatures():
         return OrderedDict(sorted(executions.items()))
 
 
-
-
-
-
 ################## COSE CHE NON SERVONO #########################
 def trace_attributes(log: EventLog) -> list:
     """Creates an array of dicts that describe trace attributes.
@@ -171,6 +168,8 @@ def trace_ids_in_log(log: EventLog) -> list:
 
 def traces_in_log(log: EventLog) -> list:
     return [{'attributes': trace.attributes, 'events': [event for event in trace]} for trace in log]
+
+
 ################################################################################
 
 def count_on_event_day(trace, date_dict: dict, event_id):
@@ -202,7 +201,8 @@ def main():
 
     encoded_dataset = []
     for trace in log:
-        encoded_trace = [event['concept:name'] for event in trace[:prefix_length]] #esempio di traccia encodata con il simple
+        encoded_trace = [event['concept:name'] for event in
+                         trace[:prefix_length]]  # esempio di traccia encodata con il simple
         encoded_trace += [
             count_on_event_day(trace, executed_events, prefix_length - 1),
             count_on_event_day(trace, resources_used, prefix_length - 1),
@@ -211,7 +211,7 @@ def main():
         encoded_dataset += [encoded_trace]
 
     dataset_df = DataFrame(
-        columns=['prefix_'+ str(i) for i in range(prefix_length)] + [
+        columns=['prefix_' + str(i) for i in range(prefix_length)] + [
             'executed_events_per_day',
             'resources_used_per_day',
             'new_traces_per_day'
@@ -219,6 +219,7 @@ def main():
         data=encoded_dataset
     )
     pdb.set_trace()
+
 
 if __name__ == '__main__':
     main()

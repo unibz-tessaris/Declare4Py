@@ -1,7 +1,4 @@
-import json
-
 import clingo
-import typing
 from clingo import SymbolType
 
 

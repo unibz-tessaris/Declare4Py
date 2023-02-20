@@ -1,5 +1,4 @@
 
-
 class ASPEncoding(str):
     value: str = """
 time(1..t). %t = lunghezza traccia

@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import pdb
 import re
 from abc import ABC
 from typing import Optional
-from src.Declare4Py.D4PyEventLog import D4PyEventLog
-from src.Declare4Py.ProcessMiningTasks.AbstractQueryChecking import AbstractQueryChecking
-from src.Declare4Py.ProcessMiningTasks.QueryChecking.DeclareResultsBrowser import DeclareResultsBrowser
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
-from src.Declare4Py.Utils.Declare.Checkers import ConstraintChecker
+from src.declare4py.D4PyEventLog import D4PyEventLog
+from src.declare4py.ProcessMiningTasks.AbstractQueryChecking import AbstractQueryChecking
+from src.declare4py.ProcessMiningTasks.QueryChecking.DeclareResultsBrowser import DeclareResultsBrowser
+from src.declare4py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
+from src.declare4py.Utils.Declare.Checkers import ConstraintChecker
 
 """
 Initializes class QueryCheckingResults

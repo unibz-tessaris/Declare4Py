@@ -5,11 +5,7 @@ import logging
 from src.declare4py.ProcessMiningTasks.asp_log_generation.asp_generator import AspGenerator
 from src.declare4py.ProcessModels.DeclareModel import DeclareModel
 
-# from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_generator import AspGenerator
-# from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
-
 logging.basicConfig(level=logging.DEBUG)
-
 
 decl = """
 activity Driving_Test
@@ -134,13 +130,11 @@ model: DeclareModel = DeclareModel().parse_from_string(decl2)
 num_of_traces = 4
 num_min_events = 1
 num_max_events = 8
-asp = AspGenerator(model,
-    num_of_traces, num_min_events,
-    num_max_events, encode_decl_model=True)
-
+asp = AspGenerator(model, num_of_traces, num_min_events,
+                   num_max_events, encode_decl_model=True)
 asp.set_distribution("uniform")
-# asp_log_generation.set_distribution( distributor_type="gaussian", loc=3, scale=0.8)
 
+# asp_log_generation.set_distribution( distributor_type="gaussian", loc=3, scale=0.8)
 # TODO: wrap next 3 methods into one method
 # asp_log_generation.set_constraints_to_violate(1, True, [
 #     # "Existence[act2] | |",
@@ -150,12 +144,12 @@ asp.set_distribution("uniform")
 #     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
 # ])
 # asp_log_generation.set_constraints_to_violate(3, True, [
-     # "Existence[act2] | |",
-     # "Existence[act4] | |
-     # "Absence[A] | A.ax > 20 |",
-     # "Existence[E] | |"
-     # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
-     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
+# "Existence[act2] | |",
+# "Existence[act4] | |
+# "Absence[A] | A.ax > 20 |",
+# "Existence[E] | |"
+# "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
+# "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
 # ])
 
 # asp_log_generation.set_constraints_to_violate_by_template_index(1, True, [2])
@@ -174,12 +168,9 @@ asp.set_distribution("uniform")
 
 # asp_log_generation.set_number_of_repetition_per_trace(8)
 
-asp.run('./generated_asp.lp')
+asp.run('../../output/generated_asp.lp')
 # asp_log_generation.run()
-asp.to_xes("../../generated_xes1.df.xes")
-
-
-
+asp.to_xes("../../output/generated_xes1.df.xes")
 
 # TODO: ask how to implement TIME CONDITION in asp_log_generation
 # TODO: Ask Chiarello whether the generated output of lp is correct

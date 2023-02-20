@@ -761,7 +761,6 @@ class DeclareModel(LTLModel):
         self.constraints: List = []
         self.parsed_model: DeclareParsedDataModel = DeclareParsedDataModel()
         self.declare_model_lines: List[str] = []
-        self.declare_model_violate_constraints: List[str] = []
 
     def set_constraints(self):
         for constraint in self.constraints:

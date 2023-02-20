@@ -1,5 +1,3 @@
-
-
 class ASPTemplate(str):
     value: str = """
 automaton("Absence2",s_1,c,s_1).
