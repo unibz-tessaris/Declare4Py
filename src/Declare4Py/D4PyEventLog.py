@@ -13,7 +13,7 @@ from pm4py.objects.log.obj import EventLog, Trace
 from typing import List, Optional
 
 from pandas import DataFrame
-from src.Declare4py.encodings.AggregateTransformer import AggregateTransformer
+from src.Declare4Py.Encodings.Aggregate import Aggregate
 
 
 class D4PyEventLog:
@@ -75,6 +75,12 @@ class D4PyEventLog:
         if self.log is None:
             raise RuntimeError("You must load a log before.")
         return self.log
+
+    def to_dataframe(self) -> DataFrame:
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        df_log = pm4py.convert_to_dataframe(self.log)
+        return df_log
 
     def get_length(self) -> int:
         """
@@ -175,8 +181,8 @@ class D4PyEventLog:
             if attr_name not in log_df.columns:
                 raise RuntimeError(f"{attr_name} attribute does not exist. Check the log.")
 
-        encoder: AggregateTransformer = AggregateTransformer(case_id_col=case_id_col, cat_cols=categorical_attributes,
-                                                             num_cols=[], boolean=True)
+        encoder: Aggregate = Aggregate(case_id_col=case_id_col, cat_cols=categorical_attributes,
+                                       num_cols=[], boolean=True)
         binary_encoded_log = encoder.fit_transform(log_df)
         if remove_column_prefix:
             new_col_names = {}
@@ -199,3 +205,16 @@ class D4PyEventLog:
             raise RuntimeError(f"The parameter len_itemset must be greater than 0.")
         else:
             return frequent_itemsets[(frequent_itemsets['length'] <= len_itemset)]
+
+    def save_xes(self, path: str):
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        if type(path) is not str:
+            raise RuntimeError("The path must be  a string.")
+        try:
+            if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+                pm4py.write_xes(self.log, path, case_id_key=self.case_name)
+            else:
+                pm4py.write_xes(self.log, path)
+        except FileNotFoundError as e:
+            print(f"{e} is no a valid path")

@@ -1,4 +1,4 @@
-from sklearn.base import TransformerMixin, BaseEstimator
+from sklearn.base import BaseEstimator, TransformerMixin
 import pandas as pd
 from time import time
 from typing import Union, List
@@ -6,7 +6,7 @@ from pandas import DataFrame, Index
 import numpy as np
 
 
-class LastStateTransformer(BaseEstimator, TransformerMixin):
+class Static(BaseEstimator, TransformerMixin):
     
     def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], fillna: bool = True):
         """
@@ -21,7 +21,7 @@ class LastStateTransformer(BaseEstimator, TransformerMixin):
         fillna
             TRUE: replace NA to 0 value in dataframe / FALSE: keep NA        
         """
-
+        
         self.case_id_col = case_id_col
         self.cat_cols = cat_cols
         self.num_cols = num_cols
@@ -29,13 +29,13 @@ class LastStateTransformer(BaseEstimator, TransformerMixin):
         self.columns = None
         self.fit_time = 0
         self.transform_time = 0
-
-    def fit(self, X: Union[np.array, DataFrame], y=None):
+    
+    def fit(self, X: Union[DataFrame, np.ndarray], y=None):
         return self
-
-    def transform(self, X: Union[np.array, DataFrame], y=None) -> DataFrame:
+    
+    def transform(self, X: Union[DataFrame, np.ndarray], y=None) -> DataFrame:
         """
-        Tranforms the event log X into a last-state encoded matrix:
+        Tranforms the event log X into a static encoded matrix (calling the first state for each case id):
 
         Parameters
         -------------------
@@ -46,20 +46,17 @@ class LastStateTransformer(BaseEstimator, TransformerMixin):
         ------------------
         :rtype: DataFrame
             Transformed event log
-        """
-        
+        """ 
+
         start = time()
         
-        dt_last = X.groupby(self.case_id_col).last()
-        
+        dt_first = X.groupby(self.case_id_col).first()
         # transform numeric cols
-        dt_transformed = dt_last[self.num_cols]
-        
+        dt_transformed = dt_first[self.num_cols]
         # transform cat cols
         if len(self.cat_cols) > 0:
-            dt_cat = pd.get_dummies(dt_last[self.cat_cols])
+            dt_cat = pd.get_dummies(dt_first[self.cat_cols])
             dt_transformed = pd.concat([dt_transformed, dt_cat], axis=1)
-        
         # fill NA with 0 if requested
         if self.fillna:
             dt_transformed = dt_transformed.fillna(0)
@@ -86,4 +83,3 @@ class LastStateTransformer(BaseEstimator, TransformerMixin):
             column names of a Pandas DataFrame
         """
         return self.columns
-

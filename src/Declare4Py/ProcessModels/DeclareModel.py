@@ -6,8 +6,8 @@ import re
 from enum import Enum
 from typing import Dict, List, Union
 
-from src.Declare4py.ProcessModels.LTLModel import LTLModel
-from src.Declare4py.Utils.custom_utility_dict import CustomUtilityDict
+from src.Declare4Py.ProcessModels.LTLModel import LTLModel
+from src.Declare4Py.Utils.custom_utility_dict import CustomUtilityDict
 
 
 """

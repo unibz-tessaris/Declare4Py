@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from abc import ABC
 
-from src.Declare4py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
-from src.Declare4py.D4PyEventLog import D4PyEventLog
-from src.Declare4py.ProcessModels.AbstractModel import ProcessModel
+from src.Declare4Py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
+from src.Declare4Py.D4PyEventLog import D4PyEventLog
+from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from typing import Union
 
 """

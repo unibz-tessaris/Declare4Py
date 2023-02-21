@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from src.Declare4py.ProcessMiningTasks.asp_log_generation.asp_translator.declare_constraint_resolver import \
+from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_translator.declare_constraint_resolver import \
     DeclareModelConditionResolver2ASP
-from src.Declare4py.ProcessModels.DeclareModel import DeclareModelAttributeType
-from src.Declare4py.ProcessModels.DeclareModel import DeclareModel
-from src.Declare4py.ProcessModels.DeclareModel import DeclareModelTemplateDataModel
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelTemplateDataModel
 
 """
 Abductive logic programming (ALP) is a high-level knowledge-representation framework that can be used to solve
