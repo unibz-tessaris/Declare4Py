@@ -125,7 +125,8 @@ Existence[E] | |
 Choice[C, D] | A.name in (axel, susi) | T.grade = 20
 """
 
-model: DeclareModel = DeclareModel().parse_from_string(decl)
+model: DeclareModel = DeclareModel().parse_from_string(decl4)
+# model: DeclareModel = DeclareModel().parse_from_string(decl)
 
 num_of_traces = 4
 num_min_events = 1
@@ -143,6 +144,7 @@ asp.set_distribution("uniform")
 #     # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
 #     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
 # ])
+
 # asp_log_generation.set_constraints_to_violate(3, True, [
 # "Existence[act2] | |",
 # "Existence[act4] | |

@@ -701,67 +701,35 @@ class DeclareModelCoder:
     def encode_str_list(self, input_list: List[str]) -> List[str]:
         ss = []
         for se in input_list:
-            if "ENCODEDSTRINGENCODEDSTRING" not in se:
+            if self.encoding_str not in se:
                 ss.append(self.encode_value(se))
             else:
                 ss.append(se)
         return ss
 
-    def encode_value_(self, s) -> str:
-        if "ENCODEDSTRINGENCODEDSTRING" in s:  # s is already encoded
-            return s
-        if s not in self.encoded_dict:
-            v = base64.b64encode(s.encode())
-            # v = v.decode("utf-8")
-            # doesn't work because sm times has starts from a digit and clingo fails
-            # v = hashlib.md5(s.encode()).hexdigest()
-            # self.encoded_dict[s] = v
-            b64_str = v.decode("utf-8")
-            b64_str = b64_str.replace("=", "EEEQUALSIGNNN")
-            if b64_str[0].isupper():
-                b = b64_str[0]
-                b = f"lowerlower{b}lowerlower"
-                b64_str = b + b64_str[1:]
-            # maybe sometimes maybe by bug we encode the string multiple times, we would like to decode
-            # till last encoded str
-            b64_str = b64_str + "ENCODEDSTRINGENCODEDSTRING"
-            self.encoded_dict[s] = b64_str
-        return self.encoded_dict[s]
-
-    def decode_value_(self, s: str) -> str:
+    def encode_value(self, s: str) -> str:
         if not isinstance(s, str):
             return s
-        if "ENCODEDSTRINGENCODEDSTRING" not in s:  # s doesn't have ENCODEDSTRINGENCODEDSTRING then its already decoded
+        if s.isnumeric():
             return s
-        vals: [str] = list(self.encoded_dict.values())  # ["..", ".."]
         s = s.strip()
-        if s in vals:
-            idx = vals.index(s)
-            if idx <= -1:
-                return s
-            s = s.replace("EEEQUALSIGNNN", "=")
-            s = s.replace("ENCODEDSTRINGENCODEDSTRING", "=")
-            if s.startswith("lowerlower"):
-                s = s.replace("lowerlower", "")
-            n_val = base64.b64decode(s)
-            s = n_val.decode("utf-8")
-            if s.__contains__("ENCODEDSTRINGENCODEDSTRING"):
-                return self.decode_value(s)
-        return s
-
-    def encode_value(self, s) -> str:
         if self.encoding_str in s:  # s is already encoded
             return s
+        if s in self.encoded_dict:  # if string is already encoded we return the encoded value which was saved previously
+            return self.encoded_dict[s]
         if s and s not in self.encoded_dict:
             first_letter = s[0]
             if first_letter.isupper():
-                first_letter = "lowerLetter" + first_letter + "lowerLetter"
+                first_letter = "lowerLetter" + first_letter.strip() + "lowerLetter"
             encoded_str = first_letter + s[1:] + self.encoding_str
             encoded_str = encoded_str.replace(":", "sEmIcOlUmN")
             encoded_str = encoded_str.replace("_", "uNdErScOrE")
             encoded_str = encoded_str.replace(",", "cOmMa")
             encoded_str = encoded_str.replace(".", "dOt")
-            self.encoded_dict[s] = encoded_str
+            encoded_str = encoded_str.replace(" ", "nBSp")
+            encoded_str = encoded_str.replace("?", "qUeStIoNMaRk")
+            encoded_str = encoded_str.replace("=", "eQualsSigN")
+            self.encoded_dict[s] = encoded_str.strip()
         return self.encoded_dict[s]
 
     def decode_value(self, s: str) -> str:
@@ -775,7 +743,6 @@ class DeclareModelCoder:
             return s
 
         for key in self.encoded_dict:
-            print("Key", key)
             enc_str = self.encoded_dict[key]
             if enc_str == s:
                 return key
