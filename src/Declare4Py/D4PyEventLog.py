@@ -76,7 +76,7 @@ class D4PyEventLog:
             raise RuntimeError("You must load a log before.")
         return self.log
 
-    def get_dataframe_log(self) -> DataFrame:
+    def to_dataframe(self) -> DataFrame:
         if self.log is None:
             raise RuntimeError("You must load a log before.")
         df_log = pm4py.convert_to_dataframe(self.log)
@@ -206,8 +206,15 @@ class D4PyEventLog:
         else:
             return frequent_itemsets[(frequent_itemsets['length'] <= len_itemset)]
 
-    def save_csv(self, path: str):
-        pass
-
     def save_xes(self, path: str):
-        pass
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        if type(path) is not str:
+            raise RuntimeError("The path must be  a string.")
+        try:
+            if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+                pm4py.write_xes(self.log, path, case_id_key=self.case_name)
+            else:
+                pm4py.write_xes(self.log, path)
+        except FileNotFoundError as e:
+            print(f"{e} is no a valid path")
