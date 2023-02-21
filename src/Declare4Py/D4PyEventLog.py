@@ -44,7 +44,7 @@ class D4PyEventLog:
         given log file path.
 
         Note:
-            the current version of Declare4py supports only (zipped) XES format of the event logs.
+            the current version of Declare4Py supports only (zipped) XES format of the event logs.
 
         Args:
             log_path: File path where the log is stored.

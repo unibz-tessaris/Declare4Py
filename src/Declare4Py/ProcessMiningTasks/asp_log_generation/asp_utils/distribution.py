@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 import fractions
 import logging
+import typing
 from typing import *
 
 import numpy as np
@@ -120,9 +121,9 @@ class Distributor:
 
     def distribution(
             self,
-            min_num_events_or_mu: int | float,
-            max_num_events_or_sigma: int | float,
-            num_traces: int | float,
+            min_num_events_or_mu: typing.Union[int, float],
+            max_num_events_or_sigma: typing.Union[int, float],
+            num_traces: typing.Union[int, float],
             dist_type: Literal["uniform", "gaussian", "custom"] = "uniform",
             custom_probabilities: Optional[List[float]] = None):
         """

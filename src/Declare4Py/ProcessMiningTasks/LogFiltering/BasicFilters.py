@@ -16,7 +16,7 @@ class BasicFilters:
                                     timestamp_key: str = "time:timestamp",
                                     case_id_key: str = "case:concept:name") -> EventLog:
         """
-        This function uses the get_log() of the Declare4py package.
+        This function uses the get_log() of the Declare4Py package.
 
         Args:
             start_date: str in form year-month-day hours:minutes:seconds. E.g.: 2013-01-01 00:00:00

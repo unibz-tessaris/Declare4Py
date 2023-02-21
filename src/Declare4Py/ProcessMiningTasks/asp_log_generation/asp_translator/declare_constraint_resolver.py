@@ -278,7 +278,7 @@ class DeclareModelConditionResolver2ASP:
 
     def tree_conditions_to_asp(self, condition: typing.Literal['activation', 'correlation'],
                                expression, cond_name: str, i, conditions_names,
-                               lp_st=None) -> typing.List[str] | None:
+                               lp_st=None) -> typing.Union[typing.List[str], None]:
         if lp_st is None:
             lp_st = []
 

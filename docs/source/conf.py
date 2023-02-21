@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Declare4py'
+project = 'Declare4Py'
 copyright = '2023, Fabrizio Maria Maggi, Ivan Donadello'
 author = 'Fabrizio Maria Maggi, Ivan Donadello'
 release = '2.0'

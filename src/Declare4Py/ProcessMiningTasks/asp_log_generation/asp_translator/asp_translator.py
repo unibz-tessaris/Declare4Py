@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import typing
+
 from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_translator.declare_constraint_resolver import \
     DeclareModelConditionResolver2ASP
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
@@ -68,7 +70,7 @@ class TranslatedASPModel:
             for s in val:
                 self.add_attribute_value_to_list(f'value({attr}, {s}).')
 
-    def scale_number2int(self, num: [int | float], num_to_scale: int) -> int:
+    def scale_number2int(self, num: typing.Union[int, float], num_to_scale: int) -> int:
         return int(num * (10 ** num_to_scale))
 
     def add_attribute_value_to_list(self, value: str):

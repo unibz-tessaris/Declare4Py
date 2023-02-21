@@ -11,11 +11,9 @@ from random import randrange
 
 import copy
 import clingo
-import pandas as pd
 import pm4py
 from clingo import Symbol
 from pm4py.objects.log import obj as lg
-from pm4py.objects.log.exporter.xes import exporter
 
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_translator.asp_translator import TranslatedASPModel, \
@@ -77,7 +75,7 @@ class AspGenerator(LogGenerator):
         self.clingo_current_output: typing.Sequence[Symbol]
         self.clingo_output_traces_variation = []
         # self.asp_generated_traces: typing.List[ASPResultTraceModel] | None = None
-        self.asp_generated_traces: LogTracesType | None = None
+        self.asp_generated_traces: typing.Union[LogTracesType, None] = None
         self.asp_encoding = ASPEncoding().get_ASP_encoding()
         self.asp_template = ASPTemplate().value
         self.num_repetition_per_trace = 0
@@ -147,7 +145,7 @@ class AspGenerator(LogGenerator):
             else:
                 raise ValueError("Interval values are wrong. It must have only 2 values, represents, left and right interval")
 
-    def run(self, generated_asp_file_path: str | None = None):
+    def run(self, generated_asp_file_path: typing.Union[str, None] = None):
         """
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         """
@@ -407,7 +405,7 @@ class AspGenerator(LogGenerator):
         """
         self.num_repetition_per_trace = repetition
 
-    def __get_decl_model_with_violate_constraint(self) -> DeclareModel | ProcessModel:
+    def __get_decl_model_with_violate_constraint(self) -> typing.Union[DeclareModel, ProcessModel]:
         """
         Creates a duplicate process model with change in template list, assigning a boolean value to `violate` property
 
@@ -472,7 +470,7 @@ class AspGenerator(LogGenerator):
         self.activation_conditions = n_dict
         return self
 
-    def compute_distribution(self, total_traces: int | None = None):
+    def compute_distribution(self, total_traces: typing.Union[int, None] = None):
         """
          The compute_distribution method computes the distribution of the number of events in a trace based on
          the distributor_type parameter. If the distributor_type is "gaussian", it uses the loc and scale parameters
@@ -487,7 +485,7 @@ class AspGenerator(LogGenerator):
             self.py_logger.info(f"Computing gaussian distribution with mu={self.loc} and sigma={self.scale}")
             assert self.loc > 1  # Mu atleast should be 2
             assert self.scale >= 0  # standard deviation must be a positive value
-            result: collections.Counter | None = d.distribution(
+            result: typing.Union[collections.Counter, None] = d.distribution(
                 self.loc, self.scale, total_traces, self.distributor_type, self.custom_probabilities)
             self.py_logger.info(f"Gaussian distribution result {result}")
             if result is None or len(result) == 0:
@@ -497,7 +495,7 @@ class AspGenerator(LogGenerator):
                     traces_len[k] = v
             self.py_logger.info(f"Gaussian distribution after refinement {traces_len}")
         else:
-            traces_len: collections.Counter | None = d.distribution(self.min_events, self.max_events, total_traces,
+            traces_len: typing.Union[collections.Counter, None] = d.distribution(self.min_events, self.max_events, total_traces,
                                                                     self.distributor_type, self.custom_probabilities)
         self.py_logger.info(f"Distribution result {traces_len}")
         self.traces_length = traces_len

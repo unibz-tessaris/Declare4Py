@@ -57,7 +57,7 @@ class LogGenerator(AbstractPMTask, ABC):
         # constraint template conditions
         self.activation_conditions: dict = None
 
-    def add_constraints_to_violate(self, constrains_to_violate: str | [str] = True):
+    def add_constraints_to_violate(self, constrains_to_violate: typing.Union[str, list[str]] = True):
         if isinstance(constrains_to_violate, str):
             self.violatable_constraints.append(constrains_to_violate)
         else:
