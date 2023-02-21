@@ -32,6 +32,7 @@ class TranslatedASPModel:
         self.condition_resolver = DeclareModelConditionResolver2ASP(self.is_encoded)
 
     def define_predicate(self, name: str, predicate_name: str, is_encoded: bool = True):
+        """ create ASP predicate string and append to "string builder" """
         if not is_encoded:
             self.lines.append(f'{predicate_name}({name.lower()}).')
         else:
@@ -39,6 +40,7 @@ class TranslatedASPModel:
         self.fact_names.append(predicate_name)
 
     def define_predicate_attr(self, event_name: str, attr_name: str, is_encoded: bool = True):
+        """ Define declare model attribute in ASP string and append to "string builder" """
         if not is_encoded:
             attr_name = attr_name.lower()
             self.lines.append(f'has_attribute({event_name.lower()}, {attr_name}).')
@@ -48,6 +50,7 @@ class TranslatedASPModel:
             self.values_assignment.append(f'has_attribute({event_name}, {attr_name}).')
 
     def set_attr_value(self, attr: str, value: dict, is_encoded: bool = True):
+        """ Set attribute value and append to "string builder" """
         if not is_encoded:
             attr = attr.lower()
         if value["value_type"] == DeclareModelAttributeType.INTEGER:
@@ -71,13 +74,18 @@ class TranslatedASPModel:
                 self.add_attribute_value_to_list(f'value({attr}, {s}).')
 
     def scale_number2int(self, num: typing.Union[int, float], num_to_scale: int) -> int:
+        """ Scale float value to integer """
         return int(num * (10 ** num_to_scale))
 
     def add_attribute_value_to_list(self, value: str):
+        """ Create ASP list of values """
         if value not in self.attributes_values:
             self.attributes_values.append(value)
 
     def add_template(self, name, ct: DeclareModelTemplateDataModel, props: dict[str, dict]):
+        """
+        Parse declare model template into ASP
+        """
         self.templates_s.append(f"template({ct.template_index_id},\"{name}\").")
         ls = self.condition_resolver.resolve_to_asp(ct, props, ct.template_index_id)
         if ls and len(ls) > 0:
@@ -141,6 +149,7 @@ class ASPTranslator:
                 dopt = attrs[attr]
                 self.asp_model.set_attr_value(attr, dopt, use_encoding)
         constraints_violate = {}
+
         for ct in keys.templates:
             self.asp_model.add_template(ct.template_name, ct, keys.attributes_list)
             constraints_violate[ct.template_index_id] = ct.violate

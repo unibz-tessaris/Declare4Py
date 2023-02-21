@@ -256,7 +256,14 @@ class DeclareModelEvent(CustomUtilityDict):
         self.attributes: Dict[str, Dict] = {}
         self.update_props()
 
+
     def update_props(self):
+        """
+        Override method which updates the properties
+        Returns
+        -------
+
+        """
         self.key_value["name"] = self.name
         self.key_value["event_type"] = self.event_type
         self.key_value["attributes"] = self.attributes
@@ -281,15 +288,20 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
         self.template_index_id: int = None
 
     def get_conditions(self):
+        """
+        Returns parsed conditions: active, target, and time condition if there are
+        """
         return self.get_active_condition(), self.get_target_condition(), self.get_time_condition()
 
     def get_active_condition(self):
+        """ Returns active conditions """
         if len(self.condition) > 0:
             c = self.condition[0]
             return c if len(c) > 0 else None
         return None
 
     def get_target_condition(self):
+        """ Returns target conditions """
         if len(self.condition) > 1:
             cond_at_1_idx = self.condition[1]
             time_int = r"^[\d.]+,?([\d.]+)?[,]?(s|m|d|h)$"
@@ -302,6 +314,7 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
         return None
 
     def get_time_condition(self):
+        """ Returns time condition """
         if self.contains_interval_condition():
             c = self.condition[2]
             return c if len(c) > 0 else None
@@ -309,21 +322,16 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
         return None
 
     def contains_interval_condition(self) -> bool:
+        """ Return a boolean value if a constraint template contains a time condition """
         if self.condition is None:
             return False
         len_ = len(self.condition)
         if len_ != 3:
             return False
         return True
-        # if self.condition_line is None:
-        #     return False
-        # parts = self.condition_line.strip("|").split("|")
-        # if len(parts) == 3:
-        #     time_int = r"^[\d.]+,?([\d.]+)?[,]?(s|m|d|h)$"
-        #     return re.search(time, parts, re.IGNORECASE)
-        # return False
 
     def set_conditions(self, cond_str: str):
+        """Set coditions part of a constraint template """
         """
         set the cond_str
         Parameters
@@ -473,6 +481,7 @@ class DeclareParsedDataModel(CustomUtilityDict):
                 attribute["to"] = val2
 
     def get_float_biggest_precision(self, v1: float, v2: float) -> int:
+        """ Get the biggest float precision in order to scale up a number """
         decimal_len_list = []
         precision = 0
         frm = str(v1).split(".")  # 10.587
@@ -487,6 +496,7 @@ class DeclareParsedDataModel(CustomUtilityDict):
         return max(decimal_len_list)
 
     def add_template(self, line: str, template: DeclareModelTemplate, cardinality: str, template_idx: int = None):
+        """ Add parsed constraint template in parsed model """
         templt = DeclareModelTemplateDataModel()
         self.templates.append(templt)
         templt.template = template
@@ -532,6 +542,7 @@ class DeclareParsedDataModel(CustomUtilityDict):
         self.key_value["templates"] = self.templates
 
     def encode(self) -> DeclareParsedDataModel:
+        """ Method return a new instance of encoded DeclareParsedDataModel"""
         if self.encoded_model is None:
             self.encoded_model = DeclareModelCoder()
         return self.encoded_model.encode(self)
@@ -550,6 +561,7 @@ class DeclareModelCoder:
         self.model: DeclareParsedDataModel
 
     def encode(self, dpm_orig: DeclareParsedDataModel) -> DeclareParsedDataModel:
+        """Encode to declare model names """
         self.encoded_dict = {}
         dpm = copy.deepcopy(dpm_orig)  # TODO: check this. to void to get messed with reference/pointers
         self.model = DeclareParsedDataModel()
@@ -708,6 +720,7 @@ class DeclareModelCoder:
         return ss
 
     def encode_value(self, s: str) -> str:
+        """ Encode given string in new string """
         if not isinstance(s, str):
             return s
         if s.isnumeric():

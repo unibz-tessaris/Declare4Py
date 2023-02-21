@@ -14,6 +14,7 @@ class DeclareModelConditionResolver2ASP:
         self.is_encoded = is_encoded
 
     def resolve_to_asp(self, ct: DeclareModelTemplateDataModel, attrs: dict[str, list], idx: int = 0):
+        """ Converts constraint templates into ASP """
         ls = []
         activation, target_cond, time = ct.get_conditions()
         ls.append('activation({},{}).'.format(idx, self.__normalize_value(ct.activities[0])))
@@ -61,6 +62,7 @@ class DeclareModelConditionResolver2ASP:
         return ls
 
     def condition_to_asp(self, name, cond, i, attrs):
+        """ Converts constraint template's conditions into ASP """
         name = name + '({},T)'.format(i)
         string = re.sub('is not', 'is_not', cond)
         string = re.sub('not in', 'not_in', string)
@@ -124,17 +126,7 @@ class DeclareModelConditionResolver2ASP:
         return ls
 
     def parsed_condition(self, condition: typing.Literal['activation', 'correlation'], string: str):
-        """
-
-        Parameters
-        ----------
-        condition
-        string
-
-        Returns
-        -------
-
-        """
+        """ Parse template's conditions into ASP """
         # s = self.parse_data_cond_to_pycond(string)
         return self.parsed_condition_2(condition, string)
 
@@ -279,6 +271,8 @@ class DeclareModelConditionResolver2ASP:
     def tree_conditions_to_asp(self, condition: typing.Literal['activation', 'correlation'],
                                expression, cond_name: str, i, conditions_names,
                                lp_st=None) -> typing.Union[typing.List[str], None]:
+        """ Parse nested conditions to ASP """
+
         if lp_st is None:
             lp_st = []
 
