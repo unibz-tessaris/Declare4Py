@@ -6,7 +6,7 @@ from pandas import DataFrame, Index
 import numpy as np
 
 
-class PreviousStateTransformer(BaseEstimator, TransformerMixin):
+class PreviousState(BaseEstimator, TransformerMixin):
     
     def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], fillna: bool = True):
         """

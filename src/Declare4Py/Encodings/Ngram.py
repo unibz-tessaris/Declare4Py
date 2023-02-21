@@ -1,4 +1,4 @@
-from sklearn.base import TransformerMixin
+from sklearn.base import TransformerMixin, BaseEstimator
 import pandas as pd
 import numpy as np
 from time import time
@@ -7,9 +7,9 @@ from typing import Union, List
 from pandas import DataFrame, Index, array
 
 
-class NgramTransformer(TransformerMixin):
+class Ngram(BaseEstimator, TransformerMixin):
     
-    def __init__(self, case_id_col: str, act_col: str, n: int, v: float):
+    def __init__(self, case_id_col: str, act_col: str, n: int = 2, v: float = 0.7):
         """
         Parameters
         -------------------
@@ -22,7 +22,13 @@ class NgramTransformer(TransformerMixin):
         v
             a decay factor parameter in n-gram, ranged in [0,1]     
         """
-        
+        if type(case_id_col) is not str and type(act_col) is not str:
+            raise RuntimeError("The case_id_col and act_col parameters must be strings.")
+        if type(n) is not int or n not in [2, 3, 4]:
+            raise RuntimeError("The n parameter must be an integer in the set {2, 3, 4}")
+        if type(v) is not float or (v < 0 or v > 1):
+            raise RuntimeError("The v parameter must be an float in the interval [0, 1]")
+
         self.case_id_col = case_id_col
         self.act_col = act_col
         self.columns = None
@@ -68,6 +74,7 @@ class NgramTransformer(TransformerMixin):
         dt_transformed.index = X.index
 
         self.transform_time = time() - start
+        self.columns = dt_transformed.columns
         return dt_transformed
 
     def func_ngram(self, y: Union[List, np.array], n: int, v: float, ngram_list: list) -> np.array:

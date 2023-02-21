@@ -6,7 +6,7 @@ from typing import Union, List
 from pandas import DataFrame, Index
 
 
-class AggregateTransformer(BaseEstimator, TransformerMixin):
+class Declare(BaseEstimator, TransformerMixin):
     
     def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], boolean: bool = False,
                  fillna: bool = True, aggregation_functions: List[str] = ('mean', 'max', 'min', 'sum')):

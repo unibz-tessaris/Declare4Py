@@ -7,7 +7,7 @@ from typing import Union, List, Tuple, Set
 from pandas import DataFrame, Index, array
 
 
-class ComplexIndexNgramTransformer(TransformerMixin):
+class ComplexIndexNgram(TransformerMixin):
     
     def __init__(self, case_id_col: str, act_col: str, n: int, v: float, time_col: str, cat_cols: List[str], num_cols: List[str], max_events: int = None, fillna: bool = True, create_dummies: bool = True):
         """
