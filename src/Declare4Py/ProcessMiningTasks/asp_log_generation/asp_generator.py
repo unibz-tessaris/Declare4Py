@@ -199,6 +199,7 @@ class AspGenerator(LogGenerator):
             self.__generate_asp_trace(lp_model, events, traces)
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
+        """Generate ASP trace using Clingo based on the given paramenters and then generate also the variation"""
         # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
         for i in range(num_traces):
             self.clingo_current_output = None
@@ -233,6 +234,7 @@ class AspGenerator(LogGenerator):
                         self.__generate_asp_trace_variation(asp_variation, num_events, 1, freq)
 
     def __generate_asp_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
+        """ Generate variation traces based on the parameters"""
         # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
         seed = randrange(0, 2 ** 32 - 1)
         self.py_logger.debug(f" Generating variation trace: {num_traces}, events{num_events}, seed:{seed}")
@@ -248,12 +250,14 @@ class AspGenerator(LogGenerator):
             warnings.warn(f'WARNING: Failed to generate trace variation/case.')
 
     def __handle_clingo_result(self, output: clingo.solving.Model):
+        """Saves clingo produced result in an array """
         symbols = output.symbols(shown=True)
         self.clingo_current_output = symbols
         self.py_logger.debug(f" Traces generated :{symbols}")
         self.clingo_output.append(symbols)
 
     def __resolve_clingo_results(self, results: LogTracesType):
+        """Resolve clingo produced result in particular structured """
         self.asp_generated_traces = LogTracesType(positive=[], negative=[])
         i = 0
         for result in results:  # result value can be 'negative' or 'positive'
@@ -265,6 +269,7 @@ class AspGenerator(LogGenerator):
             self.asp_generated_traces[result] = asp_model
 
     def __resolve_clingo_results_variation(self, variations_result: LogTracesType):
+        """Resolve clingo produced variations result in particular structured """
         if self.asp_generated_traces is None:
             self.asp_generated_traces = LogTracesType(positive=[], negative=[])
         for result in variations_result:  # result value can be 'negative' or 'positive'
@@ -283,6 +288,7 @@ class AspGenerator(LogGenerator):
         self.clingo_output_traces_variation[self.trace_variations_key_id].append(symbols)
 
     def __pm4py_log(self):
+        """ Generate pm4py log """
         self.py_logger.debug(f"Generating Pm4py log")
         if self.event_log is None:
             self.event_log = D4PyEventLog()
