@@ -63,8 +63,10 @@ class Ngram(BaseEstimator, TransformerMixin):
         nested_list = list(ngram.values)
         my_unnested_list = list(chain(*nested_list))
         ngram_list = list(set(my_unnested_list))
+        import pdb
 
         X = X.groupby([self.case_id_col], sort=False).apply(lambda x: np.array(x[self.act_col]))
+        pdb.set_trace()
         X = X.apply(lambda x: self.func_ngram(x, n=self.n, v=0.7, ngram_list=ngram_list))
         
         dt_transformed = pd.DataFrame(columns=[i for i in ngram_list])
@@ -170,7 +172,7 @@ class Ngram(BaseEstimator, TransformerMixin):
                 if len(loc2) > 0:
                     for x in loc2:
                         loc3 = [j for j in range(x, len(y)) if y[j] == terms[2]]
-                        layer1.append( sum(v**(np.array(loc3) - i - 1)))
+                        layer1.append(sum(v**(np.array(loc3) - i - 1)))
                 else:
                     layer1.append(0)
         else:
@@ -211,7 +213,7 @@ class Ngram(BaseEstimator, TransformerMixin):
                         if len(loc3) > 0:
                             for w in loc3:
                                 loc4 = [j for j in range(w, len(y)) if y[j] == terms[3]]
-                                layer1.append( sum(v**(np.array(loc4) - i - 2)))
+                                layer1.append(sum(v**(np.array(loc4) - i - 2)))
                         else:
                             layer1.append(0)       
                 else:

@@ -211,7 +211,9 @@ class D4PyEventLog:
     def to_dataframe(self) -> DataFrame:
         if self.log is None:
             raise RuntimeError("You must load a log before.")
-        df_log = pm4py.convert_to_dataframe(self.log)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            df_log = pm4py.convert_to_dataframe(self.log)
         return df_log
 
     def compute_frequent_itemsets(self, min_support: float, case_id_col: str, categorical_attributes: List[str] = None,
