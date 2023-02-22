@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pdb
-
 import packaging
 from packaging import version
 import warnings
@@ -10,7 +8,7 @@ from mlxtend.frequent_patterns import fpgrowth, apriori
 import pm4py
 from pm4py.objects.log.obj import EventLog, Trace
 
-from typing import List, Optional
+from typing import List, Optional, Tuple, Dict
 
 from pandas import DataFrame
 from src.Declare4Py.Encodings.Aggregate import Aggregate
@@ -35,8 +33,9 @@ class D4PyEventLog:
         """
         self.log: Optional[EventLog] = None
         self.log_length: Optional[int] = None
-        self.concept_name: Optional[str] = None
-        self.case_name: str = case_name
+        self.activity_key: Optional[str] = None
+        self.timestamp_key: Optional[str] = None
+        self.case_id_key: str = case_name
 
     def parse_xes_log(self, log_path: str) -> None:
         """
@@ -63,7 +62,8 @@ class D4PyEventLog:
             else:
                 self.log = log
         self.log_length = len(self.log)
-        self.concept_name = self.log._properties['pm4py:param:activity_key']
+        self.timestamp_key = self.log._properties['pm4py:param:timestamp_key']
+        self.activity_key = self.log._properties['pm4py:param:activity_key']
 
     def get_log(self) -> EventLog:
         """
@@ -75,12 +75,6 @@ class D4PyEventLog:
         if self.log is None:
             raise RuntimeError("You must load a log before.")
         return self.log
-
-    def to_dataframe(self) -> DataFrame:
-        if self.log is None:
-            raise RuntimeError("You must load a log before.")
-        df_log = pm4py.convert_to_dataframe(self.log)
-        return df_log
 
     def get_length(self) -> int:
         """
@@ -96,23 +90,83 @@ class D4PyEventLog:
     def get_concept_name(self) -> str:
         if self.log_length is None:
             raise RuntimeError("You must load a log before.")
-        return self.concept_name
+        return self.activity_key
 
     def get_case_name(self) -> str:
         if self.log_length is None:
             raise RuntimeError("You must load a log before.")
-        return self.case_name
+        return self.case_id_key
 
-    def get_log_alphabet_attribute(self, attribute_name: str = None) -> List[str]:
+    def get_event_attribute_values(self, attribute: str, count_once_per_case: bool = False) -> Dict[str, int]:
         """
-        Return the set of values for a given input attribute of the case.
+        Returns the values for a specified (event) attribute.
 
         Args:
-            attribute_name: the name of the attribute
+            attribute: attribute
+            count_once_per_case: If True, consider only an occurrence of the given attribute value inside a case
+        (if there are multiple events sharing the same attribute value, count only 1 occurrence)
+            case_id_key: attribute to be used as case identifier
 
         Returns:
-            a list with the attribute values.
+            Returns filtered log on specified variants.
+
         """
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.get_event_attribute_values(self.log, attribute, count_once_per_case, self.case_id_key)
+        else:
+            event_attribute_val = pm4py.get_event_attribute_values(self.log, attribute)
+            return event_attribute_val
+
+    def get_start_activities(self) -> Dict[str, int]:
+        """
+        Retrieves all starting activities of the log
+
+        Returns:
+            Returns a dictionary containing all start activities.
+
+        """
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.get_start_activities(self.log, self.activity_key, self.timestamp_key, self.case_id_key)
+        else:
+            start_activities = pm4py.get_start_activities(self.log)
+            return start_activities
+
+    def get_end_activities(self) -> Dict[str, int]:
+        """
+        Returns the end activities of a log
+
+
+        Returns:
+            Returns a dictionary containing all end activities.
+
+        """
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.get_end_activities(self.log, self.activity_key, self.timestamp_key, self.case_id_key)
+        else:
+            end_activities = pm4py.get_end_activities(self.log)
+            return end_activities
+
+    def get_variants(self) -> Dict[Tuple[str], List[Trace]]:
+        """
+        Retrieves all variants from the log.
+
+        Returns:
+            Returns a dictionary containing all variants in the log.
+        """
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
+            return pm4py.get_variants(self.log, self.activity_key, self.timestamp_key, self.case_id_key)
+        else:
+            return pm4py.get_variants(self.log)
+    """
+    def get_log_alphabet_attribute(self, attribute_name: str = None) -> List[str]:
         if self.log is None:
             raise RuntimeError("You must load a log before.")
         attribute_values = set()
@@ -123,7 +177,7 @@ class D4PyEventLog:
         except KeyError as e:
             print(f"{e} attribute does not exist. Check the log.")
         return list(attribute_values)
-
+    """
     def get_trace(self, id_trace: int = None) -> Trace:
         if self.log is None:
             raise RuntimeError("You must load a log before.")
@@ -153,6 +207,12 @@ class D4PyEventLog:
         except KeyError as e:
             print(f"{e} attribute does not exist. Check the log.")
         return projection
+
+    def to_dataframe(self) -> DataFrame:
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        df_log = pm4py.convert_to_dataframe(self.log)
+        return df_log
 
     def compute_frequent_itemsets(self, min_support: float, case_id_col: str, categorical_attributes: List[str] = None,
                                   algorithm: str = 'fpgrowth', len_itemset: int = 2,
@@ -213,7 +273,7 @@ class D4PyEventLog:
             raise RuntimeError("The path must be  a string.")
         try:
             if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
-                pm4py.write_xes(self.log, path, case_id_key=self.case_name)
+                pm4py.write_xes(self.log, path, case_id_key=self.case_id_key)
             else:
                 pm4py.write_xes(self.log, path)
         except FileNotFoundError as e:

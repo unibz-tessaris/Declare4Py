@@ -5,7 +5,6 @@ from abc import ABC
 from src.Declare4Py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
-from typing import Union
 
 """
 Initializes class Monitoring, inheriting from class PMTask

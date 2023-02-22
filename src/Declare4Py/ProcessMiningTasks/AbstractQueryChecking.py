@@ -50,4 +50,3 @@ class AbstractQueryChecking(AbstractPMTask, ABC):
         super().__init__(log, process_model)
         self.min_support: float = min_support
         self.return_first: bool = return_first
-

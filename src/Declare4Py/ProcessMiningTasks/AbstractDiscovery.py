@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Union
 
 from src.Declare4Py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
@@ -32,5 +31,3 @@ class AbstractDiscovery(AbstractPMTask, ABC):
     def __init__(self, log: D4PyEventLog, process_model: ProcessModel, min_support: float = 0.1):
         super().__init__(log, process_model)
         self.min_support: float = min_support
-
-

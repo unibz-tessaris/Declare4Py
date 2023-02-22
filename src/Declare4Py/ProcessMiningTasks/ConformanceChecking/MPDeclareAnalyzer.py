@@ -43,5 +43,5 @@ class MPDeclareAnalyzer(AbstractConformanceChecking):
         for trace in self.event_log.get_log():
             log_checkers_results.append(ConstraintChecker().check_trace_conformance(trace, self.process_model,
                                                                                     self.consider_vacuity,
-                                                                                    self.event_log.concept_name))
+                                                                                    self.event_log.activity_key))
         return MPDeclareResultsBrowser(log_checkers_results, self.process_model.serialized_constraints)

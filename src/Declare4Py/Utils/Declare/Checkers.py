@@ -75,7 +75,7 @@ class ConstraintChecker:
         sat_ctr = 0
 
         for i, trace in enumerate(event_log.get_log()):
-            trc_res = self.check_trace_conformance(trace, tmp_model, consider_vacuity, event_log.concept_name)
+            trc_res = self.check_trace_conformance(trace, tmp_model, consider_vacuity, event_log.activity_key)
             if not trc_res:  # Occurring when constraint data conditions are formatted bad
                 break
             # constraint_str, checker_res = next(iter(trc_res.items()))  # trc_res will always have only one element inside

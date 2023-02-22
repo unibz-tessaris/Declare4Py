@@ -138,9 +138,9 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
                     else:
                         templates_to_check.append(template.templ_str)
 
-        activations_to_check = self.event_log.get_log_alphabet_attribute(self.event_log.concept_name) \
+        activations_to_check = self.event_log.get_log_alphabet_attribute(self.event_log.activity_key) \
             if self.activation is None else [self.activation]
-        targets_to_check = self.event_log.get_log_alphabet_attribute(self.event_log.concept_name) \
+        targets_to_check = self.event_log.get_log_alphabet_attribute(self.event_log.activity_key) \
             if self.target is None else [self.target]
 
         activity_combos = []

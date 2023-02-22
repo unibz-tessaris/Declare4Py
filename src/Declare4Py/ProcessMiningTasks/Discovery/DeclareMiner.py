@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import pdb
+
 from abc import ABC
-from typing import Dict, Tuple
 
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
