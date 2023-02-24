@@ -24,7 +24,8 @@ class DeclareModelTemplate(str, Enum):
         return obj
 
     def __init__(self, templ_str: str, is_binary: bool, is_negative: bool, supports_cardinality: bool,
-                 both_activation_condition: bool = False, is_shortcut: bool = False):
+                 both_activation_condition: bool = False, is_shortcut: bool = False,
+                 reverseActivationTarget: bool = False):
         """
 
         Parameters
@@ -35,6 +36,7 @@ class DeclareModelTemplate(str, Enum):
         supports_cardinality: whether template supports cardinality, i.e Existence template is unary
          but you can specify a number how many times Existence should occur. "Existence4[A]|||" where 4 times at least occur.
         both_activation_condition: some templates doesn't have target condition, instead both conditions are activation conditions.
+        reverseActivationTarget: some C.T have reverse activation and target condition
         """
         self.templ_str = templ_str
         self.is_binary = is_binary
@@ -42,39 +44,41 @@ class DeclareModelTemplate(str, Enum):
         self.supports_cardinality = supports_cardinality
         self.both_activation_condition = both_activation_condition
         self.is_shortcut = is_shortcut
+        self.reverseActivationTarget = reverseActivationTarget
 
-    EXISTENCE = "Existence", False, False, True, False, False
-    ABSENCE = "Absence", False, False, True, False, False
-    EXACTLY = "Exactly", False, False, True, False, False
-    INIT = "Init", False, False, False, False, False
+    EXISTENCE = "Existence", False, False, True, False, False, False
+    ABSENCE = "Absence", False, False, True, False, False, False
+    EXACTLY = "Exactly", False, False, True, False, False, False
+    INIT = "Init", False, False, False, False, False, False
+    END = "End", False, False, False, False, False, False
 
-    CHOICE = "Choice", True, False, False, True, False
-    EXCLUSIVE_CHOICE = "Exclusive Choice", True, False, False, True, False
+    CHOICE = "Choice", True, False, False, True, False, False
+    EXCLUSIVE_CHOICE = "Exclusive Choice", True, False, False, True, False, False
 
-    RESPONDED_EXISTENCE = "Responded Existence", True, False, False, False, False
-    RESPONSE = "Response", True, False, False, False, False
-    ALTERNATE_RESPONSE = "Alternate Response", True, False, False, False, False
-    CHAIN_RESPONSE = "Chain Response", True, False, False, False, False
-    PRECEDENCE = "Precedence", True, False, False, False, False
-    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False, False
-    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False, False
+    RESPONDED_EXISTENCE = "Responded Existence", True, False, False, False, False, False
+    RESPONSE = "Response", True, False, False, False, False, False
+    ALTERNATE_RESPONSE = "Alternate Response", True, False, False, False, False, False
+    CHAIN_RESPONSE = "Chain Response", True, False, False, False, False, False
+    PRECEDENCE = "Precedence", True, False, False, False, False, True
+    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False, False, True
+    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False, False, True
 
     # response(A, b) and precedence(a, b) = succession(a, b)
     # responded_existence(A, b) and responded_existence(b, a) = coexistence(a, b)
     # TODO implementare i checker
-    SUCCESSION = "Succession", True, False, False, True, True
-    ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True, True
-    CO_EXISTENCE = "Co-Existence", True, False, False, True, True
-    CHAIN_SUCCESSION = "Chain Succession", True, False, False, True, True
-    NOT_CHAIN_SUCCESSION = "Not Chain Succession", True, True, False, True, True
-    NOT_CO_EXISTENCE = "Not Co-Existence", True, True, False, True, True
-    NOT_SUCCESSION = "Not Succession", True, True, False, True, True
+    SUCCESSION = "Succession", True, False, False, True, True, False
+    ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True, True, False
+    CO_EXISTENCE = "Co-Existence", True, False, False, True, True, False
+    CHAIN_SUCCESSION = "Chain Succession", True, False, False, True, True, False
+    NOT_CHAIN_SUCCESSION = "Not Chain Succession", True, True, False, True, True, False
+    NOT_CO_EXISTENCE = "Not Co-Existence", True, True, False, True, True, False
+    NOT_SUCCESSION = "Not Succession", True, True, False, True, True, False
 
-    NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False, False
-    NOT_RESPONSE = "Not Response", True, True, False, False, False
-    NOT_PRECEDENCE = "Not Precedence", True, True, False, False, False
-    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False, False
-    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False, False
+    NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False, False, False
+    NOT_RESPONSE = "Not Response", True, True, False, False, False, False
+    NOT_PRECEDENCE = "Not Precedence", True, True, False, False, False, True
+    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False, False, False
+    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False, False, True
 
     @classmethod
     def get_template_from_string(cls, template_str):
@@ -99,6 +103,10 @@ class DeclareModelTemplate(str, Enum):
     @classmethod
     def get_shortcut_templates(cls):
         return tuple(filter(lambda t: t.is_shortcut, DeclareModelTemplate))
+
+    @classmethod
+    def are_conditions_reversed_applied(cls):
+        return tuple(filter(lambda t: t.reverseActivationTarget, DeclareModelTemplate))
 
     @classmethod
     def get_binary_not_shortcut_templates(cls):
@@ -295,23 +303,32 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
 
     def get_active_condition(self):
         """ Returns active conditions """
-        if len(self.condition) > 0:
-            c = self.condition[0]
-            return c if len(c) > 0 else None
+
+        if self.template.reverseActivationTarget:  # if template has reverse conditions, so we xyz
+            if len(self.condition) > 1:
+                c = self.condition[1]
+                return c
+        else:
+            if len(self.condition) > 0:
+                c = self.condition[0]
+                return c
+                # return c if len(c) > 1 else None
         return None
 
     def get_target_condition(self):
         """ Returns target conditions """
-        if len(self.condition) > 1:
-            cond_at_1_idx = self.condition[1]
-            time_int = r"^[\d.]+,?([\d.]+)?[,]?(s|m|d|h)$"
-            is_matched = re.search(time_int, cond_at_1_idx, re.IGNORECASE)
-            if is_matched:
-                return None
-            c = self.condition[1]
-            return c if len(c) > 0 else None
-            # return self.condition[1]
-        return None
+        cond = ""
+        if self.template.reverseActivationTarget:
+            if len(self.condition) > 0:
+                cond = self.condition[0]
+        else:
+            if len(self.condition) > 1:
+                cond = self.condition[1]
+        time_int = r"^[\d.]+,?([\d.]+)?[,]?(s|m|d|h)$"
+        is_matched = re.search(time_int, cond, re.IGNORECASE)
+        if is_matched:
+            return None
+        return cond if len(cond) > 0 else None
 
     def get_time_condition(self):
         """ Returns time condition """
@@ -585,7 +602,7 @@ class DeclareModelCoder:
             template.activities = self.encode_str_list(tmpl["activities"])
             a, t, tm = tmpl.get_conditions()
             encoded_conditions = []
-            if a is not None:
+            if a is not None and len(a) > 0:
                 # c = self.parsed_condition("A.grade > 10 and A.name in (x, y)  or A.grade < 3 and A.name in (z, v)
                 # or A.name not in (4, 2, 6)")
                 # c = self.parsed_condition("A.grade > 10 and A.name in (x, y) or A.name in (z, v) T.type > 78 or "
@@ -594,7 +611,7 @@ class DeclareModelCoder:
                 encoded_conditions.append(self.parsed_condition(a))
             else:
                 encoded_conditions.append("")
-            if t is not None:
+            if t is not None and len(t) > 0:
                 encoded_conditions.append(self.parsed_condition(t))
             else:
                 encoded_conditions.append("")
@@ -694,7 +711,8 @@ class DeclareModelCoder:
                     cond_chunk = val[0] + " in " + val1
                     form_list[idx - 1] = cond_chunk
             else:
-                raise ValueError(f"Unable to encode the {cond_chunk} condition. This is not supported to encode yet")
+                raise ValueError(f"Unable to encode the {cond_chunk} condition. This is not supported to encode yet."
+                                 f" Str {string}")
                 # if matched
 
         return " ".join(form_list)
@@ -734,7 +752,7 @@ class DeclareModelCoder:
             first_letter = s[0]
             if first_letter.isupper():
                 first_letter = "lowerLetter" + first_letter.strip() + "lowerLetter"
-            encoded_str = first_letter + s[1:] + self.encoding_str
+            encoded_str = first_letter + s[1:]  # + self.encoding_str
             encoded_str = encoded_str.replace(":", "sEmIcOlUmN")
             encoded_str = encoded_str.replace("_", "uNdErScOrE")
             encoded_str = encoded_str.replace(",", "cOmMa")
@@ -743,6 +761,7 @@ class DeclareModelCoder:
             encoded_str = encoded_str.replace("?", "qUeStIoNMaRk")
             encoded_str = encoded_str.replace("=", "eQualsSigN")
             self.encoded_dict[s] = encoded_str.strip()
+            self.encoded_dict[s] = s.strip()
         return self.encoded_dict[s]
 
     def decode_value(self, s: str) -> str:

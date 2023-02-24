@@ -108,8 +108,8 @@ ax: integer between 0 and 1000
 ay: integer between 0 and 1000
 activity B
 bind B: bs, bt
-bs: float between -50.25 and 50.75
-bt: float between -50.25 and 50.75
+bs: float between -500.25 and 500.75
+bt: float between -500.25 and 500.75
 activity C
 bind C: name, surname
 name: axel, susi, csaba
@@ -125,7 +125,8 @@ Existence[E] | |
 Choice[C, D] | A.name in (axel, susi) | T.grade = 20
 """
 
-model: DeclareModel = DeclareModel().parse_from_string(decl4)
+# model: DeclareModel = DeclareModel().parse_from_string(decl)
+model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
 
 num_of_traces = 4

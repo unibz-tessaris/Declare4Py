@@ -70,7 +70,7 @@ class DeclareModelConditionResolver2ASP:
             attr = cond.split(".")[1].strip()  # A.grade>2
         else:
             attr = cond
-        attr = re.search(r'\w+', attr)
+        attr = re.search(r'[\w:]+', attr)
         ls = []
         if attr:
             attr = attr.group(0).strip()
