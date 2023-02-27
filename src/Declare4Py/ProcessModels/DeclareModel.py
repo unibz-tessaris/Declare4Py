@@ -521,7 +521,7 @@ class DeclareParsedDataModel(CustomUtilityDict):
         templt.template_line = line
         templt.template_index_id = template_idx or self.total_templates
         self.total_templates = self.total_templates + 1
-        if template.supports_cardinality and int(cardinality) > 1:
+        if template.supports_cardinality and int(cardinality) > 0:
             templt.template_name += str(cardinality)
         compiler = re.compile(r"^(.*)\[(.*)\]\s*(.*)$")
         al = compiler.fullmatch(line)
@@ -608,11 +608,18 @@ class DeclareModelCoder:
                 # c = self.parsed_condition("A.grade > 10 and A.name in (x, y) or A.name in (z, v) T.type > 78 or "
                 # "t.nae is memo and (T.InfectionSuspected is true) AND"
                 #                           " (T.SIRSCriteria2OrMore is true) AND (T.DiagnosticECG is true) ")
-                encoded_conditions.append(self.parsed_condition(a))
+
+                if template.template.reverseActivationTarget:
+                    encoded_conditions.append(self.parsed_condition(t))
+                else:
+                    encoded_conditions.append(self.parsed_condition(a))
             else:
                 encoded_conditions.append("")
             if t is not None and len(t) > 0:
-                encoded_conditions.append(self.parsed_condition(t))
+                if template.template.reverseActivationTarget:
+                    encoded_conditions.append(self.parsed_condition(a))
+                else:
+                    encoded_conditions.append(self.parsed_condition(t))
             else:
                 encoded_conditions.append("")
             if tm is not None:
@@ -749,19 +756,22 @@ class DeclareModelCoder:
         if s in self.encoded_dict:  # if string is already encoded we return the encoded value which was saved previously
             return self.encoded_dict[s]
         if s and s not in self.encoded_dict:
+            # s = s.replace("_", "uNdErScOrE")
             first_letter = s[0]
             if first_letter.isupper():
-                first_letter = "lowerLetter" + first_letter.strip() + "lowerLetter"
-            encoded_str = first_letter + s[1:]  # + self.encoding_str
-            encoded_str = encoded_str.replace(":", "sEmIcOlUmN")
-            encoded_str = encoded_str.replace("_", "uNdErScOrE")
+                # first_letter = "lowerLetter" + first_letter.strip() + "lowerLetter"
+                first_letter = "l_" + first_letter.strip() + "_l"
+            encoded_str = first_letter + s[1:]
+            # encoded_str = encoded_str.replace(":", "sEmIcOlUmN")
+            encoded_str = encoded_str.replace(":", "__")
             encoded_str = encoded_str.replace(",", "cOmMa")
             encoded_str = encoded_str.replace(".", "dOt")
-            encoded_str = encoded_str.replace(" ", "nBSp")
+            # encoded_str = encoded_str.replace(" ", "nBSp")
+            encoded_str = encoded_str.replace(" ", "___")
             encoded_str = encoded_str.replace("?", "qUeStIoNMaRk")
             encoded_str = encoded_str.replace("=", "eQualsSigN")
-            self.encoded_dict[s] = encoded_str.strip()
-            self.encoded_dict[s] = s.strip()
+            self.encoded_dict[s] = encoded_str.strip() + self.encoding_str
+            # self.encoded_dict[s] = s.strip()
         return self.encoded_dict[s]
 
     def decode_value(self, s: str) -> str:

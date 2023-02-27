@@ -220,7 +220,7 @@ class AspGenerator(LogGenerator):
             self.py_logger.debug(f" Clingo Result :{str(result)}")
             if result.unsatisfiable:
                 warnings.warn(f'WARNING: Cannot generate traces with {num_events} events with this model.')
-                break  # we exit because we cannot generate more traces with same params.
+                # break  # we exit because we cannot generate more traces with same params.
             elif self.num_repetition_per_trace > 0:
                 self.trace_counter = self.trace_counter + 1
                 self.trace_variations_key_id = i

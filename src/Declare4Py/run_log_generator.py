@@ -125,51 +125,16 @@ Existence[E] | |
 Choice[C, D] | A.name in (axel, susi) | T.grade = 20
 """
 
-# model: DeclareModel = DeclareModel().parse_from_string(decl)
+# model: DeclareModel = DeclareModel().parse_from_string(decl2)
 model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
 
-num_of_traces = 4
+num_of_traces = 10
 num_min_events = 1
-num_max_events = 8
+num_max_events = 20
 asp = AspGenerator(model, num_of_traces, num_min_events,
                    num_max_events, encode_decl_model=True)
 asp.set_distribution("uniform")
-
-# asp_log_generation.set_distribution( distributor_type="gaussian", loc=3, scale=0.8)
-# TODO: wrap next 3 methods into one method
-# asp_log_generation.set_constraints_to_violate(1, True, [
-#     # "Existence[act2] | |",
-#     # "Existence[act4] | |"
-#     "Response[Driving_Test, Resit] |A.Grade<=2 | |"
-#     # "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
-#     # "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
-# ])
-
-# asp_log_generation.set_constraints_to_violate(3, True, [
-# "Existence[act2] | |",
-# "Existence[act4] | |
-# "Absence[A] | A.ax > 20 |",
-# "Existence[E] | |"
-# "Chain Response[Admission IC, Admission NC] |A.org:group is J |T.org:group is J |61534,61534,s",
-# "Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |0,2778,m",
-# ])
-
-# asp_log_generation.set_constraints_to_violate_by_template_index(1, True, [2])
-
-# asp_log_generation.set_activation_conditions({
-#     # 'Response[A,B] | A.attribute is value1 | |': [3, 5],
-#     # 'Existence5[A] | A.attribute is True | |': [3, 3],
-#     'Response[Driving_Test, Resit] |A.Grade<=2 | |': [2, 4]
-# })
-
-## OR
-
-# asp_log_generation.set_activation_conditions_by_template_index({
-#     2: [2, 4]
-# })
-
-# asp_log_generation.set_number_of_repetition_per_trace(8)
 
 asp.run('../../output/generated_asp.lp')
 # asp_log_generation.run()
