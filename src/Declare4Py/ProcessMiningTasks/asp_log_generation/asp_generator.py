@@ -28,17 +28,6 @@ from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParse
     DeclareModelTemplateDataModel, DeclareModelAttributeType
 
 
-# from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_utils.distribution import Distributor
-# from src.Declare4Py.ProcessMiningTasks.log_generator import LogGenerator
-# from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, DeclareModelAttributeType, \
-#     DeclareModelTemplateDataModel
-# from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_translator.asp_translator import TranslatedASPModel, ASPTranslator
-# from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_encoding import ASPEncoding
-# from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_result_parser import ASPResultTraceModel
-# from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_template import ASPTemplate
-# from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
-
-
 class LogTracesType(typing.TypedDict):
     positive: typing.List
     negative: typing.List
@@ -105,7 +94,11 @@ class AspGenerator(LogGenerator):
             with open(save_file, 'w+') as f:
                 f.write(lp)
         self.py_logger.debug(f"Declare model translated to ASP. Total Facts {len(self.lp_model.fact_names)}")
-        self.asp_encoding = ASPEncoding().get_ASP_encoding(self.lp_model.fact_names)
+
+        if self.negative_traces > 0:
+            self.asp_encoding = ASPEncoding(True).get_ASP_encoding(self.lp_model.fact_names)
+        else:
+            self.asp_encoding = ASPEncoding(False).get_ASP_encoding(self.lp_model.fact_names)
         self.py_logger.debug("ASP encoding generated")
         return lp
 
@@ -217,9 +210,13 @@ class AspGenerator(LogGenerator):
             ctl.add(self.asp_template)
             ctl.ground([("base", [])], context=self)
             result = ctl.solve(on_model=self.__handle_clingo_result)
-            self.py_logger.debug(f" Clingo Result :{str(result)}")
+            self.py_logger.debug(f" Clingo Result: {str(result)}")
             if result.unsatisfiable:
-                warnings.warn(f'WARNING: Cannot generate traces with {num_events} events with this model.')
+                """
+                    Clingo was not able to generate trace events with exactly num_events, thus it returns
+                    unsatisfiable.
+                """
+                warnings.warn(f'WARNING: Cannot generate a trace exactly with {num_events} events with this Declare model.')
                 break  # we exit because we cannot generate more traces with same params.
             elif self.num_repetition_per_trace > 0:
                 self.trace_counter = self.trace_counter + 1

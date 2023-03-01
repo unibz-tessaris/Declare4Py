@@ -130,10 +130,9 @@ model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/mo
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
 
 num_of_traces = 10
-num_min_events = 1
-num_max_events = 20
-asp = AspGenerator(model, num_of_traces, num_min_events,
-                   num_max_events, encode_decl_model=True)
+num_min_events = 20
+num_max_events = 30
+asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events, encode_decl_model=True)
 asp.set_distribution("uniform")
 
 asp.run('../../output/generated_asp.lp')
@@ -142,3 +141,4 @@ asp.to_xes("../../output/generated_xes1.df.xes")
 
 # TODO: ask how to implement TIME CONDITION in asp_log_generation
 # TODO: Ask Chiarello whether the generated output of lp is correct
+
