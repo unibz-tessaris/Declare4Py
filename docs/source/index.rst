@@ -17,7 +17,9 @@ To add:
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+   
+   Declare4Py
+   modules
 
 
 Indices and tables
