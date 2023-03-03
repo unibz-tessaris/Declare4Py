@@ -87,7 +87,11 @@ class TranslatedASPModel:
         Parse declare model template into ASP
         """
         if ct.template.supports_cardinality:
-            self.templates_s.append(f"template({ct.template_index_id},\"{ct.template_name}\").")
+            if ct.template_name.lower() == "existence1" or ct.template_name.lower() == "absence1":
+                new_name = name.replace("1", "")
+                self.templates_s.append(f"template({ct.template_index_id},\"{new_name}\").")
+            else:
+                self.templates_s.append(f"template({ct.template_index_id},\"{ct.template_name}\").")
         else:
             self.templates_s.append(f"template({ct.template_index_id},\"{name}\").")
         ls = self.condition_resolver.resolve_to_asp(ct, props, ct.template_index_id)

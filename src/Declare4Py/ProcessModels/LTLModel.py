@@ -1,8 +1,10 @@
 from abc import ABC
 
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
-from pylogics.parsers import parse_ltl
-
+try:
+    from pylogics.parsers import parse_ltl
+except:
+    pass
 
 class LTLModel(ProcessModel, ABC):
 
