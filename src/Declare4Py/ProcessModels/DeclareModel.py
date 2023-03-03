@@ -290,8 +290,8 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
         self.activities: Union[str, None] = None
         self.condition: Union[List[str], None] = None
         self.template_name: Union[str, None] = None
-        self.template_line: Union[str, None]  # Constraint lines
-        self.condition_line: Union[str, None]  # |A.grade < 2  | T.mark > 2|1,5,s
+        self.template_line: Union[str, None] = None  # Constraint lines
+        self.condition_line: Union[str, None] = None  # |A.grade < 2  | T.mark > 2|1,5,s
         self.violate: bool = False
         self.template_index_id: int = None
 
@@ -375,7 +375,7 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
         self.key_value["activities"] = self.activities
         self.key_value["condition"] = self.condition
         self.key_value["template_name"] = self.template_name
-        self.key_value["template_name"] = self.template_name
+        self.key_value["template_line"] = self.template_line
         self.key_value["violate"] = self.violate
         self.key_value["condition_line"] = self.condition_line
 
@@ -646,6 +646,8 @@ class DeclareModelCoder:
         return d
 
     def parsed_condition(self, string: str):
+        if string == "" or len(string) == 0:
+            return ""
         string = re.sub(r'\)', ' ) ', string)
         string = re.sub(r'\(', ' ( ', string)
         string = string.strip()
@@ -694,6 +696,13 @@ class DeclareModelCoder:
                     val0 = val[0]  # "T.InfectionSuspected"
                     val1 = self.encode_value(val[1])  # "xyz"
                     cond_chunk = val0 + " is " + val1
+                    form_list[idx - 1] = cond_chunk
+                elif "is_not" in cond_chunk_split:
+                    cond_chunk = cond_chunk.replace("  ", "").strip()
+                    val = cond_chunk.split(" is_not ")  # case: T.InfectionSuspected is xyz
+                    val0 = val[0]  # "T.InfectionSuspected"
+                    val1 = self.encode_value(val[1])  # "xyz"
+                    cond_chunk = val0 + " is not " + val1
                     form_list[idx - 1] = cond_chunk
                 elif "not_in" in cond_chunk_split:
                     cond_chunk = cond_chunk.replace("  ", "").strip()

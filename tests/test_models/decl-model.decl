@@ -1,0 +1,36 @@
+activity Leucocytes
+bind Leucocytes: Leucocytes, org:group, Diagnose, Age
+activity ER Registration
+bind ER Registration: InfectionSuspected, org:group, DiagnosticBlood, DisfuncOrg, SIRSCritTachypnea, Hypotensie, SIRSCritHeartRate, Infusion, DiagnosticArtAstrup, Age, DiagnosticIC, DiagnosticSputum, DiagnosticLiquor, DiagnosticOther, SIRSCriteria2OrMore, DiagnosticXthorax, SIRSCritTemperature, DiagnosticUrinaryCulture, SIRSCritLeucos, Oligurie, DiagnosticLacticAcid, Diagnose, Hypoxie, DiagnosticUrinarySediment, DiagnosticECG
+activity ER Triage
+bind ER Triage: org:group, Diagnose, Age
+activity ER Sepsis Triage
+bind ER Sepsis Triage: org:group, Diagnose, Age
+InfectionSuspected: true, false
+org:group: A, B, C, D, E, I, K, L, M
+DiagnosticBlood: true, false
+DisfuncOrg: true, false
+SIRSCritTachypnea: true, false
+Hypotensie: false, true
+SIRSCritHeartRate: true, false
+Leucocytes: float between 2.0 and 3809.0
+Infusion: false, true
+DiagnosticArtAstrup: false, true
+Age: integer between 20 and 79
+DiagnosticIC: false, true
+DiagnosticSputum: false, true
+DiagnosticLiquor: false, true
+DiagnosticOther: true, false
+SIRSCriteria2OrMore: false, true
+DiagnosticXthorax: false, true
+SIRSCritTemperature: true, false
+DiagnosticUrinaryCulture: true, false
+SIRSCritLeucos: false, true
+Oligurie: true, false
+DiagnosticLacticAcid: true, false
+Diagnose: QA, QB, QD, LB, YA, YB, IB, YC, YD
+Hypoxie: false, true
+DiagnosticUrinarySediment: true, false
+DiagnosticECG: true, false
+Chain Precedence[ER Triage, ER Registration] |A.Infusion is false | |
+Chain Response[ER Triage, ER Registration] |(A.Diagnose is not YC) OR (A.Age > 23) OR ((A.org:group is not K) AND (A.org:group is not E)) | |
