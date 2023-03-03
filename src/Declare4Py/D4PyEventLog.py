@@ -97,6 +97,11 @@ class D4PyEventLog:
             raise RuntimeError("You must load a log before.")
         return self.case_id_key
 
+    def get_timestamp_name(self) -> str:
+        if self.log_length is None:
+            raise RuntimeError("You must load a log before.")
+        return self.timestamp_key
+
     def get_event_attribute_values(self, attribute: str, count_once_per_case: bool = False) -> Dict[str, int]:
         """
         Returns the values for a specified (event) attribute.
