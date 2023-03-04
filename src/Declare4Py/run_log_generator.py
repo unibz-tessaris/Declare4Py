@@ -4,6 +4,7 @@ import logging
 
 from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_generator import AspGenerator
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
+import time
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -125,20 +126,20 @@ Existence[E] | |
 Choice[C, D] | A.name in (axel, susi) | T.grade = 20
 """
 
-# model: DeclareModel = DeclareModel().parse_from_string(decl2)
+# model: DeclareModel = DeclareModel().parse_from_string(decl3)
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
-model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/decl-model2.decl")
+model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/decl-model4.decl")
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
 
-num_of_traces = 5
-num_min_events = 2
-num_max_events = 5
+num_of_traces = 10
+num_min_events = 1
+num_max_events = 20
 asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events, encode_decl_model=True)
 asp.set_distribution("uniform")
 
 asp.run('../../output/generated_asp.lp')
 # asp_log_generation.run()
-asp.to_xes("../../output/generated_xes_fixed.xes")
+asp.to_xes("../../output/generated_xes" + str(time.time_ns()) + ".xes")
 
 # TODO: ask how to implement TIME CONDITION in asp_log_generation
 # TODO: Ask Chiarello whether the generated output of lp is correct

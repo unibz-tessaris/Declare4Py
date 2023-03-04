@@ -1,0 +1,8 @@
+activity act1
+activity act2
+activity act3
+activity act4
+Existence[act1] | |
+Existence[act2] | |
+Existence[act3] | |
+Existence[act4] | |

@@ -99,6 +99,7 @@ class AspGenerator(LogGenerator):
             self.asp_encoding = ASPEncoding(True).get_ASP_encoding(self.lp_model.fact_names)
         else:
             self.asp_encoding = ASPEncoding(False).get_ASP_encoding(self.lp_model.fact_names)
+        # print(self.asp_encoding)
         self.py_logger.debug("ASP encoding generated")
         return lp
 
@@ -198,19 +199,30 @@ class AspGenerator(LogGenerator):
             self.clingo_current_output = None
             seed = randrange(0, 2 ** 32 - 1)
             self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces} with events:{num_events}, seed:{seed}")
-            ctl = clingo.Control([f"-c t={int(num_events)}", "--project",
-                                  # f"{int(num_traces)}",
-                                  f"1",
-                                  f"--seed={seed}",
-                                  f"--sign-def=rnd",
-                                  f"--restart-on-model",
-                                  f"--rand-freq={freq}"])
+            ctl = clingo.Control([
+                "-c",
+                f"t={int(num_events)}",
+                f"1",
+                "--project",
+                "--sign-def=rnd",
+                f"--rand-freq={freq}",
+                f"--restart-on-model",
+                f"--seed={seed}",
+            ])
             ctl.add(asp)
             ctl.add(self.asp_encoding)
             ctl.add(self.asp_template)
-            ctl.ground([("base", [])], context=self)
+            print(self.asp_encoding)
+            print(asp)
+            ctl.ground([("base", [])], context=self)  # ctl.ground()
             result = ctl.solve(on_model=self.__handle_clingo_result)
             self.py_logger.debug(f" Clingo Result: {str(result)}")
+
+            # ctl.ground([("base", [])], context=self)
+            # # ctl.ground()
+            # # result = ctl.solve(on_model=self.__handle_clingo_result, yield_=True)
+            # result = ctl.solve(on_model=self.__handle_clingo_result)
+
             if result.unsatisfiable:
                 """
                     Clingo was not able to generate trace events with exactly num_events, thus it returns

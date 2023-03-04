@@ -283,6 +283,11 @@ A data model class which contains information about a parsed template constraint
 
 
 class DeclareModelTemplateDataModel(CustomUtilityDict):
+    # TODO: create getter and setters for properties and make properties
+    #  private, so the logic of providing correct condition and activity
+    #  based on correct constraint templates. I.E Existence and Absence case
+    #  where Existence1 and Absence1 doesn't exist but other unary does.
+    #  one more case is for the reverseConditions of some constraints
 
     def __init__(self):
         super().__init__()
@@ -530,6 +535,10 @@ class DeclareParsedDataModel(CustomUtilityDict):
         if len(al.group()) >= 2:
             events = al.group(2).strip().split(",")  # A, B
             events = [e.strip() for e in events]  # [A, B]
+            # if template.reverseActivationTarget:
+            #     templt.activities = events[::-1]
+            # else:
+            #     templt.activities = events
             templt.activities = events
         if len(al.group()) >= 3:
             conditions = al.group(3).strip()
@@ -608,20 +617,15 @@ class DeclareModelCoder:
                 # c = self.parsed_condition("A.grade > 10 and A.name in (x, y) or A.name in (z, v) T.type > 78 or "
                 # "t.nae is memo and (T.InfectionSuspected is true) AND"
                 #                           " (T.SIRSCriteria2OrMore is true) AND (T.DiagnosticECG is true) ")
-
-                if template.template.reverseActivationTarget:
-                    encoded_conditions.append(self.parsed_condition(t))
-                else:
-                    encoded_conditions.append(self.parsed_condition(a))
+                encoded_conditions.append(self.parsed_condition(a))
             else:
                 encoded_conditions.append("")
             if t is not None and len(t) > 0:
-                if template.template.reverseActivationTarget:
-                    encoded_conditions.append(self.parsed_condition(a))
-                else:
-                    encoded_conditions.append(self.parsed_condition(t))
+                encoded_conditions.append(self.parsed_condition(t))
             else:
                 encoded_conditions.append("")
+            if template.template.reverseActivationTarget:
+                encoded_conditions = encoded_conditions[::-1]  # we do reverse
             if tm is not None:
                 encoded_conditions.append(tm)
             template.condition = encoded_conditions
@@ -764,6 +768,8 @@ class DeclareModelCoder:
             return s
         if s in self.encoded_dict:  # if string is already encoded we return the encoded value which was saved previously
             return self.encoded_dict[s]
+        if s.lower() == "activity":
+            self.encoded_dict[s] = s
         if s and s not in self.encoded_dict:
             # s = s.replace("_", "uNdErScOrE")
             first_letter = s[0]

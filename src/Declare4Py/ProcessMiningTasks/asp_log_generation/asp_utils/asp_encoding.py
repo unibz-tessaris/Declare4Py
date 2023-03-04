@@ -1,6 +1,6 @@
 class ASPEncoding(str):
 
-    def __init__(self, is_unsat: bool= False):
+    def __init__(self, is_unsat: bool = False):
 
         self.value: str = "time(1..t). %t = lunghezza traccia\n" \
             "cur_state(I,S,0) :- initial(Name,S),template(I,Name).\n"
@@ -13,11 +13,12 @@ class ASPEncoding(str):
             "cur_state(I,S2,T) :- cur_state(I,S1,T-1), template(I,Name), automaton(Name,S1,c,S2), trace(A,T), target(I,A), not correlation_condition(I,T).\n" \
             "cur_state(I,S2,T) :- cur_state(I,S1,T-1), template(I,Name), automaton(Name,S1,b,S2), trace(A,T), target(I,A), correlation_condition(I,T).\n" \
             "sat(I,T) :- cur_state(I,S,T), template(I,Name), accepting(Name,S).\n" \
-            "%:- template(I,_), not sat(I,t).\n"
+            # "%:- template(I,_), not sat(I,t).\n"
 
         self.val3 = ":- sat(I), not sat(I,t)." + "\n" + ":- unsat(I), sat(I,t).\n"""
         if not is_unsat:
             self.val3 = """ :- template(I,_), not sat(I,t). \n"""
+            # self.val3 = """ :- sat(I), not sat(I,t). \n"""
 
         self.val4 = """#show trace/2.\n#show assigned_value/3.\n%#show sat/2.\n"""
 
