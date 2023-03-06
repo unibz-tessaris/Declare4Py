@@ -784,6 +784,9 @@ class DeclareModelCoder:
         if s and s not in self.encoded_dict:
             # s = s.replace("_", "uNdErScOrE")
             first_letter = s[0]
+            if not first_letter.isalpha():
+                s = "anAlphaLetter_" + s
+                first_letter = s[0]
             if first_letter.isupper():
                 # first_letter = "lowerLetter" + first_letter.strip() + "lowerLetter"
                 first_letter = "l_" + first_letter.strip() + "_l"
