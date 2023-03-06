@@ -11,5 +11,6 @@ log = pm4py.read_xes('../../output/generated_xes.xes')
 
 p = pm4py.discover_dfg(log)
 
-pm4py.view_dfg(p)
-
+# pm4py.view_dfg(p)
+# fp_log = pm4py.discover_footprints(log)
+# pm4py.save_vis_footprints(fp_log, 'op.svg')

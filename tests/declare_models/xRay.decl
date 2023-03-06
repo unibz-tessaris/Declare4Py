@@ -33,7 +33,7 @@ Existence[Approve application]
 Existence[Collect tickets]
 Existence[Archive documents]
 
-NotRespondedExistence[Book means of transport, Apply for Trip]||different org::resource
-NotRespondedExistence[Book accommodation, Apply for Trip]||different org::resource
-NotRespondedExistence[Collect tickets, Apply for Trip]||different org::resource
-NotRespondedExistence[Archive documents, Apply for Trip]||different org::resource
+Response[Book means of transport, Apply for Trip]||
+Response[Book accommodation, Apply for Trip]||
+Response[Collect tickets, Apply for Trip]||
+Response[Archive documents, Apply for Trip]||

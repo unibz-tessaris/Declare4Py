@@ -82,7 +82,10 @@ class DeclareModelTemplate(str, Enum):
 
     @classmethod
     def get_template_from_string(cls, template_str):
-        return next(filter(lambda t: t.templ_str == template_str, DeclareModelTemplate), None)
+        template_str = template_str.replace(" ", "")
+        template_str = template_str.replace("-", "")
+        template_str = template_str.lower()
+        return next(filter(lambda t: t.templ_str.replace(" ", "").replace("-", "").lower() == template_str, DeclareModelTemplate), None)
 
     @classmethod
     def get_unary_templates(cls):

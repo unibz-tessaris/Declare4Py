@@ -7,10 +7,11 @@ import logging
 from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_generator import AspGenerator
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
 import time
+from datetime import datetime
 
-profiler = cProfile.Profile()
-profiler.enable()
-logging.basicConfig(level=logging.DEBUG)
+# profiler = cProfile.Profile()
+# profiler.enable()
+logging.basicConfig(level=logging.CRITICAL)
 
 decl = """
 activity Driving_Test
@@ -134,22 +135,50 @@ Choice[C, D] | A.name in (axel, susi) | T.grade = 20
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/BusinessTrip.decl")
-model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/nodata_model.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/nodata_model.decl")
+
+
+def r_time():
+    return round(time.time() * 1000)
+    # return datetime.utcnow()
+    # return datetime.now().microsecond / 1000
+
+
+start_time = r_time()
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/BusinessTrip.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/xRay.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
+model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
 
-num_of_traces = 10
-num_min_events = 1
+print(f"model acts {len(model.activities)}")
+print(f"model attr {len(model.parsed_model.attributes_list)}")
+print(f"model constraints {len(model.parsed_model.templates)}")
+
+start_time = r_time() - start_time
+print(f"Parsed declare model in {start_time}ms")
+num_of_traces = 20
+num_min_events = 10
 num_max_events = 20
+
+start_time = r_time()
 asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events,
                    # encode_decl_model=False
                    )
 asp.set_distribution("uniform")
-
 asp.run('../../output/generated_asp.lp')
 # asp_log_generation.run()
 # asp.to_xes("../../output/generated_xes" + str(time.time_ns()) + ".xes")
-asp.to_xes("../../output/generated_xes.xes")
 
-profiler.disable()
-profiler.dump_stats("../../result.txt")
+start_time = r_time() - start_time
+print(f"Traces generated in in {start_time}ms")
+
+start_time = r_time()
+asp.to_xes("../../output/generated_xes.xes")
+start_time = r_time() - start_time
+print(f"Writing file in {start_time }ms")
+
+# profiler.disable()
+# profiler.dump_stats("../../result.txt")
 
