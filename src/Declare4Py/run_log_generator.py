@@ -1,11 +1,15 @@
+
 from __future__ import annotations
 
+import cProfile
 import logging
 
 from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_generator import AspGenerator
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
 import time
 
+profiler = cProfile.Profile()
+profiler.enable()
 logging.basicConfig(level=logging.DEBUG)
 
 decl = """
@@ -21,6 +25,7 @@ Driver: Fabrizio, Mike, Marlon, Raimundas
 Grade: integer between 1 and 5
 Response[Driving_Test, Getting_License] | |T.Grade>2 |
 Response[Driving_Test, Resit] |A.Grade<=2 | |
+Response[Driving_Test, Resit] |A.Driver is Mike | |
 Response[Driving_Test, Test_Failed] |A.Grade<=2 | |
 """
 
@@ -126,21 +131,25 @@ Existence[E] | |
 Choice[C, D] | A.name in (axel, susi) | T.grade = 20
 """
 
-# model: DeclareModel = DeclareModel().parse_from_string(decl3)
+# model: DeclareModel = DeclareModel().parse_from_string(decl)
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
-model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/decl-model4.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/BusinessTrip.decl")
+model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/nodata_model.decl")
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
 
 num_of_traces = 10
 num_min_events = 1
 num_max_events = 20
-asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events, encode_decl_model=True)
+asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events,
+                   # encode_decl_model=False
+                   )
 asp.set_distribution("uniform")
 
 asp.run('../../output/generated_asp.lp')
 # asp_log_generation.run()
-asp.to_xes("../../output/generated_xes" + str(time.time_ns()) + ".xes")
+# asp.to_xes("../../output/generated_xes" + str(time.time_ns()) + ".xes")
+asp.to_xes("../../output/generated_xes.xes")
 
-# TODO: ask how to implement TIME CONDITION in asp_log_generation
-# TODO: Ask Chiarello whether the generated output of lp is correct
+profiler.disable()
+profiler.dump_stats("../../result.txt")
 

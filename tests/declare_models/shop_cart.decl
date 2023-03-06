@@ -19,14 +19,14 @@ bind shipping: shipped
 bind get_discount: discount
 
 user_id: integer between 1 and 100
-password: float between 10000000 to 90000000
+password: float between 1000000 and 9000000
 discount: integer between 5 and 15
 quantity: integer between 1 and 50
 product: cloths, radio, computer, notebook, food, chocolate
 shipped: true, false
 success: true, false
 confirm: true, false
-price: float between 0.99 and 10000.0
+price: float between 0.99 and 5000.0
 status: approved, cancelled, pending
 user_type: admin, customer, delivery_boy
 
@@ -42,9 +42,9 @@ Response[pay, get_discount] |A.price > 1500 and A.success is true | T.discount =
 Response[pay, order] |A.success is true | T.status is approved|
 Response[pay, order] |A.success is false | T.status is cancelled|
 Response[order, shipping] |A.status is approved | T.shipped is true|
-Response[payment_success, get_discount] | | T.discount > 0.99|
-Response[add_to_basket, pay] | same price | |
+Response[payment_success, get_discount] | | T.discount > 1|
+Response[add_to_basket, pay] |  | |
 Precedence[pay, logic] | |T.user_type is customer|
 Precedence[payment_success, pay] | |T.price >= 0.99|
-Precedence[remove_from_basket, add_to_basket] |same product | |
+Precedence[remove_from_basket, add_to_basket] | | |
 

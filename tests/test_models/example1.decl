@@ -1,0 +1,42 @@
+activity ApplyForTrip
+activity ApproveApplication
+activity BookTransport
+activity BookAccomodation
+activity CollectTickets
+activity ArchiveDocuments
+activity UseTransport
+activity DoSomething
+
+bind BookTransport: TransportType, Price, Speed
+bind UseTransport: TransportType, Something, Price
+bind DoSomething: Something
+
+
+TransportType: Car, Plane, Train, Bus
+Something: One, None, Another
+Price: float between 0 and 100
+Speed: integer between 0 and 300
+
+
+Init[ApplyForTrip]
+Response[CollectTickets, ArchiveDocuments]
+Precedence[BookTransport, ApproveApplication]
+Precedence[BookAccomodation, ApproveApplication]
+Precedence[CollectTickets, BookTransport]
+Precedence[CollectTickets, BookAccomodation]
+Absence2[BookAccomodation]
+Absence3[BookTransport]
+Absence1[ApplyForTrip]
+Existence[CollectTickets]
+Existence[ArchiveDocuments]
+Absence[ArchiveDocuments]
+Absence[ApproveApplication]
+
+
+Absence[BookTransport] | A.Price>50||
+RespondedExistence[BookTransport, UseTransport] | A.Price=50 | B.Price=80
+
+ChainResponse[DoSomething, UseTransport]
+Absence3[UseTransport]
+Exactly3[DoSomething]
+

@@ -365,6 +365,8 @@ class DeclareModelTemplateDataModel(CustomUtilityDict):
 
         """
         self.condition_line = cond_str
+        if self.condition_line is None:
+            self.condition_line = "||"
         conditions = cond_str.strip("|")
         conds_list = conditions.split("|")
         self.condition = [cl.strip() for cl in conds_list]
@@ -540,6 +542,8 @@ class DeclareParsedDataModel(CustomUtilityDict):
             # else:
             #     templt.activities = events
             templt.activities = events
+            templt.condition_line = "|||"
+            templt.condition = []
         if len(al.group()) >= 3:
             conditions = al.group(3).strip()
             if len(conditions) == 0:
@@ -550,6 +554,13 @@ class DeclareParsedDataModel(CustomUtilityDict):
             templt.condition_line = conditions
             conditions = conditions.strip("|")
             conds_list = conditions.split("|")
+            """ Some declare models use T.attribute for target conditions reference and some uses B.attributes"""
+            for i in range(0, len(conds_list)):
+                cl = conds_list[i]
+                if cl.startswith("B."):
+                    conds_list[i] = cl.replace("B.", "T.")
+                    templt.condition_line = templt.condition_line.replace(cl, conds_list[i])
+                    templt.template_line = templt.template_line.replace(cl, conds_list[i])
             templt.condition = [cl.strip() for cl in conds_list]
             conds_len = len(conds_list)
             if conds_len > 3:
@@ -663,7 +674,7 @@ class DeclareModelCoder:
         string = re.sub(' *= *', '=', string)
         string = re.sub(' *<= *', '<=', string)
         string = re.sub(' *>= *', '>=', string)
-        form_list = string.split(" ")
+        form_list = str(string).split(" ")
         for i in range(len(form_list) - 1, -1, -1):
             el = form_list[i]
             if el == 'in' or el == 'not_in':
