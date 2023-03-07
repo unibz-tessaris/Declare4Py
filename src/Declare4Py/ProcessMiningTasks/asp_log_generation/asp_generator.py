@@ -316,7 +316,7 @@ class AspGenerator(LogGenerator):
             tot_traces_generated = tot_traces_generated + len(self.asp_generated_traces[result])
             traces_generated = self.asp_generated_traces[result]
             # traces_generated.sort(key=lambda x: x.name)
-            traces_generated = sorted(traces_generated, key=custom_sort_trace_key)
+            # traces_generated = sorted(traces_generated, key=custom_sort_trace_key)
             for trace in traces_generated:
                 trace_gen = lg.Trace()
                 trace_gen.attributes["concept:name"] = trace.name
@@ -337,9 +337,9 @@ class AspGenerator(LogGenerator):
                                     num = res_value_decoded
                                     dmat = DeclareModelAttributeType
                                     if attr["value_type"] in [dmat.FLOAT]:
-                                        num = int(res_value_decoded) / attr["range_precision"]
+                                        num = int(res_value_decoded) / 10**attr["range_precision"]
                                     elif attr["value_type"] in [dmat.FLOAT_RANGE]:
-                                        num = int(res_value_decoded) / attr["range_precision"]
+                                        num = int(res_value_decoded) / 10**attr["range_precision"]
                                     elif attr["value_type"] == dmat.INTEGER or attr["value_type"] == dmat.INTEGER_RANGE:
                                         num = int(res_value_decoded)
                                     res_value_decoded = num
@@ -526,3 +526,6 @@ class AspGenerator(LogGenerator):
         self.scale = scale
         self.loc = loc
         return self
+
+
+
