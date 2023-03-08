@@ -8,7 +8,7 @@ from pandas import DataFrame, Index
 
 class IndexBased(BaseEstimator, TransformerMixin):
     
-    def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], max_events: int = None,
+    def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str] = [], max_events: int = None,
                  fillna: bool = True, create_dummies: bool = True):
         """
         Parameters
