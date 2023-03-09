@@ -3,12 +3,13 @@ from __future__ import annotations
 import base64
 import copy
 import re
+import typing
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Dict, List, Union
 
 from src.Declare4Py.ProcessModels.LTLModel import LTLModel
 from src.Declare4Py.Utils.custom_utility_dict import CustomUtilityDict
-
 
 """
 Class which holds most of the Constraint Template List with some information about templates themself.
@@ -85,7 +86,8 @@ class DeclareModelTemplate(str, Enum):
         template_str = template_str.replace(" ", "")
         template_str = template_str.replace("-", "")
         template_str = template_str.lower()
-        return next(filter(lambda t: t.templ_str.replace(" ", "").replace("-", "").lower() == template_str, DeclareModelTemplate), None)
+        return next(filter(lambda t: t.templ_str.replace(" ", "").replace("-", "").lower() == template_str,
+                           DeclareModelTemplate), None)
 
     @classmethod
     def get_unary_templates(cls):
@@ -267,7 +269,6 @@ class DeclareModelEvent(CustomUtilityDict):
         self.attributes: Dict[str, Dict] = {}
         self.update_props()
 
-
     def update_props(self):
         """
         Override method which updates the properties
@@ -278,6 +279,191 @@ class DeclareModelEvent(CustomUtilityDict):
         self.key_value["name"] = self.name
         self.key_value["event_type"] = self.event_type
         self.key_value["attributes"] = self.attributes
+
+
+class DeclareModelCoderSingletonMeta(type):
+    """
+        DeclareModelCoderSingletonMeta is a custom metaclass that implements the singleton pattern in Python.
+        A metaclass is a special kind of class that defines the behavior of other classes. In the case of DeclareModelCoderSingletonMeta,
+        it implements the __call__ method, which is called whenever an instance of the class is created.
+        The __call__ method checks if an instance of the class has already been created, and if not, creates a new
+        instance and stores it in a class-level dictionary _instances. If an instance has already been created,
+        it simply returns the existing instance.
+        To use the DeclareModelCoderSingletonMeta class, specify it as the metaclass for the class you want to make a singleton. For example:
+            class Singleton(metaclass=DeclareModelCoderSingletonMeta):
+                pass
+        Now, every time you create an instance of the Singleton class, you will always get the same instance,
+         regardless of how many times you create it. This ensures that the singleton pattern is maintained.
+    """
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        """
+         This method is called whenever an instance of the class is created.
+         It checks if an instance of the class has already been created, and if not,
+         creates a new instance and stores it in a class-level dictionary _instances.
+         If an instance has already been created, it simply returns the existing instance.
+       """
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
+    def __init__(self):
+        self.encoded_values: dict[str, str] = {}
+        self.event_nm_idx: int = 0
+        self.event_vl_idx: int = 0
+        self.attr_nm_idx: int = 0
+        self.attr_vl_idx: int = 0
+        self.other_counter: int = 0
+
+    def encode_value(self, s: str,
+                     val_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]) -> str:
+        if not isinstance(s, str):
+            return s
+        if s.isnumeric():
+            return s
+        s = s.strip()
+        if self.encoded_values in s:
+            return s
+        ns = ""
+        if val_type == "event_name":
+            ns = f"evt_name_{self.event_nm_idx}"
+            self.event_nm_idx = self.event_nm_idx + 1
+        elif val_type == "event_value":
+            ns = f"evt_val_{self.event_vl_idx}"
+            self.event_vl_idx = self.event_vl_idx + 1
+        elif val_type == "attr_name":
+            ns = f"attr_name_{self.attr_nm_idx}"
+            self.attr_nm_idx = self.attr_nm_idx + 1
+        elif val_type == "attr_val":
+            ns = f"attr_value_{self.attr_vl_idx}"
+            self.attr_vl_idx = self.attr_vl_idx + 1
+        else:
+            ns = f"other_{self.other_counter}"
+            self.other_counter = self.other_counter + 1
+        self.encoded_values[ns] = s
+        return ns
+
+    def decode_value(self, s: str) -> str:
+        if not isinstance(s, str):
+            return s
+        if s.isnumeric():
+            return s
+        s = s.strip()
+
+        for key in self.encoded_values:
+            enc_str = self.encoded_values[key]
+            if enc_str == s:
+                return key
+        raise ValueError(f"Unable to decode value {s}.")
+
+
+class DeclareModelToken(ABC):
+
+    def __init__(self, token: str):
+        self.encoder = DeclareModelCoderSingleton()
+        self.value = token
+
+    @abstractmethod
+    def get_name(self):
+        return self.value
+
+    @abstractmethod
+    def set_name(self, value):
+        self.value = value
+
+    @abstractmethod
+    def get_encoded_name(self):
+        return self.encoder.encode_value(self.get_name())
+
+
+class DeclareModelEventName(DeclareModelToken, ABC):
+    def __init__(self, name: str):
+        super().__init__(name)
+
+
+class DeclareModelEventValue(DeclareModelToken, ABC):
+    def __init__(self, name: str):
+        super().__init__(name)
+
+
+class DeclareModelEvent:
+    def __init__(self, name: str, value: str):
+        self.event_name = DeclareModelEventName(name)
+        self.event_value = DeclareModelEventValue(value)
+        self.attributes: [DeclareModelAttr] = []
+
+    def set_bound_attributes(self, attrs_list: [DeclareModelAttr]):
+        self.attributes = attrs_list
+
+
+class DeclareModelAttrName(DeclareModelToken, ABC):
+    def __init__(self, name: str):
+        super().__init__(name)
+
+
+class DeclareModelAttrValue(DeclareModelToken, ABC):
+    def __init__(self, name: str, value_type: DeclareModelAttributeType):
+        super().__init__(name)
+        self.attrbuite_value = value_type
+
+
+class DeclareModelAttr:
+    def __init__(self, attr: str, value: str):
+        self.attr_name = DeclareModelAttrName(attr)
+        self.value_type = self.detect_declare_attr_value_type(value)
+        self.attr_value = DeclareModelAttrValue(value, self.value_type)
+        self.attached_events: [DeclareModelEvent] = []
+
+    def set_attached_events(self, ev_list: [DeclareModelEvent]):
+        self.attached_events = ev_list
+
+    def detect_declare_attr_value_type(self, value: str) -> DeclareModelAttributeType:
+        """
+        Detect the type of value assigned to an attribute assigned
+        Parameters
+        ----------
+        value: assigned value
+        Returns DeclareModelAttributeType
+        -------
+        """
+        value = value.strip()
+        v2 = value.replace("  ", "")
+        if re.search(r"^[+-]?\d+$", value, re.MULTILINE):
+            return DeclareModelAttributeType.INTEGER
+        elif re.search(r"^[+-]?\d+(?:\.\d+)?$", value, re.MULTILINE):
+            return DeclareModelAttributeType.FLOAT
+        elif v2 and v2.lower().startswith("integer between"):
+            # ^integer * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
+            return DeclareModelAttributeType.INTEGER_RANGE
+        elif v2 and v2.lower().startswith("float between"):
+            # ^float * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
+            return DeclareModelAttributeType.FLOAT_RANGE
+        else:
+            return DeclareModelAttributeType.ENUMERATION
+
+
+class DeclareModelConstraintTemplate:
+    def __init__(self, template_line: str, template_number_id: int):
+        self.line = template_line
+        self.activities: [str] = None
+        self.cardinality: int = 0  # cardinality is only for unary and 0 means template doesn't have
+        self._conditions: [str] = 0  # conditions: activation, target, time
+        self.template: DeclareModelTemplate = None
+        self.template_index: int = template_number_id
+        pass
+
+    def parse_constraint_template(self, constraint_line: str):
+        pass
+    def get_activation_condition(self):
+        pass
+    def get_target_condition(self):
+        pass
+    def get_time_condition(self):
+        pass
+
 
 
 """
@@ -449,7 +635,8 @@ class DeclareParsedDataModel(CustomUtilityDict):
             attrs = {}
             dme.attributes = attrs
         if attr_name in self.attributes_list:
-            attrs[attr_name] = self.attributes_list[attr_name]  # saving the same reference. Same attr cannot have two values
+            attrs[attr_name] = self.attributes_list[
+                attr_name]  # saving the same reference. Same attr cannot have two values
         else:
             attrs[attr_name] = {"value": "", "value_type": ""}
 
@@ -802,7 +989,7 @@ class DeclareModelCoder:
             encoded_str = encoded_str.replace(" ", "___")
             encoded_str = encoded_str.replace("?", "qUeStIoNMaRk")
             encoded_str = encoded_str.replace("=", "eQualsSigN")
-            self.encoded_dict[s] = encoded_str.strip() + self.encoding_str
+            self.encoded_dict[s] = encoded_str.strip()  # + self.encoding_str
             # self.encoded_dict[s] = s.strip()
         return self.encoded_dict[s]
 
@@ -996,4 +1183,3 @@ class DeclareModel(LTLModel):
         st = f"""{{"activities": {self.activities}, "serialized_constraints": {self.serialized_constraints},\
         "constraints": {self.constraints}, "parsed_model": {self.parsed_model.to_json()} }} """
         return st.replace("'", '"')
-

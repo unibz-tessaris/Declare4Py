@@ -11,7 +11,7 @@ from datetime import datetime
 
 # profiler = cProfile.Profile()
 # profiler.enable()
-logging.basicConfig(level=logging.CRITICAL)
+logging.basicConfig(level=logging.DEBUG)
 
 decl = """
 activity Driving_Test
@@ -150,9 +150,9 @@ start_time = r_time()
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
-# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/decl-model4.decl")
+model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/decl-model4.decl")
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
-model: DeclareModel = DeclareModel().parse_from_string(decl4)
+# model: DeclareModel = DeclareModel().parse_from_string(decl4)
 
 print(f"model acts {len(model.activities)}")
 print(f"model attr {len(model.parsed_model.attributes_list)}")

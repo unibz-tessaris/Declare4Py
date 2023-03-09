@@ -153,6 +153,7 @@ class AspGenerator(LogGenerator):
         neg_traces_dist = self.compute_distribution(neg_traces)
         result: LogTracesType = LogTracesType(negative=[], positive=[])
         result_variation: LogTracesType = LogTracesType(negative=[], positive=[])
+        self.py_logger.debug(f"ASP encoding: \n\n {self.asp_encoding}")
         if self.negative_traces > 0:
             self.py_logger.debug("Generating negative traces")
             violation = {'constraint_violation': True, 'violate_all_constraints': self.violate_all_constraints}
@@ -526,6 +527,8 @@ class AspGenerator(LogGenerator):
         self.scale = scale
         self.loc = loc
         return self
+
+
 
 
 
