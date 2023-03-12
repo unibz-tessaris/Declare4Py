@@ -168,6 +168,7 @@ class AspGenerator(LogGenerator):
 
         self.py_logger.debug("Generating traces")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
+        print(lp)
         self.__generate_traces(lp, pos_traces_dist)
         result['positive'] = self.clingo_output
         result_variation['positive'] = self.clingo_output_traces_variation
@@ -207,8 +208,10 @@ class AspGenerator(LogGenerator):
                 "--sign-def=rnd",
                 f"--rand-freq={freq}",
                 f"--restart-on-model",
+                # f"--seed=8794",
                 f"--seed={seed}",
             ])
+            print("seed", seed)
             ctl.add(asp)
             ctl.add(self.asp_encoding)
             ctl.add(self.asp_template)
@@ -262,6 +265,7 @@ class AspGenerator(LogGenerator):
     def __handle_clingo_result(self, output: clingo.solving.Model):
         """Saves clingo produced result in an array """
         symbols = output.symbols(shown=True)
+        print(symbols)
         self.clingo_current_output = symbols
         self.py_logger.debug(f" Traces generated :{symbols}")
         self.clingo_output.append(symbols)

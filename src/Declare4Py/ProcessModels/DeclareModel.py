@@ -792,7 +792,7 @@ class DeclareModelCoder:
                 first_letter = s[0]
             if first_letter.isupper():
                 # first_letter = "lowerLetter" + first_letter.strip() + "lowerLetter"
-                first_letter = "l_" + first_letter.strip() + "_l"
+                first_letter = "l" + first_letter.strip() + ""
             encoded_str = first_letter + s[1:]
             # encoded_str = encoded_str.replace(":", "sEmIcOlUmN")
             encoded_str = encoded_str.replace(":", "__")
@@ -802,7 +802,7 @@ class DeclareModelCoder:
             encoded_str = encoded_str.replace(" ", "___")
             encoded_str = encoded_str.replace("?", "qUeStIoNMaRk")
             encoded_str = encoded_str.replace("=", "eQualsSigN")
-            self.encoded_dict[s] = encoded_str.strip() + self.encoding_str
+            self.encoded_dict[s] = encoded_str.strip()  # + self.encoding_str
             # self.encoded_dict[s] = s.strip()
         return self.encoded_dict[s]
 
@@ -810,11 +810,11 @@ class DeclareModelCoder:
         if not isinstance(s, str):
             return s
         # s doesn't contain {self.encoding_str} then its already decoded
-        if len(s) <= len(self.encoding_str):
-            return s
-
-        if self.encoding_str != s[-len(self.encoding_str):]:
-            return s
+        # if len(s) <= len(self.encoding_str):
+        #     return s
+        #
+        # if self.encoding_str != s[-len(self.encoding_str):]:
+        #     return s
 
         for key in self.encoded_dict:
             enc_str = self.encoded_dict[key]

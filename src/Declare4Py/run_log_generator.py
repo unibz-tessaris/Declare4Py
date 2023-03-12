@@ -149,7 +149,14 @@ start_time = r_time()
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/xRay.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
-model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/decl-model4.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/decl-model-v3.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/data_model.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/decl-model5.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
+model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
 
 print(f"model acts {len(model.activities)}")
@@ -158,26 +165,15 @@ print(f"model constraints {len(model.parsed_model.templates)}")
 
 start_time = r_time() - start_time
 print(f"Parsed declare model in {start_time}ms")
-num_of_traces = 20
+num_of_traces = 10
 num_min_events = 10
-num_max_events = 20
+num_max_events = 30
 
-start_time = r_time()
-asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events,
-                   # encode_decl_model=False
-                   )
+asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events, # encode_decl_model=False
+    )
 asp.set_distribution("uniform")
 asp.run('../../output/generated_asp.lp')
-# asp_log_generation.run()
-# asp.to_xes("../../output/generated_xes" + str(time.time_ns()) + ".xes")
-
-start_time = r_time() - start_time
-print(f"Traces generated in in {start_time}ms")
-
-start_time = r_time()
-asp.to_xes("../../output/generated_xes.xes")
-start_time = r_time() - start_time
-print(f"Writing file in {start_time }ms")
+asp.to_xes("../../output/generated.xes")
 
 # profiler.disable()
 # profiler.dump_stats("../../result.txt")
