@@ -1,3 +1,5 @@
+import warnings
+
 import clingo
 from clingo import SymbolType
 
@@ -35,7 +37,44 @@ class ASPResultTraceModel:
         self.events: [ASPResultEventModel] = []
         # ASP/clingo doesn't handle floats, thus we're scaling up the number values and now, we have to scale down back
         # after result
+        self.parsed_result = self.parse_clingo_result(model)
         self.parse_clingo_trace()
+
+    def parse_clingo_result(self, result: [clingo.solving.Model]) -> list:
+        traces = {}
+        resources = []
+        # We collect traces( which are events) and resources (attributes) along with positions
+        # later, we merge both according position.
+        for item in result:
+            if item.name == 'trace':  # fact: -> "trace(event_name, position)"
+                event_name, position = item.arguments
+                event_name = str(event_name)
+                position = int(str(position))
+                traces[position] = event_name
+            elif item.name == 'assigned_value':  # fact: -> "assigned_value(res_name, res_value, position)"
+                var_name, var_value, position = item.arguments
+                var_name = str(var_name)
+                var_value = str(var_value)
+                resources.append({"res_name": var_name, "res_val": var_value, "pos": position.number})
+            else:
+                warnings.warn(f"What is happening here {str(item)}")
+        return self.map_traces_and_resources(traces, resources)
+
+    def map_traces_and_resources(self, traces: list, resources: list):
+        result = []
+        for trace_pos in traces:
+            event = {}
+            event["name"] = traces[trace_pos]
+            event["ev_position"] = trace_pos
+            event["resources"] = {}
+            for resource in resources:
+                if resource["pos"] == trace_pos:
+                    event["resources"][resource["res_name"]] = resource["res_val"]
+                    event["resources"]["position"] = resource["pos"]
+                    event["position"] = resource["pos"]
+            result.append(event)
+        result = sorted(result, key=lambda x: x['ev_position'])
+        return result
 
     def parse_clingo_trace(self):
         e = {}

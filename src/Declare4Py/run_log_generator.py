@@ -165,9 +165,9 @@ print(f"model constraints {len(model.parsed_model.templates)}")
 
 start_time = r_time() - start_time
 print(f"Parsed declare model in {start_time}ms")
-num_of_traces = 10
+num_of_traces = 30
 num_min_events = 10
-num_max_events = 30
+num_max_events = 15
 
 asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events, # encode_decl_model=False
     )

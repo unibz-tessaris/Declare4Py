@@ -168,7 +168,7 @@ class AspGenerator(LogGenerator):
 
         self.py_logger.debug("Generating traces")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
-        print(lp)
+        # print(lp)
         self.__generate_traces(lp, pos_traces_dist)
         result['positive'] = self.clingo_output
         result_variation['positive'] = self.clingo_output_traces_variation
@@ -315,21 +315,20 @@ class AspGenerator(LogGenerator):
         dt = datetime.now()
         current_time = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
                                 tzinfo=timezone(timedelta(hours=1)))
-        formatted_time = current_time.isoformat()
         for result in self.asp_generated_traces:
             tot_traces_generated = tot_traces_generated + len(self.asp_generated_traces[result])
             traces_generated = self.asp_generated_traces[result]
             # traces_generated.sort(key=lambda x: x.name)
             traces_generated = sorted(traces_generated, key=custom_sort_trace_key)
-            for trace in traces_generated:
+            for trace in traces_generated:  # Positive, Negative...
                 trace_gen = lg.Trace()
                 trace_gen.attributes["concept:name"] = trace.name
                 trace_gen.attributes["label"] = result
-                for asp_event in trace.events:
+                for asp_event in trace.parsed_result:
                     event = lg.Event()
-                    event["lifecycle:transition"] = "complete"  # NOTE: I don't know why but need
-                    event["concept:name"] = decl_encoded_model.decode_value(asp_event.name)
-                    for res_name, res_value in asp_event.resource.items():
+                    event["lifecycle:transition"] = "complete"  # NOTE: I don't know why we need it
+                    event["concept:name"] = decl_encoded_model.decode_value(asp_event['name'])
+                    for res_name, res_value in asp_event['resources'].items():
                         res_name_decoded = decl_encoded_model.decode_value(res_name)
                         res_value_decoded = decl_encoded_model.decode_value(res_value)
                         res_value_decoded = str(res_value_decoded)
@@ -351,6 +350,8 @@ class AspGenerator(LogGenerator):
                             event[res_name_decoded] = res_value_decoded.strip()
                         else:
                             event[res_name_decoded] = res_value_decoded
+
+                        # event[res_name_decoded] = res_value_decoded.strip()
                         # event["time:timestamp"] = formatted_time
                         event["time:timestamp"] = datetime.now()
                     trace_gen.append(event)
