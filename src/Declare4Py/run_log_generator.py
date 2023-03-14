@@ -11,7 +11,7 @@ from datetime import datetime
 
 # profiler = cProfile.Profile()
 # profiler.enable()
-logging.basicConfig(level=logging.CRITICAL)
+logging.basicConfig(level=logging.DEBUG)
 
 decl = """
 activity Driving_Test
@@ -156,8 +156,9 @@ start_time = r_time()
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/decl-model5.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
-# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
-model: DeclareModel = DeclareModel().parse_from_string(decl)
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
+model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
+# model: DeclareModel = DeclareModel().parse_from_string(decl)
 
 print(f"model acts {len(model.activities)}")
 print(f"model attr {len(model.parsed_model.attributes_list)}")
@@ -166,8 +167,8 @@ print(f"model constraints {len(model.parsed_model.templates)}")
 start_time = r_time() - start_time
 print(f"Parsed declare model in {start_time}ms")
 num_of_traces = 10
-num_min_events = 5
-num_max_events = 10
+num_min_events = 15
+num_max_events = 40
 
 asp = AspGenerator(
     model, num_of_traces, num_min_events, num_max_events,
@@ -176,8 +177,16 @@ asp = AspGenerator(
 asp.set_distribution("uniform")
 
 # asp.set_number_of_repetition_per_trace(4)
-# asp.set_constraints_to_violate_by_template_index(3, True, [20, 40, 12, 23, 37, 62, 45, 15, 19, 10, 42])
-asp.set_constraints_to_violate_by_template_index(5, True, [3])
+# asp.set_constraints_to_violate_by_template_index(1, True, [
+#     # i for i in range(1, 65)
+#     3, 5
+# ])
+
+asp.set_constraints_to_violate_by_template_index(5, True, [
+    5, 25, 35
+])
+
+# asp.set_constraints_to_violate_by_template_index(5, True, [3])
 asp.run('../../output/generated_asp.lp')
 asp.to_xes("../../output/generated.xes")
 

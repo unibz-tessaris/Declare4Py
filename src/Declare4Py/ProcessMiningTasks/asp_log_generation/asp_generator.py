@@ -230,7 +230,7 @@ class AspGenerator(LogGenerator):
                     Clingo was not able to generate trace events with exactly num_events, thus it returns
                     unsatisfiable.
                 """
-                warnings.warn(f'WARNING: Cannot generate {trace_type} trace/s exactly with {num_events} events with this Declare model.')
+                warnings.warn(f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model.')
                 break  # we exit because we cannot generate more traces with same params.
             elif self.num_repetition_per_trace > 0:
                 self.trace_counter = self.trace_counter + 1
@@ -411,6 +411,7 @@ class AspGenerator(LogGenerator):
         constraints_list = []
         for idx in constraints_idx_list:
             constraints_list.append(templates[idx].template_line)
+        print(constraints_list)
         self.set_constraints_to_violate(tot_negative_trace, violate_all, constraints_list)
 
     def set_number_of_repetition_per_trace(self, repetition: int):
