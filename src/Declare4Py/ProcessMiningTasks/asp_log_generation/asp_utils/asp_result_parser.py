@@ -49,7 +49,7 @@ class ASPResultTraceModel:
             if item.name == 'trace':  # fact: -> "trace(event_name, position)"
                 event_name, position = item.arguments
                 event_name = str(event_name)
-                position = int(str(position))
+                position = (position.number)
                 traces[position] = event_name
             elif item.name == 'assigned_value':  # fact: -> "assigned_value(res_name, res_value, position)"
                 var_name, var_value, position = item.arguments

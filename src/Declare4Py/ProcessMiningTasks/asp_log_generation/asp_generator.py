@@ -162,14 +162,14 @@ class AspGenerator(LogGenerator):
                                                        dupl_decl_model, violation)
             else:
                 lp = self.generate_asp_from_decl_model(self.encode_decl_model, None, dupl_decl_model, violation)
-            self.__generate_traces(lp, neg_traces_dist)
+            self.__generate_traces(lp, neg_traces_dist, "negative")
             result['negative'] = self.clingo_output
             result_variation['negative'] = self.clingo_output_traces_variation
 
         self.py_logger.debug("Generating traces")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
         # print(lp)
-        self.__generate_traces(lp, pos_traces_dist)
+        self.__generate_traces(lp, pos_traces_dist, "positive")
         result['positive'] = self.clingo_output
         result_variation['positive'] = self.clingo_output_traces_variation
 
@@ -180,7 +180,7 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug(f"Trace results parsed")
         self.__pm4py_log()
 
-    def __generate_traces(self, lp_model: str, traces_to_generate: collections.Counter):
+    def __generate_traces(self, lp_model: str, traces_to_generate: collections.Counter, trace_type: str):
         """
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         """
@@ -191,9 +191,9 @@ class AspGenerator(LogGenerator):
         # for events, traces in self.traces_length.items():
         for events, traces in traces_to_generate.items():
             self.py_logger.debug(f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
-            self.__generate_asp_trace(lp_model, events, traces)
+            self.__generate_asp_trace(lp_model, events, traces, trace_type)
 
-    def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
+    def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
         """Generate ASP trace using Clingo based on the given paramenters and then generate also the variation"""
         # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
         for i in range(num_traces):
@@ -211,7 +211,6 @@ class AspGenerator(LogGenerator):
                 # f"--seed=8794",
                 f"--seed={seed}",
             ])
-            print("seed", seed)
             ctl.add(asp)
             ctl.add(self.asp_encoding)
             ctl.add(self.asp_template)
@@ -231,12 +230,11 @@ class AspGenerator(LogGenerator):
                     Clingo was not able to generate trace events with exactly num_events, thus it returns
                     unsatisfiable.
                 """
-                warnings.warn(f'WARNING: Cannot generate a trace exactly with {num_events} events with this Declare model.')
+                warnings.warn(f'WARNING: Cannot generate {trace_type} trace/s exactly with {num_events} events with this Declare model.')
                 break  # we exit because we cannot generate more traces with same params.
             elif self.num_repetition_per_trace > 0:
                 self.trace_counter = self.trace_counter + 1
-                self.trace_variations_key_id = i
-                self.clingo_output_traces_variation[self.trace_variations_key_id] = []  # to generate the name of variation trace
+                self.clingo_output_traces_variation[len(self.clingo_output_traces_variation)] = []  # to generate the name of variation trace
                 num = self.num_repetition_per_trace - 1
                 if num > 0 and self.clingo_current_output is not None:
                     c = ASPResultTraceModel(f"variation_{i}_trace_{self.trace_counter}", self.clingo_current_output)
@@ -249,7 +247,7 @@ class AspGenerator(LogGenerator):
     def __generate_asp_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
         """ Generate variation traces based on the parameters"""
         # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
-        seed = randrange(0, 2 ** 32 - 1)
+        seed = randrange(0, 2 ** 30 - 1)
         self.py_logger.debug(f" Generating variation trace: {num_traces}, events{num_events}, seed:{seed}")
         ctl = clingo.Control([f"-c t={int(num_events)}", "--project", f"1", # f"{int(num_traces)}",
                               f"--seed={seed}", f"--sign-def=rnd", f"--restart-on-model", f"--rand-freq={freq}"])
@@ -265,7 +263,6 @@ class AspGenerator(LogGenerator):
     def __handle_clingo_result(self, output: clingo.solving.Model):
         """Saves clingo produced result in an array """
         symbols = output.symbols(shown=True)
-        print(symbols)
         self.clingo_current_output = symbols
         self.py_logger.debug(f" Traces generated :{symbols}")
         self.clingo_output.append(symbols)
@@ -299,7 +296,7 @@ class AspGenerator(LogGenerator):
     def __handle_clingo_variation_result(self, output: clingo.solving.Model):
         symbols = output.symbols(shown=True)
         self.py_logger.debug(f" Variation traces generated :{symbols}")
-        self.clingo_output_traces_variation[self.trace_variations_key_id].append(symbols)
+        self.clingo_output_traces_variation[len(self.clingo_output_traces_variation) - 1].append(symbols)
 
     def __pm4py_log(self):
         """ Generate pm4py log """
