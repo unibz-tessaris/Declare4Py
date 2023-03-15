@@ -158,22 +158,23 @@ start_time = r_time()
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
 model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
+
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
+model: DeclareModel = DeclareModel().parse_from_string(decl4)
 
 print(f"model acts {len(model.activities)}")
 print(f"model attr {len(model.parsed_model.attributes_list)}")
 print(f"model constraints {len(model.parsed_model.templates)}")
-
 start_time = r_time() - start_time
 print(f"Parsed declare model in {start_time}ms")
-num_of_traces = 10
-num_min_events = 15
-num_max_events = 40
+num_of_traces = 5
+num_min_events = 1
+num_max_events = 5
 
-asp = AspGenerator(
-    model, num_of_traces, num_min_events, num_max_events,
-    # encode_decl_model=False
-    )
+start_time = r_time()
+asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events,
+                   # encode_decl_model=False
+                   )
 asp.set_distribution("uniform")
 
 # asp.set_number_of_repetition_per_trace(4)
