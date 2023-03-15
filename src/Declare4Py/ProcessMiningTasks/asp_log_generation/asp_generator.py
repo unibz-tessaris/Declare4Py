@@ -527,3 +527,4 @@ class AspGenerator(LogGenerator):
         self.scale = scale
         self.loc = loc
         return self
+
