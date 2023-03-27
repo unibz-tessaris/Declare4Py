@@ -1,85 +1,8 @@
 from abc import ABC
 
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
-
 from pylogics.parsers import parse_ltl
 
-
-# Basic LTL formulae for user
-def eventually_activity_A(activity: str):
-    formula_str = "F(" + activity + ")"
-    return formula_str
-
-
-def eventually_A_then_B(activity1: str, activity2: str):
-    formula_str = "F(" + activity1 + " -> F(" + activity2 + "))"
-    return formula_str
-
-
-def eventually_A_or_B(activity1: str, activity2: str):
-    formula_str = "F(" + activity1 + ") || F(" + activity2 + ")"
-    return formula_str
-
-
-def eventually_A_next_B(activity1: str, activity2: str):
-    formula_str = "F(" + activity1 + " -> X(" + activity2 + "))"
-    return formula_str
-
-
-def eventually_A_then_B_then_C(activity1: str, activity2: str, activity3: str):
-    formula_str = "F(" + activity1 + " -> F(" + activity2 + " -> F(" + activity3 + ")))"
-    return formula_str
-
-
-def eventually_A_next_B_next_C(activity1: str, activity2: str, activity3: str):
-    formula_str = "F(" + activity1 + " -> X(" + activity2 + " -> X(" + activity3 + ")))"
-    return formula_str
-
-
-def next_A(act: str):
-    formula_str = "X(" + act + ")"
-    return formula_str
-
-
-class LTLModelTemplate:
-    """
-    Class that allows the user to create a template. User can choose between various standard formulae.
-    Makes use of the class LTLModel
-    """
-    templates = {'eventually_activity_A': eventually_activity_A, 'eventually_A_then_B': eventually_A_then_B,
-                 'eventually_A_or_B': eventually_A_or_B, 'eventually_A_next_B': eventually_A_next_B,
-                 'eventually_A_then_B_then_C': eventually_A_then_B_then_C,
-                 'eventually_A_next_B_next_C': eventually_A_next_B_next_C, 'next_A': next_A}
-    templ_str: str = None
-
-    def __init__(self, templ_str: str):
-        if templ_str in self.templates:
-            self.templ_str = templ_str
-        else:
-            raise RuntimeError("Inserted parameter is not of type string or is not a template")
-
-    def get_templ_model(self, *activities):
-        """
-        Function used to retrieve the selected template and returns an LTLModel object containing such template
-
-        Args:
-            *activities: List of parameters to pass to the selected template function
-
-        Returns:
-            Model of the template formula
-
-        """
-        if self.templ_str is None:
-            raise RuntimeError("Please first load a valid template")
-        func = self.templates.get(self.templ_str)
-        m = None
-        try:
-            formula = func(*activities)
-            m = LTLModel()
-            m.parse_from_string(formula)
-        except (TypeError, RuntimeError):
-            raise TypeError("Mismatched number of parameters")
-        return m
 
 
 class LTLModel(ProcessModel, ABC):
@@ -89,7 +12,7 @@ class LTLModel(ProcessModel, ABC):
         self.formula: str = ""
         self.parsed_formula = None
 
-    def parse_from_string(self, content: str, new_line_ctrl: str = "\n"):
+    def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> None:
         """
         This function expects an LTL formula as a string.
         The pylogics library is used, reference to it in case of doubt.
@@ -102,7 +25,7 @@ class LTLModel(ProcessModel, ABC):
             new_line_ctrl:
 
         Returns:
-            The parsed LTL formula
+            Void
 
         """
         parsed = None
@@ -134,3 +57,80 @@ class LTLModel(ProcessModel, ABC):
 
         self.formula = content
         self.parsed_formula = parsed
+
+
+class LTLModelTemplate:
+    """
+    Class that allows the user to create a template. User can choose between various standard formulae.
+    Makes use of the class LTLModel.
+    Insert a string representing one of the seven available template functions
+    """
+
+    # Set of basic LTL formulae for user
+    def eventually_activity_a(activity: str) -> str:
+        formula_str = "F(" + activity + ")"
+        return formula_str
+
+    def eventually_a_then_b(activity1: str, activity2: str) -> str:
+        formula_str = "F(" + activity1 + " -> F(" + activity2 + "))"
+        return formula_str
+
+    def eventually_a_or_b(activity1: str, activity2: str) -> str:
+        formula_str = "F(" + activity1 + ") || F(" + activity2 + ")"
+        return formula_str
+
+    def eventually_a_next_b(activity1: str, activity2: str) -> str:
+        formula_str = "F(" + activity1 + " -> X(" + activity2 + "))"
+        return formula_str
+
+    def eventually_a_then_b_then_c(activity1: str, activity2: str, activity3: str) -> str:
+        formula_str = "F(" + activity1 + " -> F(" + activity2 + " -> F(" + activity3 + ")))"
+        return formula_str
+
+    def eventually_a_next_b_next_c(activity1: str, activity2: str, activity3: str) -> str:
+        formula_str = "F(" + activity1 + " -> X(" + activity2 + " -> X(" + activity3 + ")))"
+        return formula_str
+
+    def next_a(act: str) -> str:
+        formula_str = "X(" + act + ")"
+        return formula_str
+
+    templates = {'eventually_activity_a': eventually_activity_a, 'eventually_a_then_b': eventually_a_then_b,
+                 'eventually_a_or_b': eventually_a_or_b, 'eventually_a_next_b': eventually_a_next_b,
+                 'eventually_a_then_b_then_c': eventually_a_then_b_then_c,
+                 'eventually_a_next_b_next_c': eventually_a_next_b_next_c, 'next_a': next_a}
+    templ_str: str = None
+
+    parameters: [str] = []
+
+    def __init__(self, templ_str: str):
+        if templ_str in self.templates:
+            self.templ_str = templ_str
+        else:
+            raise RuntimeError("Inserted parameter is not of type string or is not a template")
+
+    def get_templ_model(self, *activities: str) -> LTLModel:
+        """
+        Function used to retrieve the selected template and returns an LTLModel object containing such template
+
+        Args:
+            *activities: List of parameters to pass to the selected template function
+
+        Returns:
+            Model of the template formula
+
+        """
+        if self.templ_str is None:
+            raise RuntimeError("Please first load a valid template")
+        func = self.templates.get(self.templ_str)
+        m = None
+        try:
+            formula = func(*activities)
+            self.parameters.append(*activities)
+            m = LTLModel()
+            m.parse_from_string(formula)
+        except (TypeError, RuntimeError):
+            raise TypeError("Mismatched number of parameters")
+        return m
+
+

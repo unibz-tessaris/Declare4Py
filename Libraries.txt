@@ -1,0 +1,11 @@
+To install:
+- logaut
+- lydia
+- pylogics
+- pandas
+- PM4PY
+- packaging
+- mlxtend
+- numpy
+- scikit-learn
+- matplotlib
