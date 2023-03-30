@@ -6,7 +6,7 @@ from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_translator.declare
     DeclareModelConditionResolver2ASP
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelTemplateDataModel
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
 
 """
 Abductive logic programming (ALP) is a high-level knowledge-representation framework that can be used to solve
@@ -82,7 +82,7 @@ class TranslatedASPModel:
         if value not in self.attributes_values:
             self.attributes_values.append(value)
 
-    def add_template(self, name, ct: DeclareModelTemplateDataModel, props: dict[str, dict]):
+    def add_template(self, name, ct: DeclareModelConstraintTemplate, props: dict[str, dict]):
         """
         Parse declare model template into ASP
         """

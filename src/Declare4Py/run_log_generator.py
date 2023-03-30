@@ -8,6 +8,7 @@ from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_generator import A
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
 import time
 from datetime import datetime
+import json
 
 # profiler = cProfile.Profile()
 # profiler.enable()
@@ -156,19 +157,24 @@ model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/mo
 # model: DeclareModel = DeclareModel().parse_from_string(decl)
 # model: DeclareModel = DeclareModel().parse_from_string(decl4)
 
+with open("../../xyzz.json", 'w') as file:
+    d = model.parsed_model.to_dict()
+    json.dump(d, file, indent=4)
+exit(0)
 print(f"model acts {len(model.activities)}")
 print(f"model attr {len(model.parsed_model.attributes_list)}")
 print(f"model constraints {len(model.parsed_model.templates)}")
 start_time = r_time() - start_time
 print(f"Parsed declare model in {start_time}ms")
 num_of_traces = 5
-num_min_events = 1
-num_max_events = 5
+num_min_events = 20
+num_max_events = 30
 
 start_time = r_time()
-asp = AspGenerator(model, num_of_traces, num_min_events, num_max_events,
-                   # encode_decl_model=False
-                   )
+asp = AspGenerator(
+        model, num_of_traces, num_min_events, num_max_events,
+        # encode_decl_model=False
+    )
 asp.set_distribution("uniform")
 
 # asp.set_number_of_repetition_per_trace(4)

@@ -5,7 +5,8 @@ import typing
 
 import boolean
 
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelTemplateDataModel, DeclareModelAttributeType
+# from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelTemplateDataModel, DeclareModelAttributeType
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelConstraintTemplate
 
 
 class DeclareModelConditionResolver2ASP:
@@ -13,7 +14,7 @@ class DeclareModelConditionResolver2ASP:
     def __init__(self, is_encoded: bool = False):
         self.is_encoded = is_encoded
 
-    def resolve_to_asp(self, ct: DeclareModelTemplateDataModel, attrs: dict[str, list], idx: int = 0):
+    def resolve_to_asp(self, ct: DeclareModelConstraintTemplate, attrs: dict[str, list], idx: int = 0):
         """ Converts constraint templates into ASP """
         ls = []
         activation, target_cond, time = ct.get_conditions()
