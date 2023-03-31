@@ -492,6 +492,7 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
             "value": mr,
         }
 
+
 class DeclareModelAttr:
     """Attr can be imagined as resources shared between events"""
     def __init__(self, attr: str, value: str = None):
