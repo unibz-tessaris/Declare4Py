@@ -9,19 +9,15 @@ from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
 
 
-"""
-ASP (Answer set programming) is a high-level knowledge-representation language that can be used to solve
- problems declaratively based on reasoning.
-
-ASP model contains the translated code of declare model. The ASP code in this model describe the problem
-representation in ASP.
-"""
 
 
 class ASPModel:
-
     """
-    ASP interpreter reads the data from the decl_model and converts it into ASP, as defining the problem
+    ASP (Answer set programming) is a high-level knowledge-representation language that can be used to solve
+     problems declaratively based on reasoning.
+
+    ASP model contains the translated code of declare model. It reads the data from the decl_model
+     and converts it into ASP
     """
     def __init__(self, is_encoded: bool):
         self.lines: [str] = []
@@ -85,11 +81,13 @@ class ASPModel:
         Parameters
         ----------
         decl_model: Declare model
-        constraint_violation: dictionary with two keyvalue pair: { constraint_violation: bool, violate_all_constraints: bool }.
-         `constraint_violation` indicates whether violation feature should be enabled or not, `violate_all_constraints`
-          indicates whether all the constraints mentioned in the list should be violated (True) or some of them (False)
-          and when the value is False, the constraints are chosen by clingo itself to violate.
-          The `violate_all_constraints` works only if `constraint_violation` is set to True.
+             a declare model object
+        constraint_violation:dict
+             dictionary with two keyvalue pair: { constraint_violation: bool, violate_all_constraints: bool }.
+             `constraint_violation` indicates whether violation feature should be enabled or not, `violate_all_constraints`
+             indicates whether all the constraints mentioned in the list should be violated (True) or some of them (False)
+             and when the value is False, the constraints are chosen by clingo itself to violate.
+             The `violate_all_constraints` works only if `constraint_violation` is set to True.
 
         Returns
         -------

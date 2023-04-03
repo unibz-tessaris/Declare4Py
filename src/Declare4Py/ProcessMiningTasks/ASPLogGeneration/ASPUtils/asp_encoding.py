@@ -1,4 +1,7 @@
 class ASPEncoding(str):
+    """
+    A class which create the encoding for the ASP.
+    """
 
     def __init__(self, is_unsat: bool = False):
 

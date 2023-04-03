@@ -51,10 +51,16 @@ class AspGenerator(LogGenerator):
         Parameters
         ----------
         decl_model: DeclModel
-        num_traces: int an integer representing the number of traces to generate
-        min_event: int an integer representing the minimum number of events that a trace can have
-        max_event: int an integer representing the maximum number of events that a trace can have
-        encode_decl_model: boolean value, indicating whether the declare model should be encoded or not.
+            Declare model object
+        num_traces: int
+            an integer representing the number of traces to generate
+        min_event: int
+            an integer representing the minimum number of events that a trace can have
+        max_event: int
+            an integer representing the maximum number of events that a trace can have
+        encode_decl_model: boolean
+            indicating whether the declare model should be encoded or not.
+
         Because, clingo doesn't accept some names such as a name starting with capital letter.
         """
         super().__init__(num_traces, min_event, max_event, decl_model)
@@ -80,7 +86,26 @@ class AspGenerator(LogGenerator):
     def generate_asp_from_decl_model(self, encode: bool = True, save_file: str = None,
                                      process_model: ProcessModel = None, violation: dict = None) -> str:
         """
-            Generates an ASP translation of the Declare model. It takes an optional encode parameter, which is a boolean
+        Generates an ASP translation of the Declare model.
+        Parameters
+        ----------
+        encode: bool
+            whether to use the encoded values to generate ASP
+        save_file: str
+            specify filepath with name, in which the generated ASP will be saved
+        process_model: DeclareModel
+            DeclareModel which will be converted or translated into the ASP
+        violation: dict
+            A dictionary containing information about the constraint templates which should be violated or in order
+            to generate the negative traces.
+
+        Returns
+        -------
+        str
+            ASP program
+        """
+        """
+             It takes an optional encode parameter, which is a boolean
              indicating whether to encode the model or not. The default value is True.
         """
         if process_model is None:
@@ -101,7 +126,7 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug("ASP encoding generated")
         return lp
 
-    def __handle_activations_condition_asp_generation(self):
+    def __handle_activations_condition_asp_generation(self) -> None:
         """ Handles the logic for the activations condition """
         if self.activation_conditions is None:
             return
@@ -140,6 +165,10 @@ class AspGenerator(LogGenerator):
     def run(self, generated_asp_file_path: typing.Union[str, None] = None):
         """
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
+        Parameters
+        ----------
+        generated_asp_file_path: str, optional
+            Specify the file name if you want to write the ASP generated program
         """
         if self.negative_traces > self.log_length:
             warnings.warn("Negative traces can not be greater than total traces asked to generate. Nothing Generating")
@@ -180,7 +209,17 @@ class AspGenerator(LogGenerator):
 
     def __generate_traces(self, lp_model: str, traces_to_generate: collections.Counter, trace_type: str):
         """
-            Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
+        Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
+        Parameters
+        ----------
+        lp_model: str
+            ASP model
+        traces_to_generate: collections.Counter
+            a counter ({ 4:2, 1: 3}), means 2 traces of 4 events, 3 traces with just 1 event.
+        trace_type: str
+            trace type: negative or positive
+        Returns
+        -------
         """
         self.clingo_output = []
         self.clingo_output_traces_variation = {}
@@ -192,7 +231,24 @@ class AspGenerator(LogGenerator):
             self.__generate_asp_trace(lp_model, events, traces, trace_type)
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
-        """Generate ASP trace using Clingo based on the given paramenters and then generate also the variation"""
+        """
+        Generate ASP trace using Clingo based on the given parameters and then generate also the variation
+        Parameters
+        ----------
+        asp: str
+            ASP model
+        num_events: int
+            number of events to be present in the trace
+        num_traces: int
+            total number of traces
+        trace_type: str
+            type of trace: postive or negative
+        freq: float
+            a random float value between 0 and 0.9
+        Returns
+        -------
+
+        """
         # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
         for i in range(num_traces):
             self.clingo_current_output = None
@@ -241,7 +297,24 @@ class AspGenerator(LogGenerator):
                         self.__generate_asp_trace_variation(asp_variation, num_events, 1, freq)
 
     def __generate_asp_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
-        """ Generate variation traces based on the parameters"""
+        """
+        Generate variation traces based on the parameters
+        Parameters
+        ----------
+        asp: str
+            asp model program
+        num_events: int
+            number of events in a trace
+        num_traces: int
+            number of traces
+        freq: float
+            any float number between 0 to 1
+
+        Returns
+        -------
+
+        """
+        """ """
         # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
         seed = randrange(0, 2 ** 30 - 1)
         self.py_logger.debug(f" Generating variation trace: {num_traces}, events{num_events}, seed:{seed}")
@@ -257,14 +330,22 @@ class AspGenerator(LogGenerator):
             warnings.warn(f'WARNING: Failed to generate trace variation/case.')
 
     def __handle_clingo_result(self, output: clingo.solving.Model):
-        """Saves clingo produced result in an array """
+        """A callback method which is given to the clingo """
         symbols = output.symbols(shown=True)
         self.clingo_current_output = symbols
         self.py_logger.debug(f" Traces generated :{symbols}")
         self.clingo_output.append(symbols)
 
     def __resolve_clingo_results(self, results: LogTracesType):
-        """Resolve clingo produced result in particular structured """
+        """Resolve clingo produced result in customized structured
+        Parameters
+        ----------
+        results: LogTracesType
+            An object containing information about the generated traces/ solution model but to be parsed
+        Returns
+        -------
+
+        """
         self.asp_generated_traces = LogTracesType(positive=[], negative=[])
         i = 0
         for result in results:  # result value can be 'negative' or 'positive'
@@ -290,12 +371,18 @@ class AspGenerator(LogGenerator):
             self.asp_generated_traces[result] = self.asp_generated_traces[result] + asp_model
 
     def __handle_clingo_variation_result(self, output: clingo.solving.Model):
+        """A callback method which is given to the clingo """
         symbols = output.symbols(shown=True)
         self.py_logger.debug(f" Variation traces generated :{symbols}")
         self.clingo_output_traces_variation[len(self.clingo_output_traces_variation) - 1].append(symbols)
 
     def __pm4py_log(self):
-        """ Generate pm4py log """
+        """
+        Generate event logs in pm4py Format
+        Returns
+        -------
+
+        """
         self.py_logger.debug(f"Generating Pm4py log")
         if self.event_log is None:
             self.event_log = D4PyEventLog()
@@ -348,7 +435,16 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug(f"Pm4py generated but not saved yet")
 
     def to_xes(self, output_fn: str):
-        """Save log in xes file"""
+        """
+        Save log in xes file
+        Parameters
+        ----------
+        output_fn: str
+            filename
+        Returns
+        -------
+
+        """
         if self.event_log.log is None:
             self.__pm4py_log()
         pm4py.write_xes(self.event_log.log, output_fn)
@@ -359,10 +455,12 @@ class AspGenerator(LogGenerator):
 
         Parameters
         ----------
-        tot_negative_trace
-        violate_all
-        constraints_list
-
+        tot_negative_trace: int
+            total negative traces to generate
+        violate_all: bool
+            whether to violate all the given constraint templates or let decide clingo
+        constraints_list: list
+            the list of the constraint templates which have to be violated.
         Returns
         -------
             declare_model_violate_constraints
@@ -378,9 +476,12 @@ class AspGenerator(LogGenerator):
 
         Parameters
         ----------
-        tot_negative_trace: the number of total negative traces to generate. Cannot be greater than the Total traces len
-        violate_all: whether all constraints should be violated or some of them (decided by clingo using && op)
-        constraints_idx_list: an integer list indicating the indexing of constraint templates
+        tot_negative_trace: int
+            the number of total negative traces to generate. Cannot be greater than the Total traces len
+        violate_all: bool
+            whether all constraints should be violated or some of them (decided by clingo using && op)
+        constraints_idx_list: list
+            an integer list indicating the indexing of constraint templates
 
         Returns
         -------
@@ -398,7 +499,12 @@ class AspGenerator(LogGenerator):
         - C D A F
         - E D C A
         - B A C E
-        and then for each of these trace we generate other 7 traces
+        and then for each of these trace we generate other 7 traces.
+        We want clusters of traces where each cluster contains traces with the same order of events but different payload (resources or time)
+        -------
+        Parameters
+        repetition: int
+            number of repetition for each trace.
         """
         self.num_repetition_per_trace = repetition
 
@@ -442,8 +548,7 @@ class AspGenerator(LogGenerator):
 
     def set_activation_conditions_by_template_index(self, activations_list: dict[int, list[int]]):
         """
-        the activation conditions are used TODO: add more info about it.
-        TODO: this method should be in the ASPLogGeneration generator rather than abstract class and also self.activation_conditions.
+        we want to specify rules for the activations, that is a number for the activation events.
 
         Parameters
         ----------
@@ -470,7 +575,11 @@ class AspGenerator(LogGenerator):
         """
          The compute_distribution method computes the distribution of the number of events in a trace based on
          the distributor_type parameter. If the distributor_type is "gaussian", it uses the loc and scale parameters
-         to compute a Gaussian distribution. Otherwise, it uses a uniform or custom distribution.
+         to compute a Gaussian distribution. Otherwise, it uses a uniform or custom distribution.+
+
+         Parameters
+         total_traces: int, optional
+            the number of traces
         """
         self.py_logger.info("Computing distribution")
         d = Distributor()
@@ -500,8 +609,26 @@ class AspGenerator(LogGenerator):
     def set_distribution(self, distributor_type: typing.Literal["uniform", "gaussian", "custom"] = "uniform",
                          custom_probabilities: typing.Optional[typing.List[float]] = None,
                          loc: float = None, scale: float = None):
+        """
+        We specify rules regarding the length of a trace that spans between a minimum and a maximum.
+         This span is set according to a uniform, gaussian or custom distribution.
+
+        Parameters
+        ----------
+        distributor_type: str
+            "uniform", "gaussian", "custom"
+        custom_probabilities: list, optional
+            it must be used when custom distribution is chosen
+        loc: float
+            used for gaussian/normal distribution
+        scale: float
+            used for gaussian/normal distribution
+
+        Returns
+        -------
+
+        """
         self.distributor_type = distributor_type
         self.custom_probabilities = custom_probabilities
         self.scale = scale
         self.loc = loc
-        return self

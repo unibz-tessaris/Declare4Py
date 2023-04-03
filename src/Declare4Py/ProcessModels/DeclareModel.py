@@ -7,14 +7,28 @@ from enum import Enum
 
 from src.Declare4Py.ProcessModels.LTLModel import LTLModel
 
-"""
-Class which holds most of the Constraint Template List with some information about templates themself.
-"""
-
 
 class DeclareModelTemplate(str, Enum):
+    """ Enum class containing the metadata for each Constraint Template supported
+
+    """
 
     def __new__(cls, *args, **kwds):
+        """
+        Creates a new DeclareModelTemplate instance and assigns a unique value based on the number of members.
+
+        Parameters
+        ----------
+        *args
+            Variable-length arguments passed to the Enum constructor.
+        **kwds
+            Keyword arguments passed to the Enum constructor.
+
+        Returns
+        -------
+        DeclareModelTemplate
+            The newly created DeclareModelTemplate instance with a unique value.
+        """
         value = len(cls.__members__) + 1
         obj = str.__new__(cls)
         obj._value_ = value
@@ -24,16 +38,24 @@ class DeclareModelTemplate(str, Enum):
                  both_activation_condition: bool = False, is_shortcut: bool = False,
                  reverseActivationTarget: bool = False):
         """
+        Initializes a DeclareModelTemplate instance with the provided attributes.
 
         Parameters
         ----------
-        templ_str: template name
-        is_binary: whether template supports 2 events
-        is_negative: whether the template is negative
-        supports_cardinality: whether template supports cardinality, i.e Existence template is unary
-         but you can specify a number how many times Existence should occur. "Existence4[A]|||" where 4 times at least occur.
-        both_activation_condition: some templates doesn't have target condition, instead both conditions are activation conditions.
-        reverseActivationTarget: some C.T have reverse activation and target condition
+        templ_str: str
+            The template name.
+        is_binary: bool
+            Whether the template supports two events.
+        is_negative: bool
+            Whether the template is negative.
+        supports_cardinality: bool
+            Whether the template supports cardinality, e.g., Existence template is unary
+            but you can specify a number for how many times Existence should occur.
+            "Existence4[A]|||" means it should occur at least 4 times.
+        both_activation_condition: bool
+            Whether some templates don't have a target condition, and both conditions are activation conditions.
+        reverseActivationTarget: bool
+            Whether some constraint templates have reverse activation and target conditions.
         """
         self.templ_str = templ_str
         self.is_binary = is_binary
@@ -79,6 +101,19 @@ class DeclareModelTemplate(str, Enum):
 
     @classmethod
     def get_template_from_string(cls, template_str):
+        """
+        Retrieves the template Enum instance from the given string representation.
+
+        Parameters
+        ----------
+        template_str: str
+            The string representation of the template.
+
+        Returns
+        -------
+        DeclareModelTemplate
+            The matching template Enum instance or None if not found.
+        """
         template_str = template_str.replace(" ", "")
         template_str = template_str.replace("-", "")
         template_str = template_str.lower()
@@ -87,30 +122,86 @@ class DeclareModelTemplate(str, Enum):
 
     @classmethod
     def get_unary_templates(cls):
+        """
+        Retrieves unary templates.
+
+        Returns
+        -------
+        tuple
+            A tuple containing unary templates.
+        """
         return tuple(filter(lambda t: not t.is_binary, DeclareModelTemplate))
 
     @classmethod
     def get_binary_templates(cls):
+        """
+       Retrieves binary templates.
+
+       Returns
+       -------
+       tuple
+           A tuple containing binary templates.
+       """
         return tuple(filter(lambda t: t.is_binary, DeclareModelTemplate))
 
     @classmethod
     def get_positive_templates(cls):
+        """
+        Retrieves positive templates.
+
+        Returns
+        -------
+        tuple
+            A tuple containing positive templates.
+        """
         return tuple(filter(lambda t: not t.is_negative, DeclareModelTemplate))
 
     @classmethod
     def get_negative_templates(cls):
+        """
+        Retrieves negative templates.
+
+        Returns
+        -------
+        tuple
+            A tuple containing negative templates.
+        """
         return tuple(filter(lambda t: t.is_negative, DeclareModelTemplate))
 
     @classmethod
     def get_shortcut_templates(cls):
+        """
+        Retrieves shortcut templates.
+
+        Returns
+        -------
+        tuple
+            A tuple containing shortcut templates.
+        """
         return tuple(filter(lambda t: t.is_shortcut, DeclareModelTemplate))
 
     @classmethod
     def are_conditions_reversed_applied(cls):
+        """
+        Retrieves templates with reversed activation and target conditions.
+
+        Returns
+        -------
+        tuple
+            A tuple containing templates with reversed activation and target conditions.
+        """
         return tuple(filter(lambda t: t.reverseActivationTarget, DeclareModelTemplate))
 
     @classmethod
     def get_binary_not_shortcut_templates(cls):
+        """
+        Retrieves binary templates that are not shortcuts.
+
+        Returns
+        -------
+        tuple
+            A tuple containing binary templates that are not shortcuts.
+        """
         return tuple(filter(lambda t: t.is_binary and not t.is_shortcut, DeclareModelTemplate))
 
     def __str__(self):
@@ -120,13 +211,11 @@ class DeclareModelTemplate(str, Enum):
         return "\"" + str(self.__str__()) + "\""
 
 
-"""
-Class for backward-compatibility for some older code which contains two methods for declare models.
-"""
-
-
 class DeclareModelConditionParserUtility:
-
+    """
+    Class to support backward-compatibility to some older code. It contains two methods which parse and evaluate
+     declare model conditions.
+    """
     def __init__(self):
         super().__init__()
 
@@ -231,12 +320,9 @@ class DeclareModelConditionParserUtility:
             raise SyntaxError
 
 
-"""
-An Enum class that specifies types of attributes of the Declare model
-"""
-
-
 class DeclareModelAttributeType(str, Enum):
+    """An Enum class that specifies types of attributes of the Declare model
+    """
     INTEGER = "integer"
     FLOAT = "float"
     INTEGER_RANGE = "integer_range"
@@ -248,13 +334,6 @@ class DeclareModelAttributeType(str, Enum):
 
     def __repr__(self):
         return "\"" + self.__str__() + "\""
-
-
-"""
-
-A data model contains the information about activity such as name of that activity and its attributes.
-
-"""
 
 
 class DeclareModelCoderSingletonMeta(type):
@@ -286,6 +365,9 @@ class DeclareModelCoderSingletonMeta(type):
 
 
 class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
+    """ A singleton class which encodes and decodes the given values. It contains the information of encoded values
+     during its lifecycle, so, it can decode the values back.
+    """
     def __init__(self):
         self.encoded_values: dict[str, str] = {}
         self._inverse_encoded_values_store: dict[str, str] = {}
@@ -296,6 +378,19 @@ class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
         self.other_counter: int = 0
 
     def encode_value(self, val2encode: str, val_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]) -> str:
+        """
+        Encode the given value
+        Parameters
+        ----------
+        val2encode: str
+            value to encode
+        val_type: str, optional
+            type of value it is. Ie. the value can be the name of activity, attribute or its values(enumeration).
+
+        Returns
+        -------
+
+        """
         if not isinstance(val2encode, str):
             return val2encode
         if val2encode.isnumeric():
@@ -307,38 +402,50 @@ class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
             return self._inverse_encoded_values_store[val2encode]
 
         encoded_val = ""
-        # if val_type == "event_name":
-        #     encoded_val = f"evt_name_{self.event_nm_idx}"
-        #     self.event_nm_idx = self.event_nm_idx + 1
-        # elif val_type == "event_value":
-        #     encoded_val = f"evt_val_{self.event_vl_idx}"
-        #     self.event_vl_idx = self.event_vl_idx + 1
-        # elif val_type == "attr_name":
-        #     encoded_val = f"attr_name_{self.attr_nm_idx}"
-        #     self.attr_nm_idx = self.attr_nm_idx + 1
-        # elif val_type == "attr_val":
-        #     encoded_val = f"attr_value_{self.attr_vl_idx}"
-        #     self.attr_vl_idx = self.attr_vl_idx + 1
-        # else:
-        #     encoded_val = f"other_{self.other_counter}"
-        #     self.other_counter = self.other_counter + 1
+        if val_type == "event_name":
+            encoded_val = f"evt_name_{self.event_nm_idx}"
+            self.event_nm_idx = self.event_nm_idx + 1
+        elif val_type == "event_value":
+            encoded_val = f"evt_val_{self.event_vl_idx}"
+            self.event_vl_idx = self.event_vl_idx + 1
+        elif val_type == "attr_name":
+            encoded_val = f"attr_name_{self.attr_nm_idx}"
+            self.attr_nm_idx = self.attr_nm_idx + 1
+        elif val_type == "attr_val":
+            encoded_val = f"attr_value_{self.attr_vl_idx}"
+            self.attr_vl_idx = self.attr_vl_idx + 1
+        else:
+            encoded_val = f"other_{self.other_counter}"
+            self.other_counter = self.other_counter + 1
 
-        s = val2encode[0]
-        nm = val2encode
-        if s.isupper():
-            nm = "l" + nm[1:]
-        nm = nm.replace(":", "__")
-        nm = nm.replace(",", "cOmMa")
-        nm = nm.replace(".", "dOt")
-        nm = nm.replace(" ", "___")
-        nm = nm.replace("?", "qUeStIoNMaRk")
-        nm = nm.replace("=", "eQualsSigN")
-        encoded_val = nm
+        # s = val2encode[0]
+        # nm = val2encode
+        # if s.isupper():
+        #     nm = "l" + nm[1:]
+        # nm = nm.replace(":", "__")
+        # nm = nm.replace(",", "cOmMa")
+        # nm = nm.replace(".", "dOt")
+        # nm = nm.replace(" ", "___")
+        # nm = nm.replace("?", "qUeStIoNMaRk")
+        # nm = nm.replace("=", "eQualsSigN")
+        # encoded_val = nm
+
         self.encoded_values[encoded_val] = val2encode
         self._inverse_encoded_values_store[val2encode] = encoded_val
         return encoded_val
 
     def decode_value(self, s: str) -> str:
+        """
+        Decode the given value if it finds in the encoded_values list.
+        Parameters
+        ----------
+        s: str
+            a string value to decode.
+
+        Returns
+        -------
+        str
+        """
         if not isinstance(s, str):
             return s
         if s.isnumeric():
@@ -353,24 +460,31 @@ class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
 
 
 class DeclareModelToken(ABC):
-
+    """A Data model that represent each word of declare model as token."""
     def __init__(self, token: str, token_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]):
         self.encoder = DeclareModelCoderSingleton()
         self.value = token
         self.token_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"] = token_type
 
-    def get_name(self):
+    def get_name(self) -> str:
+        """Returns the name of the token"""
         return self.value
 
-    def set_name(self, value):
+    def set_name(self, value) -> None:
         self.value = value
 
-    def get_encoded_name(self):
+    def get_encoded_name(self) -> str:
+        """Returns the encoded values of token.
+        Returns
+        -------
+        str
+        """
         if self.value.lower() == "activity" and self.token_type == "event_name":
             return "activity"
         return self.encoder.encode_value(self.get_name(), self.token_type)
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """ Returns the dict which represents the object itself. This is for generating the JSON object"""
         return {
             "name": self.get_name(),
             "encoded_name": self.get_encoded_name(),
@@ -378,43 +492,105 @@ class DeclareModelToken(ABC):
 
 
 class DeclareModelEventName(DeclareModelToken):
+    """
+    A class representing an event name in a Declare Model, inheriting from DeclareModelToken.
+    Event name: activity(EventName). Eventname could be anything like: driving_test, ER_triage etc
+    """
     def __init__(self, name: str):
+        """
+        Initializes a DeclareModelEventName instance with the provided name.
+
+        Parameters
+        ----------
+        name: str
+            The name of the event.
+        """
         super().__init__(name, "event_value")
 
 
 class DeclareModelEventType(DeclareModelToken):
+    """
+    A class representing an event type in a Declare Model, inheriting from DeclareModelToken.
+    Event type: activity, action etc
+    """
     def __init__(self, name: str):
+        """
+        Initializes a DeclareModelEventType instance with the provided name of the Event.
+
+        Parameters
+        ----------
+        name: str
+            The name of the event.
+        """
         super().__init__(name, "event_name")
 
 
 class DeclareModelEvent:
+    """
+    A class representing an event in a Declare Model, containing the event name, event type, and attributes.
+    """
     def __init__(self, name: str, event_type: str):
         """
+        Initializes a DeclareModelEvent instance with the provided name and event type.
 
         Parameters
         ----------
-        name Event name is the name of event. i.e activity(actName). Activity is event type and actName is event name.
-        event_type Event type is the type of event. i.e activity(actName). Activity is event type and actName is event name.
-
+        name: str
+            The event name, e.g., in activity(actName), actName is the event name.
+        event_type: str
+            The event type, e.g., in activity(actName), activity is the event type.
         """
         self.event_name = DeclareModelEventName(name)
         self.event_type = DeclareModelEventType(event_type)
         self.attributes: dict[str, DeclareModelAttr] = {}
 
-    def set_bound_attributes(self, attrs_list: [DeclareModelAttr]):
+    def set_bound_attributes(self, attrs_list: [DeclareModelAttr]) -> None:
+        """
+        Sets the bound attributes for the event.
+
+        Parameters
+        ----------
+        attrs_list: List[DeclareModelAttr]
+            A list of DeclareModelAttr instances representing the event's attributes.
+        """
         self.attributes = {}
         for i in attrs_list:
             attrModel: DeclareModelAttr = i
             self.attributes[attrModel.attr_name] = attrModel
             j = j + 1
 
-    def set_bound_attribute(self, attr: DeclareModelAttr):
+    def set_bound_attribute(self, attr: DeclareModelAttr) -> None:
+        """
+        Sets a single bound attribute for the event.
+
+        Parameters
+        ----------
+        attr: DeclareModelAttr
+            A DeclareModelAttr instance representing an event attribute.
+        """
         self.attributes[attr.get_name()] = attr
 
-    def get_event_name(self):
+    def get_event_name(self) -> str:
+        """
+        Returns the event name.
+
+        Returns
+        -------
+        str
+            The name of the event.
+        """
         return self.event_name.get_name()
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """
+        Converts the DeclareModelEvent instance to a dictionary representation.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the event type, encoded event type, event name, encoded event name,
+            and bound attributes resources.
+        """
         return {
             "event_type": self.event_type.get_name(),
             "event_encoded_type": self.event_type.get_encoded_name(),
@@ -425,15 +601,36 @@ class DeclareModelEvent:
 
 
 class DeclareModelAttrName(DeclareModelToken, ABC):
+    """
+    A class representing an attribute name in a Declare Model, inheriting from DeclareModelToken.
+    """
     def __init__(self, name: str):
+        """
+        Initializes a DeclareModelEventName instance with the provided name.
+
+        Parameters
+        ----------
+        name: str
+            The name of the event.
+        """
         super().__init__(name, "attr_name")
 
 
 class DeclareModelAttrValue(DeclareModelToken, ABC):
     """
-    Declare value can be of 3 types: enumeration, float range, int range
+    A class representing a Declare Model Attribute Value, which can be one of three types: enumeration, float range, or integer range.
     """
     def __init__(self, value: str, value_type: DeclareModelAttributeType):
+        """
+        Initializes a DeclareModelAttrValue instance with the provided value and value type.
+
+        Parameters
+        ----------
+        value: str
+            The attribute value as a string.
+        value_type: DeclareModelAttributeType
+            The type of the attribute value (enumeration, float range, or integer range).
+        """
         super().__init__(value, "attr_val")
         self.value: [DeclareModelToken] | [float] | [int] = None
         self.value_original: [str] | [float] | [int] = value
@@ -442,6 +639,9 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
         self.parse_attr_value()
 
     def parse_attr_value(self):
+        """
+        Parses the attribute value based on its type.
+        """
         # pattern = re.compile(r"( \d+.?\d*)( and )?(\d+.?\d*)")
         if self.value_original is None:
             return
@@ -461,7 +661,21 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
                              " by ',', or integer range, or float range")
 
     def get_float_biggest_precision(self, v1: float, v2: float) -> int:
-        """ Get the biggest float precision in order to scale up a number """
+        """
+        Gets the biggest float precision to scale up a number.
+
+        Parameters
+        ----------
+        v1: float
+            The first float value.
+        v2: float
+            The second float value.
+
+        Returns
+        -------
+        int
+            The biggest float precision.
+        """
         decimal_len_list = []
         precision = 0
         frm = str(v1).split(".")  # 10.587
@@ -476,7 +690,16 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
         return max(decimal_len_list)
 
     def get_precisioned_value(self) -> [DeclareModelToken] | [int]:
-        """If attribute is of float type, it will return an integer value with scaled up. """
+        """
+        Returns the attribute value with precision applied, if it's a float range.
+        If the value is type of range float or integer, it will return array of two integer values, precision applied.
+        if the value is type of enumeration, then the each element will be type of DeclareModelToken.
+        Precision applied means that floats are converted into integer and scaled up based on decimal values.
+        Returns
+        -------
+        Union[List[DeclareModelToken], List[int]]
+            The attribute value with precision applied.
+        """
         if self.attribute_value_type == DeclareModelAttributeType.FLOAT_RANGE:
             frm = int((10 ** self.precision) * self.value[0])
             to = int((10 ** self.precision) * self.value[1])
@@ -487,6 +710,14 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
         return self.value
 
     def to_dict(self):
+        """
+        Converts the DeclareModelAttrValue instance to a dictionary representation.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the attribute value type, precision, original value, and parsed value.
+        """
         mr = []
         values = self.get_precisioned_value()
         if values is not None and len(values) > 0:
@@ -504,7 +735,9 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
 
 
 class DeclareModelAttr:
-    """Attr can be imagined as resources shared between events"""
+    """A class representing the attribute of declare model, An attribute can be imagined as resources shared
+     between events. Contains information about the name of attribute, values, events attached to it.
+    """
     def __init__(self, attr: str, value: str = None):
         self.attr_name = DeclareModelAttrName(attr)
         if value is not None:
@@ -515,15 +748,18 @@ class DeclareModelAttr:
         self.attached_events: dict[str, DeclareModelEvent] = {}
 
     def get_name(self) -> str:
+        """Returns the name of the attribute """
         return self.attr_name.get_name()
 
     def set_attached_events(self, ev_list: [DeclareModelEvent]):
+        """Saves the attached events to a list """
         self.attached_events = []
         for ev in ev_list:
             self.set_attached_event(ev)
         # self.attached_events = ev_list
 
     def set_attached_event(self, event: DeclareModelEvent):
+        """Saves the attached event to a list """
         ev_nm = event.get_event_name()
         for i in self.attached_events:
             if i == ev_nm:
@@ -538,9 +774,12 @@ class DeclareModelAttr:
         Detect the type of value assigned to an attribute assigned
         Parameters
         ----------
-        value: assigned value
-        Returns DeclareModelAttributeType
+        value: str
+            assigned value
+
+        Returns
         -------
+            DeclareModelAttributeType
         """
         value = value.strip()
         v2 = value.replace("  ", "")
@@ -562,6 +801,14 @@ class DeclareModelAttr:
         self.attr_value = DeclareModelAttrValue(value, self.value_type)
 
     def to_dict(self):
+        """
+        Converts the DeclareModelAttr instance to a dictionary representation.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the attribute informations.
+        """
         return {
             "attribute_name": self.attr_name.get_name(),
             "attribute_encoded_name": self.attr_name.get_encoded_name(),
@@ -570,7 +817,24 @@ class DeclareModelAttr:
 
 
 class DeclareModelConstraintTemplate:
+    """
+    A class representing a Declare Model Constraint Template.
+    Some properties are created private so the logic of providing correct information such as conditions and activity name
+    based on the constraint templates.
+    I.E Existence and Absence case where Existence1 and Absence1 doesn't exist but other unary does.
+    Another case is for the reverseConditions of some constraints.
+    """
     def __init__(self, template_line: str, template_number_id: int):
+        """
+        Initializes a DeclareModelConstraintTemplate instance with the provided template line and template number ID.
+
+        Parameters
+        ----------
+        template_line: str
+            The constraint template line as a string.
+        template_number_id: int
+            The template number ID.
+        """
         self.line = template_line
         self.events_activities: [DeclareModelEvent] = []
         self.cardinality: int = 0  # cardinality is only for unary and 0 means template doesn't have
@@ -582,6 +846,14 @@ class DeclareModelConstraintTemplate:
         self._conditions: [str] = []  # conditions: activation, target, time
 
     def get_template_name(self) -> str:
+        """
+        Returns the template name, considering the cardinality if supported by the template.
+
+        Returns
+        -------
+        str
+            The template name.
+        """
         if self.template.supports_cardinality:
             new_name = self.template.templ_str
             if self.cardinality > 0:
@@ -593,11 +865,19 @@ class DeclareModelConstraintTemplate:
 
     def get_conditions(self):
         """
-        Returns parsed conditions: active, target, and time condition if there are
+        Returns the parsed conditions: activation, target, and time conditions if present.
+
+        Returns
+        -------
+        tuple
+            A tuple containing activation, target, and time conditions.
         """
         return self.get_activation_condition(), self.get_target_condition(), self.get_time_condition()
 
     def parse_constraint_conditions(self):
+        """
+        Parses the constraint conditions in the template line.
+        """
         compiler = re.compile(r"^(.*)\[(.*)\]\s*(.*)$")
         al = compiler.fullmatch(self.line)
         if len(al.group()) >= 3:
@@ -618,7 +898,14 @@ class DeclareModelConstraintTemplate:
                 raise ValueError(f"Unable to parse the line due to the exceeds conditions (> 3)")
 
     def get_activation_condition(self):
-        """ Returns active conditions """
+        """
+        Returns the activation condition.
+
+        Returns
+        -------
+        str
+            The activation condition, if present. Otherwise, None.
+        """
         if self._conditions and self.template.reverseActivationTarget:  # if template has reverse conditions, so we xyz
             if len(self._conditions) > 1:
                 c = self._conditions[1]
@@ -631,7 +918,14 @@ class DeclareModelConstraintTemplate:
         return None
 
     def get_target_condition(self):
-        """ Returns target conditions """
+        """
+        Returns the target condition.
+
+        Returns
+        -------
+        str
+            The target condition, if present. Otherwise, None.
+        """
         cond = ""
         if self._conditions and self.template.reverseActivationTarget:
             if len(self._conditions) > 0:
@@ -646,7 +940,14 @@ class DeclareModelConstraintTemplate:
         return cond if len(cond) > 0 else None
 
     def get_time_condition(self):
-        """ Returns time condition """
+        """
+        Returns the time condition.
+
+        Returns
+        -------
+        str
+            The time condition, if present. Otherwise, None.
+        """
         if self.contains_interval_condition():
             c = self._conditions[2]
             return c if len(c) > 0 else None
@@ -654,7 +955,14 @@ class DeclareModelConstraintTemplate:
         return None
 
     def contains_interval_condition(self) -> bool:
-        """ Return a boolean value if a constraint template contains a time condition """
+        """
+        Determines whether the constraint template contains a time condition.
+
+        Returns
+        -------
+        bool
+            True if the template contains a time condition, otherwise False.
+        """
         if self._conditions is None:
             return False
         len_ = len(self._conditions)
@@ -663,6 +971,15 @@ class DeclareModelConstraintTemplate:
         return True
 
     def to_dict(self):
+        """
+        Converts the DeclareModelConstraintTemplate instance to a dictionary representation.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the template name, index, cardinality, condition line, activation condition,
+            target condition, time condition, violation status, and events involved.
+        """
         return {
             "template": self.get_template_name(),
             "index": self.template_index,
@@ -676,24 +993,27 @@ class DeclareModelConstraintTemplate:
         }
 
 
+
 """
 A data model class which contains information about a parsed template constraint.
 """
 
-#     # TODO: create getter and setters for properties and make properties
-#     #  private, so the logic of providing correct condition and activity
-#     #  based on correct constraint templates. I.E Existence and Absence case
-#     #  where Existence1 and Absence1 doesn't exist but other unary does.
-#     #  one more case is for the reverseConditions of some constraints
-
-
-"""
-DeclareParsedModel is dictionary type based class or it is a data model
-which contains the information of about declare model which is parsed.
-"""
-
 
 class DeclareParsedDataModel:
+    """
+    DeclareParsedDataModel holds the parsed data from the Declare Model, including events, attributes, and templates.
+
+    Attributes
+    ----------
+    events : dict
+        A dictionary containing the events in the Declare Model, categorized by their event type.
+    attributes_list : dict
+        A dictionary containing the attributes of the Declare Model.
+    templates : dict
+        A dictionary containing the constraint templates of the Declare Model.
+    total_templates : int
+        The total number of constraint templates in the Declare Model.
+    """
     def __init__(self):
         super().__init__()
         self.events: dict[str, dict[str, DeclareModelEvent]] = {}
@@ -703,15 +1023,14 @@ class DeclareParsedDataModel:
 
     def add_event(self, name: str, event_type: str) -> None:
         """
-        Add an event to events dictionary if not exists yet.
+        Add an event to the events dictionary if it does not already exist.
 
         Parameters
         ----------
-        name  the name of event or activity
-        event_type  the type of the event, generally its "activity"
-
-        Returns
-        -------
+        name : str
+            The name of the event or activity.
+        event_type : str
+            The type of the event, typically "activity".
         """
         event_types: dict[str, DeclareModelEvent] = {}
         if event_type in self.events:
@@ -723,16 +1042,15 @@ class DeclareParsedDataModel:
         event_types[name] = DeclareModelEvent(name, event_type)
 
     def add_attribute(self, event_name: str, attr_name: str):
-        f"""
-        Add the bounded attribute to the event/activity
+        """
+        Add a bounded attribute to the event/activity.
 
         Parameters
         ----------
-        event_name: the name of event that for which the {attr_name} is bounded to.
-        attr_name: attribute name
-        Returns
-        -------
-
+        event_name : str
+            The name of the event to which the attribute is bound.
+        attr_name : str
+            The name of the attribute.
         """
         event_model: DeclareModelEvent = None
         for i in self.events:
@@ -753,15 +1071,14 @@ class DeclareParsedDataModel:
 
     def add_attribute_value(self, attr_name: str, attr_value: str):
         """
-        Adding the attribute information
+        Add the attribute information to the attribute list.
+
         Parameters
         ----------
-        attr_name: str
-        attr_type: DeclareModelAttributeType
-        attr_value: str
-
-        Returns
-        -------
+        attr_name : str
+            The name of the attribute.
+        attr_value : str
+            The value of the attribute.
         """
         attr_name = attr_name.strip()
         if attr_name not in self.attributes_list:
@@ -770,9 +1087,20 @@ class DeclareParsedDataModel:
         attribute.set_attr_value(attr_value)
 
     def add_template(self, line: str, template: DeclareModelTemplate, cardinality: str, template_idx: int = None):
-        """ Add parsed constraint template in parsed model """
-        # templt = DeclareModelTemplateDataModel()
-        # self.templates.append(templt)
+        """
+        Add a parsed constraint template to the parsed model.
+
+        Parameters
+        ----------
+        line : str
+            The line containing the constraint template.
+        template : DeclareModelTemplate
+            The DeclareModelTemplate object representing the constraint template.
+        cardinality : str
+            The cardinality of the constraint template.
+        template_idx : int, optional
+            The index of the constraint template in the model, defaults to None.
+        """
         tmplt = DeclareModelConstraintTemplate(line, template_idx or self.total_templates)
         self.templates[self.total_templates] = tmplt
         self.total_templates = self.total_templates + 1
@@ -796,6 +1124,19 @@ class DeclareParsedDataModel:
         tmplt.parse_constraint_conditions()
 
     def find_event_by_name(self, name: str):
+        """
+        Find an event by its name in the Declare Model.
+
+        Parameters
+        ----------
+        name : str
+            The name of the event to find.
+
+        Returns
+        -------
+        DeclareModelEvent or None
+            The found event or None if not found.
+        """
         for ev_type in self.events:
             for ev_nm in self.events[ev_type]:
                 if ev_nm.strip() == name.strip():
@@ -804,11 +1145,34 @@ class DeclareParsedDataModel:
         return None
 
     def decode_value(self, val: str, is_encoded: bool) -> str:
+        """
+        Decode a value if it is encoded.
+
+        Parameters
+        ----------
+        val : str
+            The value to decode.
+        is_encoded : bool
+            A boolean indicating whether the value is encoded or not.
+
+        Returns
+        -------
+        str
+            The decoded value.
+        """
         if is_encoded:
             DeclareModelCoderSingleton().decode_value(val)
         return val
 
     def to_dict(self):
+        """
+        Convert the DeclareParsedDataModel object to a dictionary representation.
+
+        Returns
+        -------
+        dict
+            The dictionary representation of the DeclareParsedDataModel object.
+        """
         return {
             "events": {outer_key: {inner_key: value.to_dict() for inner_key, value in inner_dict.items()} for outer_key, inner_dict in self.events.items()},
             "attributes": {key: value.to_dict() for key, value in self.attributes_list.items()},
@@ -817,8 +1181,19 @@ class DeclareParsedDataModel:
 
 
 class DeclareModel(LTLModel):
-    CONSTRAINTS_TEMPLATES_PATTERN = r"^(.*)\[(.*)\]\s*(.*)$"
 
+    CONSTRAINTS_TEMPLATES_PATTERN = r"^(.*)\[(.*)\]\s*(.*)$"  # Regex pattern for parsing constraint templates.
+    """
+    The DeclareModel class is a subclass of LTLModel that is used to represent and manipulate Declare models.
+     It includes methods for parsing, setting constraints, writing to a file, and more.
+     Attributes:
+        CONSTRAINTS_TEMPLATES_PATTERN: A regular expression pattern for parsing constraint templates.
+        payload: A list of strings representing the payload.
+        serialized_constraints: A list of strings representing the serialized constraints.
+        constraints: A list of constraint objects.
+        parsed_model: An instance of DeclareParsedDataModel representing the parsed Declare model.
+        declare_model_lines: A list of strings representing the lines of the Declare model.
+    """
     def __init__(self):
         super().__init__()
         # self.activities = []
@@ -829,6 +1204,7 @@ class DeclareModel(LTLModel):
         self.declare_model_lines: [str] = []
 
     def set_constraints(self):
+        """Sets the constraints for the Declare model"""
         for constraint in self.constraints:
             constraint_str = constraint['template'].templ_str
             if constraint['template'].supports_cardinality:
@@ -837,9 +1213,11 @@ class DeclareModel(LTLModel):
             self.serialized_constraints.append(constraint_str)
 
     def get_decl_model_constraints(self):
+        """Returns the serialized constraints of the Declare model"""
         return self.serialized_constraints
 
     def to_file(self, model_path: str, **kwargs):
+        """Writes the Declare model to a file."""
         if model_path is not None:
             with open(model_path, 'w') as f:
                 for activity_name in self.activities:
@@ -848,6 +1226,18 @@ class DeclareModel(LTLModel):
                     f.write(f"{constraint}\n")
 
     def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> DeclareModel:
+        """
+        Parses a Declare model from a string
+        Parameters
+        ----------
+        content: str
+            Declare model in string format
+        new_line_ctrl: str
+            new line char
+        Returns
+        -------
+            DeclareModel
+        """
         if type(content) is not str:
             raise RuntimeError("You must specify a string as input model.")
         lines = content.split(new_line_ctrl)
@@ -856,6 +1246,17 @@ class DeclareModel(LTLModel):
         return self
 
     def parse_from_file(self, filename: str, **kwargs) -> DeclareModel:
+        """
+        Parameters
+        ----------
+        filename: str
+            text file containing declare model
+        kwargs
+
+        Returns
+        -------
+
+        """
         lines = []
         with open(filename, "r+") as file:
             lines = file.readlines()

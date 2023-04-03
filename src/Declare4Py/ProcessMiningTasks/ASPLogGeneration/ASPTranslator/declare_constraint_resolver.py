@@ -5,7 +5,6 @@ import typing
 
 import boolean
 
-# from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelTemplateDataModel, DeclareModelAttributeType
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelConstraintTemplate, \
     DeclareModelAttr, DeclareModelEvent, DeclareModelAttrValue, DeclareModelToken
 
@@ -16,7 +15,20 @@ class DeclareModelConditionResolver2ASP:
         self.is_encoded = is_encoded
 
     def resolve_to_asp(self, ct: DeclareModelConstraintTemplate, attrs: dict[str, DeclareModelAttr]):
-        """ Converts constraint templates into ASP """
+        """
+        Converts constraint templates into ASP.
+
+        Parameters
+        _________
+        ct: DeclareModelConstraintTemplate
+            constraint template object of declare model
+        attrs: dict
+            A dictionary of DeclareModelAttr objects.
+        Returns
+        _______
+         list
+          A list of ASP strings.
+        """
         ls = []
         idx: int = ct.template_index
         activation, target_cond, time = ct.get_conditions()
@@ -69,7 +81,24 @@ class DeclareModelConditionResolver2ASP:
         return ls
 
     def condition_to_asp(self, name: str, cond: str, i: int, attrs: dict[str, DeclareModelAttr]):
-        """ Converts constraint template's conditions into ASP """
+        """
+        Converts constraint template's conditions into ASP.
+
+        Parameters
+        __________
+        name: str
+            The name of the condition.
+        cond: str
+            The condition string.
+        i: int
+            The index of the condition.
+        attrs: dict
+            A dictionary of DeclareModelAttr objects.
+
+        Returns
+        _______
+        A list of ASP strings.
+        """
         name = name + '({},T)'.format(i)
         string = re.sub('is not', 'is_not', cond)
         string = re.sub('not in', 'not_in', string)
@@ -121,6 +150,19 @@ class DeclareModelConditionResolver2ASP:
         return ls
 
     def __get_attribute_value(self, searched_value: str, attr: DeclareModelAttrValue) -> str:
+        """
+        Get the attribute value.
+
+        searched_value: str
+            The searched value.
+        attr: DeclareModelAttrValue
+            A DeclareModelAttrValue object.
+
+        Returns
+        ______
+        str
+            The attribute value as a string.
+        """
         if attr:
             values: [DeclareModelToken] = attr.get_precisioned_value()
             for val in values:
@@ -130,11 +172,24 @@ class DeclareModelConditionResolver2ASP:
         raise ValueError(f"Unable to find the attribute value {searched_value}!")
 
     def parsed_condition(self, condition: typing.Literal['activation', 'correlation'], string: str):
-        """ Parse template's conditions into ASP """
+        """
+        Parse template's conditions into ASP.
+
+        :param condition: The condition type, either 'activation' or 'correlation'.
+        :param string: The condition string.
+        :return: The parsed expression, a dictionary mapping condition names to conditions, and a
+                 dictionary mapping conditions to condition names.
+        """
         # s = self.parse_data_cond_to_pycond(string)
         return self.parsed_condition_2(condition, string)
 
-    def parse_data_cond_to_pycond(self, cond: str):  # TODO: could be improved using recursion ?
+    def parse_data_cond_to_pycond(self, cond: str):
+        """
+        Parse a data condition string to a Python condition string.
+
+        :param cond: The data condition string.
+        :return: The Python condition string.
+        """
         try:
             cond = cond.strip()
             if cond == "":
@@ -210,6 +265,14 @@ class DeclareModelConditionResolver2ASP:
             raise SyntaxError
 
     def parsed_condition_2(self, condition: typing.Literal['activation', 'correlation'], string: str):
+        """
+        Parse template's conditions into ASP (alternative method).
+
+        :param condition: The condition type, either 'activation' or 'correlation'.
+        :param string: The condition string.
+        :return: The parsed expression, a dictionary mapping condition names to conditions, and a
+                 dictionary mapping conditions to condition names.
+        """
         string = re.sub(r'\)', ' ) ', string)
         string = re.sub(r'\(', ' ( ', string)
         string = string.strip()
@@ -269,8 +332,17 @@ class DeclareModelConditionResolver2ASP:
     def tree_conditions_to_asp(self, condition: typing.Literal['activation', 'correlation'],
                                expression, cond_name: str, i, conditions_names,
                                lp_st=None) -> typing.Union[typing.List[str], None]:
-        """ Parse nested conditions to ASP """
+        """
+        Parse nested conditions to ASP.
 
+        :param condition: The condition type, either 'activation' or 'correlation'.
+        :param expression: The expression to be parsed.
+        :param cond_name: The name of the condition.
+        :param i: The index of the condition.
+        :param conditions_names: A set of condition names.
+        :param lp_st: A list of ASP strings.
+        :return: A list of ASP strings or None.
+        """
         if lp_st is None:
             lp_st = []
 
