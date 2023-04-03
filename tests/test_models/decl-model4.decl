@@ -5,5 +5,3 @@ bind ER_Triage: org:group, Age
 org:group: A, B, C, D, E, I, K, L, M
 Age: integer between 20 and 79
 Response[ER_Triage, ER_Registration] | | |
-
-

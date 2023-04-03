@@ -5,6 +5,15 @@ from clingo import SymbolType
 
 
 class ASPResultEventModel:
+    """
+    Represents a single event in a trace from the ASP results.
+
+    Attributes:
+        name (str): The name of the event.
+        pos (int): The position of the event in the trace.
+        resource (Dict[str, str]): A dictionary containing the resource or value associated with the event.
+        fact_symbol (List[clingo.symbol.Symbol]): The clingo symbols representing the event.
+    """
 
     def __init__(self, fact_symbol: [clingo.symbol.Symbol]):
         self.name: str
@@ -31,6 +40,15 @@ class ASPResultEventModel:
 
 
 class ASPResultTraceModel:
+    """
+    Represents a single trace from the ASP results.
+
+    Attributes:
+        model (List[clingo.solving.Model]): The clingo model for the trace.
+        name (str): The name of the trace.
+        events (List[ASPResultEventModel]): A list of events in the trace.
+        parsed_result (List): The parsed result of the trace containing events and their resources.
+    """
     def __init__(self, trace_name: str, model: [clingo.solving.Model]):
         self.model = model
         self.name: str = trace_name
@@ -38,9 +56,17 @@ class ASPResultTraceModel:
         # ASP/clingo doesn't handle floats, thus we're scaling up the number values and now, we have to scale down back
         # after result
         self.parsed_result = self.parse_clingo_result(model)
-        self.parse_clingo_trace()
 
     def parse_clingo_result(self, result: [clingo.solving.Model]) -> list:
+        """
+        Parses the clingo result to extract traces and resources.
+
+        Args:
+            result (List[clingo.solving.Model]): The clingo result containing traces and resources.
+
+        Returns:
+            list: A list containing the traces and their associated resources.
+        """
         traces = {}
         resources = []
         # We collect traces( which are events) and resources (attributes) along with positions
@@ -61,6 +87,16 @@ class ASPResultTraceModel:
         return self.map_traces_and_resources(traces, resources)
 
     def map_traces_and_resources(self, traces: list, resources: list):
+        """
+        Maps the traces and resources based on their positions.
+
+        Args:
+            traces (list): A list containing the traces.
+            resources (list): A list containing the resources.
+
+        Returns:
+            list: A list containing the combined traces and resources.
+        """
         result = []
         for trace_pos in traces:
             event = {}
@@ -70,59 +106,16 @@ class ASPResultTraceModel:
             for resource in resources:
                 if resource["pos"] == trace_pos:
                     event["resources"][resource["res_name"]] = resource["res_val"]
-                    event["resources"]["position"] = resource["pos"]
-                    event["position"] = resource["pos"]
+                    event["resources"]["__position"] = resource["pos"]
+                    event["__position"] = resource["pos"]
             result.append(event)
         result = sorted(result, key=lambda x: x['ev_position'])
         return result
 
-    def parse_clingo_trace(self):
-        e = {}
-        assigned_values_symbols = []
-        for m in self.model:  # self.model = [trace(),.. trace(),.., assigned_value(...),...]
-            trace_name = str(m.name)
-            if trace_name == "trace":  # fact "trace(event_name, position)"
-                eventModel = ASPResultEventModel(m.arguments)
-                e[eventModel.pos] = eventModel
-                self.events.append(eventModel)
-            if trace_name == "assigned_value":
-                assigned_values_symbols.append(m.arguments)
-
-        for assigned_value_symbol in assigned_values_symbols:
-            resource_name, resource_val, pos = self.parse_clingo_val_assignement(assigned_value_symbol)
-            event = e[pos]
-            event.resource[resource_name] = resource_val
-
-    def parse_clingo_val_assignement(self, syb: [clingo.symbol.Symbol]):
-        val = []
-        # tot_symbols = len(syb)
-        for i, symbols in enumerate(syb):
-            if symbols.type == SymbolType.Function:  # if symbol is functionm it can have .arguments
-                val.append(symbols.name)
-            else:
-                num = symbols.number
-                val.append(num)
-        return val[0], val[1], val[2]
-
     def __str__(self):
-        st = f"""{{ "trace_name": "{self.name}", "events": {self.events} }}"""
+        st = f"""{{ "name": "{self.name}", "events": {self.events} }}"""
         return st.replace("'", '"')
 
     def __repr__(self):
         return self.__str__()
 
-
-# class AspResultLogModel:  # TODO: print json rename class
-#     def __init__(self):
-#         self.traces: typing.List[ASPResultTraceModel] = []
-#
-#     def __str__(self):
-#         return str(self.traces)
-#
-#     def __repr__(self):
-#         return self.__str__()
-#
-#     def print_indent(self):
-#         s = self.__str__()
-#         j = json.loads(s)
-#         print(json.dumps(j, indent=2))

@@ -1,4 +1,7 @@
 class ASPEncoding(str):
+    """
+    A class which create the encoding for the ASP.
+    """
 
     def __init__(self, is_unsat: bool = False):
 
@@ -16,9 +19,9 @@ class ASPEncoding(str):
             # "%:- template(I,_), not sat(I,t).\n"
 
         self.val3 = ":- sat(I), not sat(I,t)." + "\n" + ":- unsat(I), sat(I,t).\n"""
-        # if not is_unsat:
-            # self.val3 = """ :- template(I,_), not sat(I,t). \n"""
-            # self.val3 = """ :- sat(I), not sat(I,t). \n"""
+        if not is_unsat:
+            # self.val3 = """ :- template(I,_), not sat(I,t).\n"""
+            self.val3 = """ :- sat(I), not sat(I,t). \n"""
 
         self.val4 = """#show trace/2.\n#show assigned_value/3.\n%#show sat/2.\n"""
 
