@@ -16,12 +16,11 @@ from clingo import Symbol
 from pm4py.objects.log import obj as lg
 
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
-from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_translator.asp_translator import TranslatedASPModel, \
-    ASPTranslator
-from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_encoding import ASPEncoding
-from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_result_parser import ASPResultTraceModel
-from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_utils.asp_template import ASPTemplate
-from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_utils.distribution import Distributor
+from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPTranslator.asp_translator import ASPModel
+from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_encoding import ASPEncoding
+from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_result_parser import ASPResultTraceModel
+from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_template import ASPTemplate
+from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.distribution import Distributor
 from src.Declare4Py.ProcessMiningTasks.log_generator import LogGenerator
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
@@ -71,7 +70,7 @@ class AspGenerator(LogGenerator):
         self.trace_counter = 0
         self.trace_variations_key_id = 0  #
 
-        self.lp_model: TranslatedASPModel = None
+        self.lp_model: ASPModel = None
         self.encode_decl_model = encode_decl_model
         self.py_logger.debug(f"Distribution for traces {self.distributor_type}")
         self.py_logger.debug(
@@ -87,7 +86,7 @@ class AspGenerator(LogGenerator):
         if process_model is None:
             process_model = self.process_model
         self.py_logger.debug("Translate declare model to ASP")
-        self.lp_model = ASPTranslator().from_decl_model(process_model, encode, violation)
+        self.lp_model = ASPModel(encode).from_decl_model(process_model, violation)
         self.__handle_activations_condition_asp_generation()
         lp = self.lp_model.to_str()
         if save_file:
@@ -421,7 +420,7 @@ class AspGenerator(LogGenerator):
     def set_activation_conditions(self, activations_list: dict[str, list[int]]):
         """
         the activation conditions are used TODO: add more info about it.
-        TODO: this method should be in the asp_log_generation generator rather than abstract class and also self.activation_conditions.
+        TODO: this method should be in the ASPLogGeneration generator rather than abstract class and also self.activation_conditions.
 
         Parameters
         ----------
@@ -444,7 +443,7 @@ class AspGenerator(LogGenerator):
     def set_activation_conditions_by_template_index(self, activations_list: dict[int, list[int]]):
         """
         the activation conditions are used TODO: add more info about it.
-        TODO: this method should be in the asp_log_generation generator rather than abstract class and also self.activation_conditions.
+        TODO: this method should be in the ASPLogGeneration generator rather than abstract class and also self.activation_conditions.
 
         Parameters
         ----------

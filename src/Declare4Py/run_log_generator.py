@@ -4,7 +4,7 @@ from __future__ import annotations
 import cProfile
 import logging
 
-from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_generator import AspGenerator
+from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.asp_generator import AspGenerator
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
 import time
 from datetime import datetime
