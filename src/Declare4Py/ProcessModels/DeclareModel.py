@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import base64
-import copy
 import re
 import typing
-from abc import ABC, abstractmethod
+from abc import ABC
 from enum import Enum
-from typing import Dict, List, Union
 
 from src.Declare4Py.ProcessModels.LTLModel import LTLModel
-from src.Declare4Py.Utils.custom_utility_dict import CustomUtilityDict
 
 """
 Class which holds most of the Constraint Template List with some information about templates themself.
@@ -292,38 +288,55 @@ class DeclareModelCoderSingletonMeta(type):
 class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
     def __init__(self):
         self.encoded_values: dict[str, str] = {}
+        self._inverse_encoded_values_store: dict[str, str] = {}
         self.event_nm_idx: int = 0
         self.event_vl_idx: int = 0
         self.attr_nm_idx: int = 0
         self.attr_vl_idx: int = 0
         self.other_counter: int = 0
 
-    def encode_value(self, s: str, val_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]) -> str:
-        if not isinstance(s, str):
-            return s
-        if s.isnumeric():
-            return s
-        s = s.strip()
-        if s in self.encoded_values:
-            return s
-        ns = ""
-        if val_type == "event_name":
-            ns = f"evt_name_{self.event_nm_idx}"
-            self.event_nm_idx = self.event_nm_idx + 1
-        elif val_type == "event_value":
-            ns = f"evt_val_{self.event_vl_idx}"
-            self.event_vl_idx = self.event_vl_idx + 1
-        elif val_type == "attr_name":
-            ns = f"attr_name_{self.attr_nm_idx}"
-            self.attr_nm_idx = self.attr_nm_idx + 1
-        elif val_type == "attr_val":
-            ns = f"attr_value_{self.attr_vl_idx}"
-            self.attr_vl_idx = self.attr_vl_idx + 1
-        else:
-            ns = f"other_{self.other_counter}"
-            self.other_counter = self.other_counter + 1
-        self.encoded_values[ns] = s
-        return ns
+    def encode_value(self, val2encode: str, val_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]) -> str:
+        if not isinstance(val2encode, str):
+            return val2encode
+        if val2encode.isnumeric():
+            return val2encode
+        val2encode = val2encode.strip()
+        if val2encode in self.encoded_values:
+            return val2encode
+        if val2encode in self._inverse_encoded_values_store:
+            return self._inverse_encoded_values_store[val2encode]
+
+        encoded_val = ""
+        # if val_type == "event_name":
+        #     encoded_val = f"evt_name_{self.event_nm_idx}"
+        #     self.event_nm_idx = self.event_nm_idx + 1
+        # elif val_type == "event_value":
+        #     encoded_val = f"evt_val_{self.event_vl_idx}"
+        #     self.event_vl_idx = self.event_vl_idx + 1
+        # elif val_type == "attr_name":
+        #     encoded_val = f"attr_name_{self.attr_nm_idx}"
+        #     self.attr_nm_idx = self.attr_nm_idx + 1
+        # elif val_type == "attr_val":
+        #     encoded_val = f"attr_value_{self.attr_vl_idx}"
+        #     self.attr_vl_idx = self.attr_vl_idx + 1
+        # else:
+        #     encoded_val = f"other_{self.other_counter}"
+        #     self.other_counter = self.other_counter + 1
+
+        s = val2encode[0]
+        nm = val2encode
+        if s.isupper():
+            nm = "l" + nm[1:]
+        nm = nm.replace(":", "__")
+        nm = nm.replace(",", "cOmMa")
+        nm = nm.replace(".", "dOt")
+        nm = nm.replace(" ", "___")
+        nm = nm.replace("?", "qUeStIoNMaRk")
+        nm = nm.replace("=", "eQualsSigN")
+        encoded_val = nm
+        self.encoded_values[encoded_val] = val2encode
+        self._inverse_encoded_values_store[val2encode] = encoded_val
+        return encoded_val
 
     def decode_value(self, s: str) -> str:
         if not isinstance(s, str):
@@ -331,11 +344,11 @@ class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
         if s.isnumeric():
             return s
         s = s.strip()
+        if s in self.encoded_values:
+            return self.encoded_values[s]
 
-        for key in self.encoded_values:
-            enc_str = self.encoded_values[key]
-            if enc_str == s:
-                return key
+        if s in self._inverse_encoded_values_store:
+            return self._inverse_encoded_values_store[s]
         raise ValueError(f"Unable to decode value {s}.")
 
 
@@ -353,6 +366,8 @@ class DeclareModelToken(ABC):
         self.value = value
 
     def get_encoded_name(self):
+        if self.value.lower() == "activity" and self.token_type == "event_name":
+            return "activity"
         return self.encoder.encode_value(self.get_name(), self.token_type)
 
     def to_dict(self):
@@ -460,11 +475,6 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
             return 0
         return max(decimal_len_list)
 
-    def get_encoded_values(self):
-        values = self.get_precisioned_value()
-        if self.attribute_value_type != DeclareModelAttributeType.ENUMERATION:
-            return values
-
     def get_precisioned_value(self) -> [DeclareModelToken] | [int]:
         """If attribute is of float type, it will return an integer value with scaled up. """
         if self.attribute_value_type == DeclareModelAttributeType.FLOAT_RANGE:
@@ -498,7 +508,7 @@ class DeclareModelAttr:
     def __init__(self, attr: str, value: str = None):
         self.attr_name = DeclareModelAttrName(attr)
         if value is not None:
-            self.value_type = self.detect_declare_attr_value_type(value)
+            self.value_type: DeclareModelAttributeType = self.detect_declare_attr_value_type(value)
             self.attr_value = DeclareModelAttrValue(value, self.value_type)
         else:
             self.attr_value: DeclareModelAttrValue = None
@@ -567,12 +577,18 @@ class DeclareModelConstraintTemplate:
         self.template: DeclareModelTemplate = None
         self.template_index: int = template_number_id
         self.violate: bool = False
+        self._template_name: str = None
         self._conditions_line: str = None
         self._conditions: [str] = []  # conditions: activation, target, time
 
-    def get_template_name(self):
-        if self.template.supports_cardinality and self.cardinality > 0:
-            return self.template.templ_str + str(self.cardinality)
+    def get_template_name(self) -> str:
+        if self.template.supports_cardinality:
+            new_name = self.template.templ_str
+            if self.cardinality > 0:
+                new_name = self.template.templ_str + str(self.cardinality)
+            if self._template_name.lower() == "existence1" or self._template_name.lower() == "absence1":
+                new_name = new_name.replace("1", "")
+            return new_name
         return self.template.templ_str
 
     def get_conditions(self):
@@ -664,108 +680,11 @@ class DeclareModelConstraintTemplate:
 A data model class which contains information about a parsed template constraint.
 """
 
-# class DeclareModelTemplateDataModel(CustomUtilityDict):
 #     # TODO: create getter and setters for properties and make properties
 #     #  private, so the logic of providing correct condition and activity
 #     #  based on correct constraint templates. I.E Existence and Absence case
 #     #  where Existence1 and Absence1 doesn't exist but other unary does.
 #     #  one more case is for the reverseConditions of some constraints
-#
-#     def __init__(self):
-#         super().__init__()
-#         self.template: Union[DeclareModelTemplate, None] = None
-#         self.activities: Union[str, None] = None
-#         self.condition: Union[List[str], None] = None
-#         self.template_name: Union[str, None] = None
-#         self.template_line: Union[str, None] = None  # Constraint lines
-#         self.condition_line: Union[str, None] = None  # |A.grade < 2  | T.mark > 2|1,5,s
-#         self.violate: bool = False
-#         self.template_index_id: int = None
-#
-#     def get_conditions(self):
-#         """
-#         Returns parsed conditions: active, target, and time condition if there are
-#         """
-#         return self.get_active_condition(), self.get_target_condition(), self.get_time_condition()
-#
-#     def get_active_condition(self):
-#         """ Returns active conditions """
-#         if self.template.reverseActivationTarget:  # if template has reverse conditions, so we xyz
-#             if len(self.condition) > 1:
-#                 c = self.condition[1]
-#                 return c
-#         else:
-#             if len(self.condition) > 0:
-#                 c = self.condition[0]
-#                 return c
-#                 # return c if len(c) > 1 else None
-#         return None
-#
-#     def get_target_condition(self):
-#         """ Returns target conditions """
-#         cond = ""
-#         if self.template.reverseActivationTarget:
-#             if len(self.condition) > 0:
-#                 cond = self.condition[0]
-#         else:
-#             if len(self.condition) > 1:
-#                 cond = self.condition[1]
-#         time_int = r"^[\d.]+,?([\d.]+)?[,]?(s|m|d|h)$"
-#         is_matched = re.search(time_int, cond, re.IGNORECASE)
-#         if is_matched:
-#             return None
-#         return cond if len(cond) > 0 else None
-#
-#     def get_time_condition(self):
-#         """ Returns time condition """
-#         if self.contains_interval_condition():
-#             c = self.condition[2]
-#             return c if len(c) > 0 else None
-#             # return self.condition[2]
-#         return None
-#
-#     def contains_interval_condition(self) -> bool:
-#         """ Return a boolean value if a constraint template contains a time condition """
-#         if self.condition is None:
-#             return False
-#         len_ = len(self.condition)
-#         if len_ != 3:
-#             return False
-#         return True
-#
-#     def set_conditions(self, cond_str: str):
-#         """Set coditions part of a constraint template """
-#         """
-#         set the cond_str
-#         Parameters
-#         ----------
-#         cond_str: substring after Teample[x,y] from line "Teample[x,y] |...|...|..". thus, cond_str= |...|...|..
-#
-#         Returns
-#         -------
-#
-#         """
-#         self.condition_line = cond_str
-#         if self.condition_line is None:
-#             self.condition_line = "||"
-#         conditions = cond_str.strip("|")
-#         conds_list = conditions.split("|")
-#         self.condition = [cl.strip() for cl in conds_list]
-#
-#     def update_props(self):
-#         """
-#         Updates the _dict, so it has updated values when any dict op is occurred
-#         Returns
-#         -------
-#
-#         """
-#         self.key_value["template"] = self.template
-#         self.key_value["activities"] = self.activities
-#         self.key_value["condition"] = self.condition
-#         self.key_value["template_name"] = self.template_name
-#         self.key_value["template_line"] = self.template_line
-#         self.key_value["violate"] = self.violate
-#         self.key_value["condition_line"] = self.condition_line
 
 
 """
@@ -778,8 +697,8 @@ class DeclareParsedDataModel:
     def __init__(self):
         super().__init__()
         self.events: dict[str, dict[str, DeclareModelEvent]] = {}
-        self.attributes_list: Dict[str, DeclareModelAttr] = {}
-        self.templates: Dict[int, DeclareModelConstraintTemplate] = {}
+        self.attributes_list: dict[str, DeclareModelAttr] = {}
+        self.templates: dict[int, DeclareModelConstraintTemplate] = {}
         self.total_templates = 0
 
     def add_event(self, name: str, event_type: str) -> None:
@@ -858,12 +777,15 @@ class DeclareParsedDataModel:
         self.templates[self.total_templates] = tmplt
         self.total_templates = self.total_templates + 1
         tmplt.template = template
-        if cardinality and len(cardinality) > 1:
+        if cardinality and len(cardinality) > 0:
             tmplt.cardinality = int(cardinality)
         else:
             tmplt.cardinality = 0
         compiler = re.compile(r"^(.*)\[(.*)\]\s*(.*)$")
         al = compiler.fullmatch(line)
+        if len(al.group()) >= 1:
+            template_name = al.group(1).strip()
+            tmplt._template_name = template_name.strip()
         if len(al.group()) >= 2:
             events = al.group(2).strip()
             events = [e.strip() for e in events.split(',')]
@@ -881,6 +803,11 @@ class DeclareParsedDataModel:
         # TODO: raise an error.
         return None
 
+    def decode_value(self, val: str, is_encoded: bool) -> str:
+        if is_encoded:
+            DeclareModelCoderSingleton().decode_value(val)
+        return val
+
     def to_dict(self):
         return {
             "events": {outer_key: {inner_key: value.to_dict() for inner_key, value in inner_dict.items()} for outer_key, inner_dict in self.events.items()},
@@ -888,17 +815,18 @@ class DeclareParsedDataModel:
             "constraint_templates": {key: value.to_dict() for key, value in self.templates.items()},
         }
 
+
 class DeclareModel(LTLModel):
     CONSTRAINTS_TEMPLATES_PATTERN = r"^(.*)\[(.*)\]\s*(.*)$"
 
     def __init__(self):
         super().__init__()
         # self.activities = []
-        self.payload: List[str] = []
-        self.serialized_constraints: List[str] = []
-        self.constraints: List = []
+        self.payload: [str] = []
+        self.serialized_constraints: [str] = []
+        self.constraints = []
         self.parsed_model: DeclareParsedDataModel = DeclareParsedDataModel()
-        self.declare_model_lines: List[str] = []
+        self.declare_model_lines: [str] = []
 
     def set_constraints(self):
         for constraint in self.constraints:

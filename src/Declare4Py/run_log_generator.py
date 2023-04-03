@@ -145,30 +145,22 @@ def r_time():
     # return datetime.now().microsecond / 1000
 
 
-start_time = r_time()
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/BusinessTrip.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/xRay.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
-# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
+model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
 # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
-model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
+# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
 
-# model: DeclareModel = DeclareModel().parse_from_string(decl)
-# model: DeclareModel = DeclareModel().parse_from_string(decl4)
 
-with open("../../xyzz.json", 'w') as file:
-    d = model.parsed_model.to_dict()
-    json.dump(d, file, indent=4)
-exit(0)
-print(f"model acts {len(model.activities)}")
-print(f"model attr {len(model.parsed_model.attributes_list)}")
-print(f"model constraints {len(model.parsed_model.templates)}")
-start_time = r_time() - start_time
-print(f"Parsed declare model in {start_time}ms")
+# with open("../../xyzz.json", 'w') as file:
+#     d = model.parsed_model.to_dict()
+#     json.dump(d, file, indent=4)
+# exit(0)
 num_of_traces = 5
 num_min_events = 20
-num_max_events = 30
+num_max_events = 60
 
 start_time = r_time()
 asp = AspGenerator(
@@ -180,14 +172,16 @@ asp.set_distribution("uniform")
 # asp.set_number_of_repetition_per_trace(4)
 # asp.set_constraints_to_violate_by_template_index(1, True, [
 #     # i for i in range(1, 65)
-#     3, 5
+#     3, 1
 # ])
 
-asp.set_constraints_to_violate_by_template_index(5, True, [
-    5, 25, 35
-])
 
 # asp.set_constraints_to_violate_by_template_index(5, True, [3])
+# asp.set_activation_conditions_by_template_index({
+#     3: [0, 4],
+# #     2: [1, 3],
+# })
+
 asp.run('../../output/generated_asp.lp')
 asp.to_xes("../../output/generated.xes")
 

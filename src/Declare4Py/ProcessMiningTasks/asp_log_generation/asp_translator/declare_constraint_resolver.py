@@ -6,7 +6,8 @@ import typing
 import boolean
 
 # from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelTemplateDataModel, DeclareModelAttributeType
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelConstraintTemplate
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelConstraintTemplate, \
+    DeclareModelAttr, DeclareModelEvent, DeclareModelAttrValue, DeclareModelToken
 
 
 class DeclareModelConditionResolver2ASP:
@@ -14,13 +15,18 @@ class DeclareModelConditionResolver2ASP:
     def __init__(self, is_encoded: bool = False):
         self.is_encoded = is_encoded
 
-    def resolve_to_asp(self, ct: DeclareModelConstraintTemplate, attrs: dict[str, list], idx: int = 0):
+    def resolve_to_asp(self, ct: DeclareModelConstraintTemplate, attrs: dict[str, DeclareModelAttr]):
         """ Converts constraint templates into ASP """
         ls = []
+        idx: int = ct.template_index
         activation, target_cond, time = ct.get_conditions()
-        ls.append('activation({},{}).'.format(idx, self.__normalize_value(ct.activities[0])))
+        act_ev: DeclareModelEvent = ct.events_activities[0]
+        act_ev_name = act_ev.event_name.get_encoded_name() if self.is_encoded else act_ev.event_name.get_name()
+        ls.append('activation({},{}).'.format(idx, act_ev_name))
         if ct.template.is_binary:
-            ls.append('target({},{}).'.format(idx, self.__normalize_value(ct.activities[1])))
+            tar_ev: DeclareModelEvent = ct.events_activities[1]
+            tar_ev_name = tar_ev.event_name.get_encoded_name() if self.is_encoded else tar_ev.event_name.get_name()
+            ls.append('target({},{}).'.format(idx, tar_ev_name))
         if activation:
             exp, n2c, c2n = self.parsed_condition('activation', activation)
             conditions = set(n2c.keys())
@@ -62,7 +68,7 @@ class DeclareModelConditionResolver2ASP:
         #     ls.append(f"sat({idx}).")
         return ls
 
-    def condition_to_asp(self, name, cond, i, attrs):
+    def condition_to_asp(self, name: str, cond: str, i: int, attrs: dict[str, DeclareModelAttr]):
         """ Converts constraint template's conditions into ASP """
         name = name + '({},T)'.format(i)
         string = re.sub('is not', 'is_not', cond)
@@ -77,65 +83,56 @@ class DeclareModelConditionResolver2ASP:
             attr = attr.group(0).strip()
             if attr not in attrs:
                 raise ValueError(f"Unable to find the attribute \"{attr}\" in condition \"{cond}\". name: \"{name}\"")
-            attr_obj = attrs[attr]
-            value_typ = attr_obj["value_type"]
-            if value_typ == DeclareModelAttributeType.ENUMERATION:  # ["is_range_typ"]:  # Enumeration
+            attr_obj: DeclareModelAttrValue = attrs[attr].attr_value
+            attr_nm = attrs[attr].attr_name.get_encoded_name() if self.is_encoded else attrs[attr].attr_name.get_name()
+            if attr_obj.attribute_value_type == DeclareModelAttributeType.ENUMERATION:
                 cond_type = cond.split(' ')[1]
                 if cond_type == 'is':
                     v = string.split(' ')[2]
-                    if not self.is_encoded:
-                        v = v.lower()
-                        attr = attr.lower()
-                    s = 'assigned_value({},{},T)'.format(attr, v)
+                    attr_val = self.__get_attribute_value(v, attrs[attr].attr_value)
+                    s = 'assigned_value({},{},T)'.format(attr_nm, attr_val)
                     ls.append('{} :- {}.'.format(name, s))
                 elif cond_type == 'is_not':
                     v = string.split(' ')[2]
-                    if not self.is_encoded:
-                        v = v.lower()
-                        attr = attr.lower()
-                    s = 'time(T), not assigned_value({},{},T)'.format(attr, v)
+                    attr_val = self.__get_attribute_value(v, attrs[attr].attr_value)
+                    s = 'time(T), not assigned_value({},{},T)'.format(attr_nm, attr_val)
                     ls.append('{} :- {}.'.format(name, s))
                 elif cond_type == 'in':
                     for value in string.split(' ')[2][1:-1].split(','):
-                        v = value
-                        if not self.is_encoded:
-                            v = v.lower()
-                            attr = attr.lower()
-                        asp_cond = 'assigned_value({},{},T)'.format(attr, v)
+                        attr_val = self.__get_attribute_value(value, attrs[attr].attr_value)
+                        asp_cond = 'assigned_value({},{},T)'.format(attr_nm, attr_val)
                         ls.append('{} :- {}.'.format(name, asp_cond))
-                # TODO:
                 else:
                     asp_cond = 'time(T),'
-                    if not self.is_encoded:
-                        attr = attr.lower()
                     for value in cond.split(' ')[2][1:-1].split(','):
-                        if not self.is_encoded:
-                            value = value.lower()
-                        asp_cond = asp_cond + 'not assigned_value({},{},T),'.format(attr, value)
+                        attr_val = self.__get_attribute_value(value, attrs[attr].attr_value)
+                        asp_cond = asp_cond + 'not assigned_value({},{},T),'.format(attr_nm, attr_val)
                     asp_cond = asp_cond[:-1]
                     ls.append('{} :- {}.'.format(name, asp_cond))
-            elif value_typ == DeclareModelAttributeType.INTEGER or value_typ == DeclareModelAttributeType.FLOAT or \
-                    value_typ == DeclareModelAttributeType.INTEGER_RANGE or \
-                    value_typ == DeclareModelAttributeType.FLOAT_RANGE:
+            elif attr_obj.attribute_value_type == DeclareModelAttributeType.INTEGER_RANGE or\
+                    attr_obj.attribute_value_type == DeclareModelAttributeType.FLOAT_RANGE:
                 relations = ['<=', '>=', '=', '<', '>']
                 for rel in relations:
                     if rel in cond:
                         value = string.split(rel)[1]
                         value = self.scale_number2int(value, attr_obj)
-                        ls.append('{} :- assigned_value({},V,T),V{}{}.'.format(name, attr, rel, str(value)))
+                        ls.append('{} :- assigned_value({},V,T),V{}{}.'.format(name, attr_nm, rel, str(value)))
                         break
         return ls
+
+    def __get_attribute_value(self, searched_value: str, attr: DeclareModelAttrValue) -> str:
+        if attr:
+            values: [DeclareModelToken] = attr.get_precisioned_value()
+            for val in values:
+                v: DeclareModelToken = val
+                if v.get_name() == searched_value.strip():
+                    return v.get_encoded_name() if self.is_encoded else v.get_name()
+        raise ValueError(f"Unable to find the attribute value {searched_value}!")
 
     def parsed_condition(self, condition: typing.Literal['activation', 'correlation'], string: str):
         """ Parse template's conditions into ASP """
         # s = self.parse_data_cond_to_pycond(string)
         return self.parsed_condition_2(condition, string)
-
-    def __normalize_value(self, val: str):
-        """ If not encoded, we return the value in lower case else we return as it is"""
-        if not self.is_encoded:
-            return val.lower()
-        return val
 
     def parse_data_cond_to_pycond(self, cond: str):  # TODO: could be improved using recursion ?
         try:
@@ -313,10 +310,7 @@ class DeclareModelConditionResolver2ASP:
                 self.tree_conditions_to_asp(condition, arg, no_params(arg_name), i, lp_st)
         return lp_st
 
-    def scale_number2int(self, num: str, attr_obj) -> int:
+    def scale_number2int(self, num: str, attr_obj: DeclareModelAttrValue) -> int:
         # if isinstance(num, int) or isinstance(num, float):
-        if num.__contains__("."):  # if number contains . then we have to scale it.
-            if attr_obj["value_type"] != DeclareModelAttributeType.FLOAT_RANGE:
-                raise ValueError("The attribute is not type of Float but right side of condition contains float number")
-            num = ((10 ** attr_obj["range_precision"]) * float(num))
+        num = ((10 ** attr_obj.precision) * float(num))
         return int(num)

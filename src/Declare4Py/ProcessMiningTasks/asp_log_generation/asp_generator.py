@@ -25,7 +25,7 @@ from src.Declare4Py.ProcessMiningTasks.asp_log_generation.asp_utils.distribution
 from src.Declare4Py.ProcessMiningTasks.log_generator import LogGenerator
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
-    DeclareModelConstraintTemplate, DeclareModelAttributeType
+    DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr
 
 
 class LogTracesType(typing.TypedDict):
@@ -99,7 +99,6 @@ class AspGenerator(LogGenerator):
             self.asp_encoding = ASPEncoding(True).get_ASP_encoding(self.lp_model.fact_names)
         else:
             self.asp_encoding = ASPEncoding(False).get_ASP_encoding(self.lp_model.fact_names)
-        # print(self.asp_encoding)
         self.py_logger.debug("ASP encoding generated")
         return lp
 
@@ -111,17 +110,17 @@ class AspGenerator(LogGenerator):
         # decl_model.templates[0].template_line
         for template_def, cond_num_list in self.activation_conditions.items():
             template_def = template_def.strip()
-            decl_template_parsed: DeclareModelTemplateDataModel = [d for d in decl_model.templates if d.template_line == template_def]
-            decl_template_parsed = decl_template_parsed[0]
-            asp_template_idx = decl_template_parsed.template_index_id
-            if decl_template_parsed is None or len(decl_template_parsed) == 0 or len(decl_template_parsed) > 1:
+            decl_template_parsed: [DeclareModelConstraintTemplate] = [val for key, val in decl_model.templates.items() if val.line == template_def]
+            decl_template_parsed: DeclareModelConstraintTemplate = decl_template_parsed[0]
+            asp_template_idx = decl_template_parsed.template_index
+            if decl_template_parsed is None:
                 warnings.warn("Unexpected found. Same constraint templates are defined multiple times.")
             if len(cond_num_list) == 2:
                 if cond_num_list[0] <= 0:
                     # left side tends to -inf or 0 starting from cond_num_list[1]. cond_num_list = [0, 2]
                     # means it can have only at most 2 activations
                     self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
-                    if decl_template_parsed.template.both_activation_condition:
+                    if decl_template_parsed.template.both_activation_condition:  # some templates's both conditions are activation conditions
                         self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
                 elif cond_num_list[1] == math.inf:
                     # right side tends to inf from cond_num_list[0] to +inf. cond_num_list = [2, math.inf]
@@ -131,11 +130,11 @@ class AspGenerator(LogGenerator):
                         self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
                 else:
                     # ie cond_num_list = [2, 4]
-                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
                     self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
                     if decl_template_parsed.template.both_activation_condition:
+                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
                         self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
-                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[1]}.")
             else:
                 raise ValueError("Interval values are wrong. It must have only 2 values, represents, left and right interval")
 
@@ -214,8 +213,6 @@ class AspGenerator(LogGenerator):
             ctl.add(asp)
             ctl.add(self.asp_encoding)
             ctl.add(self.asp_template)
-            # print(self.asp_encoding)
-            # print(asp)
             ctl.ground([("base", [])], context=self)  # ctl.ground()
             result = ctl.solve(on_model=self.__handle_clingo_result)
             self.py_logger.debug(f" Clingo Result: {str(result)}")
@@ -304,14 +301,9 @@ class AspGenerator(LogGenerator):
         if self.event_log is None:
             self.event_log = D4PyEventLog()
         self.event_log.log = lg.EventLog()
-        decl_encoded_model: DeclareParsedDataModel = self.process_model.parsed_model
-        attr_list = decl_encoded_model.attributes_list
+        decl_model: DeclareParsedDataModel = self.process_model.parsed_model
+        attr_list: dict[str, DeclareModelAttr] = decl_model.attributes_list
         tot_traces_generated = 0
-
-        # current_time = datetime(tzinfo=timezone(timedelta(hours=1))).now()
-        dt = datetime.now()
-        current_time = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
-                                tzinfo=timezone(timedelta(hours=1)))
         for result in self.asp_generated_traces:
             tot_traces_generated = tot_traces_generated + len(self.asp_generated_traces[result])
             traces_generated = self.asp_generated_traces[result]
@@ -324,32 +316,28 @@ class AspGenerator(LogGenerator):
                 for asp_event in trace.parsed_result:
                     event = lg.Event()
                     event["lifecycle:transition"] = "complete"  # NOTE: I don't know why we need it
-                    event["concept:name"] = decl_encoded_model.decode_value(asp_event['name'])
+                    event["concept:name"] = decl_model.decode_value(asp_event['name'], self.encode_decl_model)
                     for res_name, res_value in asp_event['resources'].items():
-                        res_name_decoded = decl_encoded_model.decode_value(res_name)
-                        res_value_decoded = decl_encoded_model.decode_value(res_value)
+                        if res_name == '__position':  # private property
+                            continue
+                        res_name_decoded = decl_model.decode_value(res_name, self.encode_decl_model)
+                        res_value_decoded = decl_model.decode_value(res_value, self.encode_decl_model)
                         res_value_decoded = str(res_value_decoded)
                         is_number = re.match(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", res_value_decoded)
                         if is_number:
                             if res_name_decoded in attr_list:
                                 attr = attr_list[res_name_decoded]
-                                if attr["value_type"] != DeclareModelAttributeType.ENUMERATION:
+                                if attr.value_type != DeclareModelAttributeType.ENUMERATION:
                                     num = res_value_decoded
-                                    dmat = DeclareModelAttributeType
-                                    if attr["value_type"] in [dmat.FLOAT]:
-                                        num = int(res_value_decoded) / attr["range_precision"]
-                                    elif attr["value_type"] in [dmat.FLOAT_RANGE]:
-                                        num = int(res_value_decoded) / attr["range_precision"]
-                                    elif attr["value_type"] == dmat.INTEGER or attr["value_type"] == dmat.INTEGER_RANGE:
+                                    if attr.value_type == DeclareModelAttributeType.FLOAT_RANGE:
+                                        num = int(res_value_decoded) / attr.attr_value.precision
+                                    elif attr.value_type == DeclareModelAttributeType.INTEGER_RANGE:
                                         num = int(res_value_decoded)
                                     res_value_decoded = num
                         if isinstance(res_value_decoded, str):
                             event[res_name_decoded] = res_value_decoded.strip()
                         else:
                             event[res_name_decoded] = res_value_decoded
-
-                        # event[res_name_decoded] = res_value_decoded.strip()
-                        # event["time:timestamp"] = formatted_time
                         event["time:timestamp"] = datetime.now()
                     trace_gen.append(event)
                 self.event_log.log.append(trace_gen)
@@ -362,18 +350,9 @@ class AspGenerator(LogGenerator):
 
     def to_xes(self, output_fn: str):
         """Save log in xes file"""
-        # dt = pd.DataFrame(lines)
-        # dt = pm4py.format_dataframe(dt, case_id='case_id', activity_key='concept:name',
-        #                             timestamp_key='time:timestamp')
-        # logger = pm4py.convert_to_event_log(dt)
-        # pm4py.write_xes(logger, output_fn)
-        # print(self.event_log.log)
         if self.event_log.log is None:
             self.__pm4py_log()
         pm4py.write_xes(self.event_log.log, output_fn)
-        # if self.event_log.log is None:
-        #     self.__pm4py_log()
-        # exporter.apply(self.event_log.log, output_fn)
 
     def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
         """
@@ -407,11 +386,10 @@ class AspGenerator(LogGenerator):
         Returns
         -------
         """
-        templates: [DeclareModelConstraintTemplate] = self.process_model.parsed_model.templates
+        templates: dict[int, DeclareModelConstraintTemplate] = self.process_model.parsed_model.templates
         constraints_list = []
         for idx in constraints_idx_list:
-            constraints_list.append(templates[idx].template_line)
-        print(constraints_list)
+            constraints_list.append(templates[idx].line)
         self.set_constraints_to_violate(tot_negative_trace, violate_all, constraints_list)
 
     def set_number_of_repetition_per_trace(self, repetition: int):
@@ -425,7 +403,7 @@ class AspGenerator(LogGenerator):
         """
         self.num_repetition_per_trace = repetition
 
-    def __get_decl_model_with_violate_constraint(self) -> typing.Union[DeclareModel, ProcessModel]:
+    def __get_decl_model_with_violate_constraint(self) -> DeclareModel:
         """
         Creates a duplicate process model with change in template list, assigning a boolean value to `violate` property
 
@@ -433,13 +411,12 @@ class AspGenerator(LogGenerator):
         -------
         DeclModel
         """
-        dpm = copy.deepcopy(self.process_model)
-        parsed_tmpl = dpm.parsed_model.templates
+        parsed_tmpl: dict[int, DeclareModelConstraintTemplate] = self.process_model.parsed_model.templates
         for cv in self.violatable_constraints:
-            for tmpl in parsed_tmpl:
-                if tmpl.template_line == cv:
+            for tmpl_idx, tmpl in parsed_tmpl.items():
+                if tmpl.line == cv:
                     tmpl.violate = True
-        return dpm
+        return self.process_model
 
     def set_activation_conditions(self, activations_list: dict[str, list[int]]):
         """
@@ -486,7 +463,7 @@ class AspGenerator(LogGenerator):
         templates = self.process_model.parsed_model.templates
         n_dict = {}
         for m, n in activations_list.items():
-            n_dict[templates[m].template_line] = n
+            n_dict[templates[m].line] = n
         self.activation_conditions = n_dict
         return self
 

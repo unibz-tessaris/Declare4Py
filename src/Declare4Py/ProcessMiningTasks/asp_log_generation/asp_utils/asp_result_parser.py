@@ -70,8 +70,8 @@ class ASPResultTraceModel:
             for resource in resources:
                 if resource["pos"] == trace_pos:
                     event["resources"][resource["res_name"]] = resource["res_val"]
-                    event["resources"]["position"] = resource["pos"]
-                    event["position"] = resource["pos"]
+                    event["resources"]["__position"] = resource["pos"]
+                    event["__position"] = resource["pos"]
             result.append(event)
         result = sorted(result, key=lambda x: x['ev_position'])
         return result
