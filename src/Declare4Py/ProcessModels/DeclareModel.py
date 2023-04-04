@@ -220,6 +220,17 @@ class DeclareModelConditionParserUtility:
         super().__init__()
 
     def parse_data_cond(self, cond: str):  # TODO: could be improved using recursion ?
+        """
+        Parse the data condition
+        Parameters
+        ----------
+        cond: str
+            Could be activation or target condition
+
+        Returns
+        -------
+            str
+        """
         try:
             cond = cond.strip()
             if cond == "":
@@ -294,7 +305,16 @@ class DeclareModelConditionParserUtility:
         except Exception:
             raise SyntaxError
 
-    def parse_time_cond(self, condition):
+    def parse_time_cond(self, condition: str):
+        """
+        Parse time condition
+        Parameters
+        ----------
+        condition: str
+        Returns
+        -------
+        str
+        """
         try:
             if condition.strip() == "":
                 condition = "True"

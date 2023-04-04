@@ -1,9 +1,0 @@
-pandas~=1.5.3
-numpy~=1.24.2
-scikit-learn~=1.2.2
-pm4py~=2.6.1
-pylogics~=0.1.1
-packaging~=23.0
-mlxtend~=0.21.0
-logaut~=0.1.1
-matplotlib~=3.6.3

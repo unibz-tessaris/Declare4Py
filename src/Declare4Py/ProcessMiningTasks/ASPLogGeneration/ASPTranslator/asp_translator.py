@@ -9,8 +9,6 @@ from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
 
 
-
-
 class ASPModel:
     """
     ASP (Answer set programming) is a high-level knowledge-representation language that can be used to solve
@@ -30,18 +28,46 @@ class ASPModel:
         self.condition_resolver = DeclareModelConditionResolver2ASP(self.encode_decl_model_values)
 
     def define_predicate(self, name: str, predicate_name: str):
-        """ create ASP predicate string and append to "string builder" """
+        """
+        create ASP predicate string and append to "string builder"
+        Parameters
+        ----------
+        name: str
+            the name of event/activity
+        predicate_name: str
+            the type of even, usually: activity
+
+        Returns
+        -------
+        """
         self.lines.append(f'{predicate_name}({name}).')
         self.fact_names.append(predicate_name)
 
     def define_predicate_attr(self, event_name: str, attr_name: str):
-        """ Define declare model attribute in ASP string and append to "string builder" """
+        """
+        Define declare model attribute in ASP string and append to "string builder"
+        Parameters
+        ----------
+        event_name: str
+            the name of the event
+        attr_name: str
+            the name of the attribute
+        Returns
+        -------
+        """
         self.lines.append(f'has_attribute({event_name}, {attr_name}).')
         self.values_assignment.append(f'has_attribute({event_name}, {attr_name}).')
 
-    def set_attr_value(self, attr: DeclareModelAttr, is_encoded: bool = True):
-        """ Set attribute value and append to "string builder" """
-        attr_name = attr.attr_name.get_encoded_name() if is_encoded else attr.attr_name.get_name()
+    def set_attr_value(self, attr: DeclareModelAttr):
+        """Set attribute value and append to "string builder"
+        Parameters
+        ----------
+        attr: DeclareModelAttr
+            The attribute object from declare model
+        Returns
+        -------
+        """
+        attr_name = attr.attr_name.get_encoded_name() if self.encode_decl_model_values else attr.attr_name.get_name()
         attr_val_typ = attr.attr_value.attribute_value_type
         if attr_val_typ is not DeclareModelAttributeType.ENUMERATION:
             frm, til = attr.attr_value.get_precisioned_value()
@@ -50,21 +76,33 @@ class ASPModel:
             values = attr.attr_value.get_precisioned_value()
             if values is not None and len(values) > 0:
                 for v in values:
-                    val_name = v.get_encoded_name() if is_encoded else v.get_name()
+                    val_name = v.get_encoded_name() if self.encode_decl_model_values else v.get_name()
                     self.add_attribute_value_to_list(f'value({attr_name}, {val_name}).')
 
-    def scale_number2int(self, num: typing.Union[int, float], num_to_scale: int) -> int:
-        """ Scale float value to integer """
-        return int(num * (10 ** num_to_scale))
-
     def add_attribute_value_to_list(self, value: str):
-        """ Create ASP list of values """
+        """save attribute value to Attribute list
+        Parameters
+        ----------
+        value: str
+            add value to attribute list
+        Returns
+        -------
+
+        """
         if value not in self.attributes_values:
             self.attributes_values.append(value)
 
     def add_template(self, ct: DeclareModelConstraintTemplate, props: dict[str, DeclareModelAttr]):
         """
         Parse declare model template into ASP
+        Parameters
+        ----------
+        ct: DeclareModelConstraintTemplate
+            Constraint Template object from Delcare model
+        props: dict[str, DeclareModelAttr]
+            all attributes of declare model
+        Returns
+        -------
         """
         self.templates_s.append(f"template({ct.template_index},\"{ct.get_template_name()}\").")
 
@@ -73,6 +111,15 @@ class ASPModel:
             self.templates_s = self.templates_s + ls + ["\n"]
 
     def add_asp_line(self, line: str):
+        """
+        Add custom line to asp
+        Parameters
+        ----------
+        line: str
+            custom line to add in ASP
+        Returns
+        -------
+        """
         self.extra_asp_line.append(line)
 
     def from_decl_model(self, decl_model: DeclareModel, constraint_violation: dict = None) -> ASPModel:
@@ -82,7 +129,7 @@ class ASPModel:
         ----------
         decl_model: Declare model
              a declare model object
-        constraint_violation:dict
+        constraint_violation: dict
              dictionary with two keyvalue pair: { constraint_violation: bool, violate_all_constraints: bool }.
              `constraint_violation` indicates whether violation feature should be enabled or not, `violate_all_constraints`
              indicates whether all the constraints mentioned in the list should be violated (True) or some of them (False)
@@ -111,7 +158,7 @@ class ASPModel:
                         else:
                             self.define_predicate_attr(ev.event_name.get_name(),
                                                                  attrs[attr].attr_name.get_name())
-                        self.set_attr_value(attrs[attr], self.encode_decl_model_values)
+                        self.set_attr_value(attrs[attr])
         constraints_violate = {}
 
         for template_idx in model.templates:
@@ -146,6 +193,7 @@ class ASPModel:
         return self
 
     def to_str(self):
+        """ Convert this model to asp or return ASP syntax program """
         return self.__str__()
 
     def __str__(self) -> str:
