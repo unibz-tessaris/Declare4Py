@@ -41,9 +41,24 @@ The tutorials are Jupyter notebooks and consider the [Sepsis cases log](https://
 - `tests/` -- a collection of tests for computing the Declare4Py performance.
 - `tutorials/` -- tutorials to start with Declare4Py,
 
+
+## Contributions
+We would suggest to use the virtual environment in order to avoid the clashes between python version and libraries.
+
+- From project root run `python -m venv venv`
+- activate the virtual environment `source venv/Scripts/activate`
+- install libraries
+  - requirements
+    - graphviz must be installed https://graphviz.org/download/
+  - `python -m pip install .` to install the dependencies of the project, it will read the pyproject.toml
+
+
 ## Citing Declare4Py
 If you use Declare4Py in your research, please use the following BibTeX entry.
 
 ```
 Soon available
 ```
+
+Tested with Python v3.11.2
+
