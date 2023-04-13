@@ -24,7 +24,6 @@ from src.Declare4Py.ProcessMiningTasks.log_generator import LogGenerator
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
     DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr
-from multiprocessing import Pool, Manager
 import concurrent.futures
 
 
@@ -39,67 +38,6 @@ def custom_sort_trace_key(x):
     # Convert the numeric parts to integers
     parts = [int(p) for p in parts]
     return parts
-
-
-def parallel_clingo_run(args):
-    # start = time.time().
-    num_events, freq, seed, asp_program, asp_encoding, asp_template, output_queue, trace_id = args
-    ctl = clingo.Control([
-        "-c",
-        f"t={int(num_events)}",
-        f"1",
-        "--project",
-        "--sign-def=rnd",
-        f"--rand-freq={freq}",
-        f"--restart-on-model",
-        # f"--seed=8794",
-        f"--seed={seed}",
-    ])
-    ctl.add(asp_program)
-    ctl.add(asp_encoding)
-    ctl.add(asp_template)
-    # ctl.ground([("base", [])], context=self)  # ctl.ground()
-    # result = ctl.solve(on_model=self.__handle_clingo_result)
-    print(output_queue)
-    result = ctl.solve( on_model=lambda output: (output_queue.update({trace_id: output.symbols(shown=True)})) )
-    print(f" Clingo Result: {str(result)}, {output_queue[trace_id]}")
-
-
-def clingo_worker(args):
-    print('args', args)
-    self, lp_model, events, traces, trace_type = args
-    self.__generate_asp_trace(lp_model, events, traces, trace_type)
-
-def generate_traces_parallely(self: AspGenerator, lp_model: str, traces_to_generate: collections.Counter, trace_type: str):
-    """
-    Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces in parallel.
-    Parameters
-    ----------
-    lp_model: str
-        ASP model
-    traces_to_generate: collections.Counter
-        a counter ({ 4:2, 1: 3}), means 2 traces of 4 events, 3 traces with just 1 event.
-    trace_type: str
-        trace type: negative or positive
-    Returns
-    -------
-    """
-    self.clingo_output = []
-    self.clingo_output_traces_variation = {}
-    self.py_logger.debug("Start generating traces")
-
-    # Define the worker function at the top level of the module
-
-    # Create a process pool with number of workers equal to number of available CPU cores
-    pool = Pool(3)
-
-    # Map the worker function to the input values using the process pool
-    # self, lp_model, events, traces, trace_type
-    pool.map(clingo_worker, [(self, lp_model, events, traces, trace_type) for events, traces in traces_to_generate.items()])
-
-    # Close the process pool and wait for all processes to finish
-    pool.close()
-    pool.join()
 
 
 class AspGenerator(LogGenerator):
@@ -397,23 +335,6 @@ class AspGenerator(LogGenerator):
                         asp_variation = asp_variation + f"trace({ev.name}, {ev.pos}).\n"
                     for nm in range(0, num):
                         self.__generate_asp_trace_variation(asp_variation, num_events, 1, freq)
-
-    def _run_clingo_parallel(self):
-        # arr = []
-        # with Manager() as manager:
-        #     val_dict = manager.dict({'output_queue': {}})
-        #     for i in range(num_traces):
-        #         seed = randrange(0, 2 ** 32 - 1)
-        #         # val_dict
-        #         arr.append((num_events, freq, seed, asp,
-        #                     self.asp_encoding, self.asp_template, output_queue,
-        #                     f"trace_id_{self.trace_counter_id}"))
-        #         self.trace_counter_id = self.trace_counter_id + 1
-        #
-        #     with Pool(self.parallel_workers) as pool:
-        #         pool.map(parallel_clingo_run, arr)
-        #     print('Final Result', val_dict['output_queue'])
-        pass
 
     def __generate_asp_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
         """
