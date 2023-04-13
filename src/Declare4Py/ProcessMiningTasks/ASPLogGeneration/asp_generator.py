@@ -75,9 +75,10 @@ class AspGenerator(LogGenerator):
         self.num_repetition_per_trace = 0
         self.trace_counter = 0
         self.trace_variations_key_id = 0  #
-        self.parallel_workers = 4
+        self.parallel_workers = 10
         self.trace_counter_id = 0
         self.run_parallel: bool = False
+        self.parallel_futures: [] = []
 
         self.lp_model: ASPModel = None
         self.encode_decl_model = encode_decl_model
@@ -179,6 +180,7 @@ class AspGenerator(LogGenerator):
         self.trace_counter = 0
         pos_traces = self.log_length - self.negative_traces
         neg_traces = self.negative_traces
+        self.parallel_futures = []
         pos_traces_dist = self.compute_distribution(pos_traces)
         neg_traces_dist = self.compute_distribution(neg_traces)
         result: LogTracesType = LogTracesType(negative=[], positive=[])
@@ -192,10 +194,6 @@ class AspGenerator(LogGenerator):
                                                        dupl_decl_model, violation)
             else:
                 lp = self.generate_asp_from_decl_model(self.encode_decl_model, None, dupl_decl_model, violation)
-
-            if self.run_parallel:
-                self.__generate_traces_parallely(lp, neg_traces_dist, "negative")
-            else:
                 self.__generate_traces(lp, neg_traces_dist, "negative")
 
             result['negative'] = self.clingo_output
@@ -204,11 +202,9 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug("Generating traces")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
         # print(lp)
-
+        self.__generate_traces(lp, pos_traces_dist, "positive")
         if self.run_parallel:
-            self.__generate_traces_parallely(lp, pos_traces_dist, "positive")
-        else:
-            self.__generate_traces(lp, pos_traces_dist, "positive")
+            concurrent.futures.wait(self.parallel_futures)
         result['positive'] = self.clingo_output
         result_variation['positive'] = self.clingo_output_traces_variation
 
@@ -218,34 +214,6 @@ class AspGenerator(LogGenerator):
         self.__resolve_clingo_results_variation(result_variation)
         self.py_logger.debug(f"Trace results parsed")
         self.__pm4py_log()
-
-    def __generate_traces_parallely(self, lp_model: str, traces_to_generate: collections.Counter, trace_type: str):
-        """
-        Runs Clingo parallely on the ASP translated, encoding and templates of the Declare model to generate the traces.
-        Parameters
-        ----------
-        lp_model: str
-            ASP model
-        traces_to_generate: collections.Counter
-            a counter ({ 4:2, 1: 3}), means 2 traces of 4 events, 3 traces with just 1 event.
-        trace_type: str
-            trace type: negative or positive
-        Returns
-        -------
-        """
-
-        self.clingo_output = []
-        self.clingo_output_traces_variation = {}
-        self.py_logger.debug("Start generating traces")
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.parallel_workers) as executor:
-            # Submit each task to the thread pool
-            future_to_traces = {}
-            for events, traces in traces_to_generate.items():
-                future = executor.submit(self.__generate_asp_trace, lp_model, events, traces, trace_type)
-                future_to_traces[future] = traces
-
-        concurrent.futures.wait(future_to_traces.keys())
 
     def __generate_traces(self, lp_model: str, traces_to_generate: collections.Counter, trace_type: str):
         """
@@ -264,13 +232,17 @@ class AspGenerator(LogGenerator):
         self.clingo_output = []
         self.clingo_output_traces_variation = {}
         self.py_logger.debug("Start generating traces")
-        # traces_to_generate = {2: 3, 4: 1}
-        # for events, traces in self.traces_length.items():
-        for events, traces in traces_to_generate.items():
-            self.py_logger.debug(f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
-            self.__generate_asp_trace(lp_model, events, traces, trace_type)
+        if self.run_parallel:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.parallel_workers) as executor:
+                for events, traces in traces_to_generate.items():
+                    future = executor.submit(self.__generate_asp_trace, lp_model, events, traces, trace_type)
+                    self.parallel_futures.append(future)
+        else:
+            for events, traces in traces_to_generate.items():
+                self.py_logger.debug(f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
+                self.__generate_asp_trace(lp_model, events, traces, trace_type)
 
-    def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9) -> None:
+    def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
         """
         Generate ASP trace using Clingo based on the given parameters and then generate also the variation
         Parameters
@@ -290,53 +262,94 @@ class AspGenerator(LogGenerator):
 
         """
         # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
-        for i in range(num_traces):
-            self.clingo_current_output = None
-            seed = randrange(0, 2 ** 32 - 1)
-            self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces} with events:{num_events}, seed:{seed}")
-            ctl = clingo.Control([
-                "-c",
-                f"t={int(num_events)}",
-                f"1",
-                "--project",
-                "--sign-def=rnd",
-                f"--rand-freq={freq}",
-                f"--restart-on-model",
-                # f"--seed=8794",
-                f"--seed={seed}",
-            ])
-            ctl.add(asp)
-            ctl.add(self.asp_encoding)
-            ctl.add(self.asp_template)
-            ctl.ground([("base", [])], context=self)  # ctl.ground()
-            result = ctl.solve(on_model=self.__handle_clingo_result)
-            self.py_logger.debug(f" Clingo Result: {str(result)}")
+        if self.run_parallel:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.parallel_workers) as executor:
+                for i in range(num_traces):
+                    self.py_logger.debug(f" Setting thread for trace:{i + 1}/{num_traces} with events:{num_events})")
+                    future = executor.submit(self.__run_clingo, i, num_traces, num_events, freq, asp, trace_type)
+                    self.parallel_futures.append(future)
+        else:
+            for i in range(num_traces):
+                self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces} with events:{num_events})")
+                self.__run_clingo(i, num_traces, num_events, freq, asp, trace_type)
 
-            # ctl.ground([("base", [])], context=self)
-            # # ctl.ground()
-            # # result = ctl.solve(on_model=self.__handle_clingo_result, yield_=True)
-            # result = ctl.solve(on_model=self.__handle_clingo_result)
+    def __run_clingo(self, i, num_traces, num_events, freq, asp, trace_type):
+        self.clingo_current_output = None
+        seed = randrange(0, 2 ** 32 - 1)
+        self.py_logger.debug(f" Initializing clingo trace({i + 1}/{num_traces}) with length:{num_events}), Seed {seed}")
+        ctl = clingo.Control([
+            "-c",
+            f"t={int(num_events)}",
+            f"1",
+            "--project",
+            "--sign-def=rnd",
+            f"--rand-freq={freq}",
+            f"--restart-on-model",
+            # f"--seed=8794",
+            f"--seed={seed}",
+        ])
+        ctl.add(asp)
+        ctl.add(self.asp_encoding)
+        ctl.add(self.asp_template)
+        ctl.ground([("base", [])], context=self)  # ctl.ground()
+        result = ctl.solve(on_model=self.__handle_clingo_result)
+        self.py_logger.debug(f" Clingo Result: {str(result)}")
 
-            if result.unsatisfiable:
-                """
-                    Clingo was not able to generate trace events with exactly num_events, thus it returns
-                    unsatisfiable.
-                """
-                warnings.warn(f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model.')
-                break  # we exit because we cannot generate more traces with same params.
-            elif self.num_repetition_per_trace > 0:
-                self.trace_counter = self.trace_counter + 1
-                self.clingo_output_traces_variation[len(self.clingo_output_traces_variation)] = []  # to generate the name of variation trace
-                num = self.num_repetition_per_trace - 1
-                if num > 0 and self.clingo_current_output is not None:
-                    c = ASPResultTraceModel(f"variation_{i}_trace_{self.trace_counter}", self.clingo_current_output)
-                    asp_variation = asp + "\n"
-                    for ev in c.events:
-                        asp_variation = asp_variation + f"trace({ev.name}, {ev.pos}).\n"
-                    for nm in range(0, num):
-                        self.__generate_asp_trace_variation(asp_variation, num_events, 1, freq)
+        # ctl.ground([("base", [])], context=self)
+        # # ctl.ground()
+        # # result = ctl.solve(on_model=self.__handle_clingo_result, yield_=True)
+        # result = ctl.solve(on_model=self.__handle_clingo_result)
+
+        if result.unsatisfiable:
+            """
+                Clingo was not able to generate trace events with exactly num_events, thus it returns
+                unsatisfiable.
+            """
+            warnings.warn(
+                f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model.')
+            return # we exit because we cannot generate more traces with same params.
+        elif self.num_repetition_per_trace > 0:
+            self.trace_counter = self.trace_counter + 1
+            self.clingo_output_traces_variation[
+                len(self.clingo_output_traces_variation)] = []  # to generate the name of variation trace
+            num = self.num_repetition_per_trace - 1
+            if num > 0 and self.clingo_current_output is not None:
+                c = ASPResultTraceModel(f"variation_{i}_trace_{self.trace_counter}", self.clingo_current_output)
+                asp_variation = asp + "\n"
+                for ev in c.events:
+                    asp_variation = asp_variation + f"trace({ev.name}, {ev.pos}).\n"
+                for nm in range(0, num):
+                    self.__generate_asp_trace_variation(asp_variation, num_events, 1, freq)
 
     def __generate_asp_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
+        """
+        Generate variation traces based on the parameters
+        Parameters
+        ----------
+        asp: str
+            asp model program
+        num_events: int
+            number of events in a trace
+        num_traces: int
+            number of traces
+        freq: float
+            any float number between 0 to 1
+
+        Returns
+        -------
+
+        """
+        """ """
+        if self.run_parallel:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.parallel_workers) as executor:
+                for i in range(num_traces):
+                    future = executor.submit(self.__run_clingo_trace_variation, asp, num_events, num_traces, freq)
+                    self.parallel_futures.append(future)
+        else:
+            for i in range(num_traces):
+                self.__run_clingo_trace_variation(asp, num_events, num_traces, freq)
+
+    def __run_clingo_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
         """
         Generate variation traces based on the parameters
         Parameters
