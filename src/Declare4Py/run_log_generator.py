@@ -145,46 +145,49 @@ def r_time():
     # return datetime.now().microsecond / 1000
 
 
-# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/BusinessTrip.decl")
-# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/xRay.decl")
-# model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
-model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
-# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
-# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
-# model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
+if __name__ == '__main__':
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/BusinessTrip.decl")
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/xRay.decl")
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
+    model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
 
 
-# with open("../../xyzz.json", 'w') as file:
-#     d = model.parsed_model.to_dict()
-#     json.dump(d, file, indent=4)
-# exit(0)
-num_of_traces = 5
-num_min_events = 20
-num_max_events = 60
+    # with open("../../xyzz.json", 'w') as file:
+    #     d = model.parsed_model.to_dict()
+    #     json.dump(d, file, indent=4)
+    # exit(0)
+    num_of_traces = 10
+    num_min_events = 40
+    num_max_events = 80
 
-start_time = r_time()
-asp = AspGenerator(
-        model, num_of_traces, num_min_events, num_max_events,
-        # encode_decl_model=False
-    )
-asp.set_distribution("uniform")
+    start_time = r_time()
+    asp = AspGenerator(
+            model, num_of_traces, num_min_events, num_max_events,
+            # encode_decl_model=False
+        )
+    asp.run_parallel = True
+    asp.set_distribution("uniform")
 
-# asp.set_number_of_repetition_per_trace(4)
-# asp.set_constraints_to_violate_by_template_index(1, True, [
-#     # i for i in range(1, 65)
-#     3, 1
-# ])
+    # asp.set_number_of_repetition_per_trace(4)
+    # asp.set_constraints_to_violate_by_template_index(1, True, [
+    #     # i for i in range(1, 65)
+    #     3, 1
+    # ])
 
 
-# asp.set_constraints_to_violate_by_template_index(5, True, [3])
-# asp.set_activation_conditions_by_template_index({
-#     3: [0, 4],
-# #     2: [1, 3],
-# })
+    # asp.set_constraints_to_violate_by_template_index(5, True, [3])
+    # asp.set_activation_conditions_by_template_index({
+    #     3: [0, 4],
+    # #     2: [1, 3],
+    # })
+    start = time.time()
+    asp.run('../../output/generated_asp.lp')
+    print("Log Generation Time", time.time() - start)
+    asp.to_xes("../../output/generated.xes")
 
-asp.run('../../output/generated_asp.lp')
-asp.to_xes("../../output/generated.xes")
-
-# profiler.disable()
-# profiler.dump_stats("../../result.txt")
+    # profiler.disable()
+    # profiler.dump_stats("../../result.txt")
 
