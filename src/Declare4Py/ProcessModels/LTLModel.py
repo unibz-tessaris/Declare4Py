@@ -2,8 +2,7 @@ from abc import ABC
 
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from pylogics.parsers import parse_ltl
-
-
+from src.Declare4Py.Utils.utils import Utils
 
 class LTLModel(ProcessModel, ABC):
 
@@ -11,17 +10,19 @@ class LTLModel(ProcessModel, ABC):
         super().__init__()
         self.formula: str = ""
         self.parsed_formula = None
+        self.parameters = []
 
-    def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> None:
+    def parse_from_string(self, formula: str, new_line_ctrl: str = "\n") -> None:
         """
         This function expects an LTL formula as a string.
         The pylogics library is used, reference to it in case of doubt.
-        Refer to https://marcofavorito.me/tl-grammars/v/7d9a17267fbf525d9a6a1beb92a46f05cf652db6/ LTL symbols that are allowed.
+        Refer to https://marcofavorito.me/tl-grammars/v/7d9a17267fbf525d9a6a1beb92a46f05cf652db6/
+        for allowed LTL symbols.
         We allow unary operators only if followed by parenthesis, e.g.: G(a), X(a), etc..
 
 
         Args:
-            content: string containing the LTL formula to be passed
+            formula: string containing the LTL formula to be passed
             new_line_ctrl:
 
         Returns:
@@ -29,33 +30,30 @@ class LTLModel(ProcessModel, ABC):
 
         """
         parsed = None
-        if type(content) is not str:
+        if type(formula) is not str:
             raise RuntimeError("You must specify a string as input formula.")
-
-        int_char_map = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h', 8: 'i', 9: 'l'}
 
         unary_operators = {"g(": "G(", "x(": "X(", "f(": "F(", "x[!](": "X[!]("}
 
         binary_operators = {" u ": " U ", "u(": "U(", " r ": " R ", "r(": "R(", " w ": " W ",
                             "w(": "W(", " m ": " M ", "m(": "M(", " v ": " V ", "v(": "V("}
 
-        for int_key in int_char_map.keys():
-            content = content.replace(str(int_key), int_char_map[int_key])
+        formula = Utils.parse_activity(formula)
 
-        content = content.lower()
+        formula = formula.lower()
 
         for key, value in unary_operators.items():
-            content = content.replace(key, value)
+            formula = formula.replace(key, value)
 
         for key, value in binary_operators.items():
-            content = content.replace(key, value)
+            formula = formula.replace(key, value)
 
         try:
-            parsed = parse_ltl(content)
+            parsed = parse_ltl(formula)
         except RuntimeError:
-            raise RuntimeError(f"The inserted string: \"{content}\" is not a valid LTL formula")
+            raise RuntimeError(f"The inserted string: \"{formula}\" is not a valid LTL formula")
 
-        self.formula = content
+        self.formula = formula
         self.parsed_formula = parsed
 
 
@@ -72,7 +70,7 @@ class LTLModelTemplate:
         return formula_str
 
     def eventually_a_then_b(activity1: str, activity2: str) -> str:
-        formula_str = "F(" + activity1 + " -> F(" + activity2 + "))"
+        formula_str = "F(" + activity1 + " && F(" + activity2 + "))"
         return formula_str
 
     def eventually_a_or_b(activity1: str, activity2: str) -> str:
@@ -80,25 +78,129 @@ class LTLModelTemplate:
         return formula_str
 
     def eventually_a_next_b(activity1: str, activity2: str) -> str:
-        formula_str = "F(" + activity1 + " -> X(" + activity2 + "))"
+        formula_str = "F(" + activity1 + " && X(" + activity2 + "))"
         return formula_str
 
     def eventually_a_then_b_then_c(activity1: str, activity2: str, activity3: str) -> str:
-        formula_str = "F(" + activity1 + " -> F(" + activity2 + " -> F(" + activity3 + ")))"
+        formula_str = "F(" + activity1 + " && F(" + activity2 + " && F(" + activity3 + ")))"
         return formula_str
 
     def eventually_a_next_b_next_c(activity1: str, activity2: str, activity3: str) -> str:
-        formula_str = "F(" + activity1 + " -> X(" + activity2 + " -> X(" + activity3 + ")))"
+        formula_str = "F(" + activity1 + " && X(" + activity2 + " && X(" + activity3 + ")))"
         return formula_str
 
     def next_a(act: str) -> str:
         formula_str = "X(" + act + ")"
         return formula_str
 
+    # Branched Declare Models
+
+    def responded_existence(*args: str) -> str:
+        formula = "F(" + args[0] + " -> F(" + args[1]
+        for i in range(2, len(args)):
+            formula += "||" + args[i]
+        formula += "))"
+        return formula
+
+    def response(*args: str) -> str:
+        formula = "G(" + args[0] + " -> F(" + args[1]
+        for i in range(2, len(args)):
+            formula += "||" + args[i]
+        formula += "))"
+        return formula
+
+    def alternate_response(*args: str) -> str:
+        formula = "G(" + args[0] + " -> X(!(" + args[0] + ")U( " + args[1]
+        for i in range(2, len(args)):
+            formula += "||" + args[i]
+        formula += ")))"
+        return formula
+
+    def chain_response(*args: str) -> str:
+        formula = "G(" + args[0] + " -> X(" + args[1]
+        for i in range(2, len(args)):
+            formula += "||" + args[i]
+        formula += "))"
+        return formula
+
+    def precedence(*args: str) -> str:
+        formula = "("
+        for i in range(1, len(args)-1):
+            formula += "!(" + args[i] + ")||"
+        formula += "!(" + args[len(args)-1] + ")U(" + args[0] + ")) || G(!(" + args[1] + ")"
+        for i in range(2, len(args)):
+            formula += "||!(" + args[i] + ")"
+        formula += ")"
+        return formula
+
+    def alternate_precedence(*args:str) -> str:
+        formula = "("
+        for i in range(1, len(args)-1):
+            formula += "!(" + args[i] + ")||"
+        formula += "!(" + args[len(args)-1] + ")U(" + args[0] + ")) && G(" + args[1]
+        for i in range(2, len(args)):
+            formula += "||" + args[i]
+        formula += " -> X(("
+        for i in range(1, len(args)-1):
+            formula += "!(" + args[i] + ")||"
+        formula += "!(" + args[len(args)-1] + ")U(" + args[0] + ")) && G( !(" + args[1] + ")"
+        for i in range(2, len(args)):
+            formula += "||!(" + args[i] + ")"
+        formula += ")))"
+        return formula
+
+    def chain_precedence(*args: str) -> str:
+        formula = "G(X(" + args[1]
+        for i in range(2, len(args)):
+            formula += "||" + args[i]
+        formula += ") -> " + args[0] + ")"
+        return formula
+
+    def not_responded_existence(*args: str) -> str:
+        formula = "F(" + args[0] + ") -> !(F(" + args[1] + "))"
+        for i in range(2, len(args)):
+            formula += "||!(F(" + args[i] + "))"
+        return formula
+
+    def not_response(*args:str) -> str:
+        formula = "G(" + args[0] + " -> !(F(" + args[1] + "))"
+        for i in range(2, len(args)):
+            formula += "||!(F(" + args[i] + "))"
+        formula += ")"
+        return formula
+
+    def not_precedence(*args: str) -> str:
+        formula = "G(F(" + args [1] + ")"
+        for i in range(2, len(args)):
+            formula += "||F(" + args[i] + ")"
+        formula += "->!(" + args[0] + "))"
+        return formula
+
+    def not_chain_response(self, *args:str) -> str:
+        formula = "G(" + args[0] + " -> X(!(" + args[1] + ")"
+        for i in range(2, len(args)):
+            formula += "||!(" + args[i] + ")"
+
+        formula += "))"
+        return formula
+
+    def not_chain_precedence(*args: str) -> str:
+        formula = "G( X(" + args[1]
+        for i in range(2, len(args)):
+            formula += "||" + args[i]
+
+        formula += ") -> !(" + args[0] + "))"
+        return formula
+
     templates = {'eventually_activity_a': eventually_activity_a, 'eventually_a_then_b': eventually_a_then_b,
                  'eventually_a_or_b': eventually_a_or_b, 'eventually_a_next_b': eventually_a_next_b,
                  'eventually_a_then_b_then_c': eventually_a_then_b_then_c,
-                 'eventually_a_next_b_next_c': eventually_a_next_b_next_c, 'next_a': next_a}
+                 'eventually_a_next_b_next_c': eventually_a_next_b_next_c, 'next_a': next_a,
+                 'responded_existence':responded_existence, 'response':response, 'alternate_response':alternate_response,
+                 'chain_response':chain_response, 'precedence':precedence, 'alternate_precedence':alternate_precedence,
+                 'chain_precedence':chain_precedence, 'not_responded_existence':not_responded_existence,
+                 'not_response':not_response, 'not_precedence':not_precedence, 'not_chain_response':not_chain_response,
+                 'not_chain_precedence':not_chain_precedence}
     templ_str: str = None
 
     parameters: [str] = []
@@ -126,11 +228,14 @@ class LTLModelTemplate:
         m = None
         try:
             formula = func(*activities)
-            self.parameters.append(*activities)
+            for act in activities:
+                act = Utils.parse_activity(act)
+                act = act.lower()
+                self.parameters.append(act)
             m = LTLModel()
             m.parse_from_string(formula)
+            m.parameters = self.parameters
         except (TypeError, RuntimeError):
             raise TypeError("Mismatched number of parameters")
         return m
-
 
