@@ -79,6 +79,9 @@ class AspGenerator(LogGenerator):
         self.trace_counter_id = 0
         self.run_parallel: bool = False
         self.parallel_futures: [] = []
+        # instead of using distribution
+        self._custom_counter: dict[str, typing.Union[collections.Counter, None]] = {"positive": None, "negative": None}
+        # self._custom_counter: { "positive": collections.Counter | None, "negative": collections.Counter | None} | None = None
 
         self.lp_model: ASPModel = None
         self.encode_decl_model = encode_decl_model
@@ -181,8 +184,15 @@ class AspGenerator(LogGenerator):
         pos_traces = self.log_length - self.negative_traces
         neg_traces = self.negative_traces
         self.parallel_futures = []
-        pos_traces_dist = self.compute_distribution(pos_traces)
-        neg_traces_dist = self.compute_distribution(neg_traces)
+        if self._custom_counter is not None and ("positive" in self._custom_counter) or ("negative" in self._custom_counter):
+            self.py_logger.debug("******* Using custom traces length *******")
+            pos_traces_dist = self._custom_counter["positive"]
+            neg_traces_dist = self._custom_counter["negative"]
+        else:
+            self.py_logger.debug("Using custom traces length")
+            pos_traces_dist = self.compute_distribution(pos_traces)
+            neg_traces_dist = self.compute_distribution(neg_traces)
+
         result: LogTracesType = LogTracesType(negative=[], positive=[])
         result_variation: LogTracesType = LogTracesType(negative=[], positive=[])
         if self.negative_traces > 0:
@@ -231,7 +241,7 @@ class AspGenerator(LogGenerator):
         """
         self.clingo_output = []
         self.clingo_output_traces_variation = {}
-        self.py_logger.debug("Start generating traces")
+        self.py_logger.debug(f"Start generating traces: {traces_to_generate}")
         if self.run_parallel:
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.parallel_workers) as executor:
                 for events, traces in traces_to_generate.items():
@@ -658,6 +668,42 @@ class AspGenerator(LogGenerator):
         self.py_logger.info(f"Distribution result {traces_len}")
         self.traces_length = traces_len
         return traces_len
+
+    def set_custom_trace_lengths(self, custom_lengths: dict[int, int], negative_custom_lengths: dict[int, int] | None = None):
+        """
+        Set custom traces lengths in order to generate positive and negative traces instead of
+        using the distributions
+        
+        the key in the dict represents the number of events in a trace and value in the dict represents the number of traces with event
+        i.e {68: 2} means that you want 2 traces with 68 events in each.
+        
+        Parameters
+        ----------
+        custom_lengths: dict[int, int]
+            traces length for positive traces
+        negative_custom_lengths: dict[int, int], Optional
+            traces length for negative traces
+        Returns
+        -------
+        """
+
+        if custom_lengths and len(custom_lengths) > 0:
+            # self.traces_length = len(custom_lengths)
+            self.traces_length = sum(custom_lengths.values())
+            events = custom_lengths.keys()
+            self.min_events = min(events)
+            self.max_events = max(events)
+
+        if negative_custom_lengths:
+            if len(negative_custom_lengths) > 0:
+                events = negative_custom_lengths.keys()
+                self.min_events = min(events, self.min_events)
+                self.max_events = max(events, self.max_events)
+            self.negative_traces = sum(negative_custom_lengths.values())
+            self.traces_length = self.traces_length + self.negative_traces
+        self.py_logger.info(f"****----**** Trace lengths, min_events, max_events are updated ****----****")
+        self.py_logger.info(f"**--** Pos: {self.traces_length}, Neg: {self.negative_traces}, min {self.min_events}, max: {self.max_events} **--**")
+        self._custom_counter = {"positive": custom_lengths, "negative": negative_custom_lengths}
 
     def set_distribution(self, distributor_type: typing.Literal["uniform", "gaussian", "custom"] = "uniform",
                          custom_probabilities: typing.Optional[typing.List[float]] = None,

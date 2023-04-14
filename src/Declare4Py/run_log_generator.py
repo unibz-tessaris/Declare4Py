@@ -152,8 +152,8 @@ if __name__ == '__main__':
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
-    model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
-    print("Total Activities/Events: ", len(model.parsed_model.events))
+    model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
+    print("Total Activities/Events: ", model.parsed_model.get_total_events())
     print("Total Attributes: ", len(model.parsed_model.attributes_list))
     print("Total Constraints: ", len(model.parsed_model.templates))
 
@@ -161,17 +161,30 @@ if __name__ == '__main__':
     #     d = model.parsed_model.to_dict()
     #     json.dump(d, file, indent=4)
     # exit(0)
-    num_of_traces = 10
-    num_min_events = 100
-    num_max_events = 200
+    num_of_traces = 50
+    num_min_events = 40
+    num_max_events = 62
 
     start_time = r_time()
     asp = AspGenerator(
             model, num_of_traces, num_min_events, num_max_events,
             # encode_decl_model=False
         )
-    # asp.run_parallel = True
-    asp.set_distribution("uniform")
+    asp.run_parallel = True
+    asp.set_custom_trace_lengths({
+        40: 10,
+        42: 7,
+        47: 8,
+        46: 4,
+        57: 5,
+        55: 5,
+        51: 4,
+        60: 3,
+        62: 4,
+        # 40: 10, 42: 1, 47: 1, 46: 1, 57: 2, 60: 10, 62: 20, 55: 5, 51: 10
+     })
+    # asp.set_distribution("Uniform")
+    # asp.set_distribution("custom", custom_probabilities=[.2, .2, .2, .2, .2])
 
     # asp.set_number_of_repetition_per_trace(4)
     # asp.set_constraints_to_violate_by_template_index(1, True, [

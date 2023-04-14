@@ -878,7 +878,8 @@ class DeclareModelConstraintTemplate:
             new_name = self.template.templ_str
             if self.cardinality > 0:
                 new_name = self.template.templ_str + str(self.cardinality)
-            if self._template_name.lower() == "existence1" or self._template_name.lower() == "absence1":
+            # if self._template_name.lower() == "existence1" or self._template_name.lower() == "absence1":
+            if new_name.lower() == "existence1" or new_name.lower() == "absence1":
                 new_name = new_name.replace("1", "")
             return new_name
         return self.template.templ_str
@@ -1040,6 +1041,13 @@ class DeclareParsedDataModel:
         self.attributes_list: dict[str, DeclareModelAttr] = {}
         self.templates: dict[int, DeclareModelConstraintTemplate] = {}
         self.total_templates = 0
+
+    def get_total_events(self) -> int:
+        """Returns the total events"""
+        num = 0
+        for k, v in self.events.items():
+            num = num + len(v)
+        return num
 
     def add_event(self, name: str, event_type: str) -> None:
         """
