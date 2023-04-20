@@ -31,6 +31,14 @@ Declare4Py.run\_log\_generator module
    :undoc-members:
    :show-inheritance:
 
+Declare4Py.stats\_reader module
+-------------------------------
+
+.. automodule:: Declare4Py.stats_reader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

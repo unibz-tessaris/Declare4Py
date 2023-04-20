@@ -95,101 +95,146 @@ class LTLModelTemplate:
 
     # Branched Declare Models
 
-    def responded_existence(*args: str) -> str:
-        formula = "F(" + args[0] + " -> F(" + args[1]
-        for i in range(2, len(args)):
-            formula += "||" + args[i]
+    def responded_existence(sour: [str], target:[str]) -> str:
+        formula = "F(" + sour[0]
+        for i in range(len(sour)):
+            formula += "|| " + sour[i]
+        formula += " -> F(" + target[0]
+        for i in range(len(target)):
+            formula += "||" + target[i]
         formula += "))"
         return formula
 
-    def response(*args: str) -> str:
-        formula = "G(" + args[0] + " -> F(" + args[1]
-        for i in range(2, len(args)):
-            formula += "||" + args[i]
+
+    def response(sour: [str], target:[str]) -> str:
+        formula = "G(" + sour[0]
+        for i in range(len(sour)):
+            formula += "|| " + sour[i]
+        formula += " -> F(" + target[0]
+        for i in range(len(target)):
+            formula += "||" + target[i]
         formula += "))"
         return formula
 
-    def alternate_response(*args: str) -> str:
-        formula = "G(" + args[0] + " -> X(!(" + args[0] + ")U( " + args[1]
-        for i in range(2, len(args)):
-            formula += "||" + args[i]
+    def alternate_response(sour: [str], target:[str]) -> str:
+        formula = "G(" + sour[0]
+        for i in range(len(sour)):
+            formula += "|| " + sour[i]
+        formula += " -> X((!(" + sour[0] + ") "
+        for i in range(len(sour)):
+            formula += "|| !(" + sour[i] + ") "
+        formula += ")U( " + target[0]
+        for i in range(1, len(target)):
+            formula += "||" + target[i]
         formula += ")))"
         return formula
 
-    def chain_response(*args: str) -> str:
-        formula = "G(" + args[0] + " -> X(" + args[1]
-        for i in range(2, len(args)):
-            formula += "||" + args[i]
+    def chain_response(sour: [str], target:[str]) -> str:
+        formula = "G(" + sour[0]
+        for i in range(len(sour)):
+            formula += "|| " + sour[i]
+        formula += " -> X(" + target[0]
+        for i in range(len(target)):
+            formula += "||" + target[i]
         formula += "))"
         return formula
 
-    def precedence(*args: str) -> str:
-        formula = "("
-        for i in range(1, len(args)-1):
-            formula += "!(" + args[i] + ")||"
-        formula += "!(" + args[len(args)-1] + ")U(" + args[0] + ")) || G(!(" + args[1] + ")"
-        for i in range(2, len(args)):
-            formula += "||!(" + args[i] + ")"
-        formula += ")"
+    def precedence(sour: [str], target:[str]) -> str:
+        formula = "((!(" + target[0] + ")"
+        for i in range(1, len(target)):
+            formula += "|| !(" + target[i] + ")"
+        formula += ")U(" + sour[0]
+
+        for i in range(1, len(sour)):
+            formula += "|| " + sour[i]
+
+        formula += ")) || G((!(" + target[1] + ")"
+        for i in range(1, len(target)):
+            formula += "||!(" + target[i] + ")"
+
+        formula += "))"
         return formula
 
-    def alternate_precedence(*args:str) -> str:
+    def alternate_precedence(sour: [str], target:[str]) -> str:
         formula = "("
-        for i in range(1, len(args)-1):
-            formula += "!(" + args[i] + ")||"
-        formula += "!(" + args[len(args)-1] + ")U(" + args[0] + ")) && G(" + args[1]
-        for i in range(2, len(args)):
-            formula += "||" + args[i]
+        for i in range(1, len(target)-1):
+            formula += "!(" + target[i] + ")||"
+        formula += "!(" + target[len(target)-1] + ")U(" + sour[0]
+        for i in range(1,len(sour)):
+            formula += "|| " + sour[i]
+        formula += ")) && G(" + target[0]
+        for i in range(1, len(target)):
+            formula += "||" + target[i]
         formula += " -> X(("
-        for i in range(1, len(args)-1):
-            formula += "!(" + args[i] + ")||"
-        formula += "!(" + args[len(args)-1] + ")U(" + args[0] + ")) && G( !(" + args[1] + ")"
-        for i in range(2, len(args)):
-            formula += "||!(" + args[i] + ")"
+        for i in range(1, len(target)-1):
+            formula += "!(" + target[i] + ")||"
+        formula += "!(" + target[len(target)-1] + ")U(" + sour[0]
+        for i in range(1, len(sour)):
+            formula += "|| " + sour[i]
+        formula += ")) && G( !(" + target[0] + ")"
+        for i in range(1, len(target)):
+            formula += "||!(" + target[i] + ")"
         formula += ")))"
         return formula
 
-    def chain_precedence(*args: str) -> str:
-        formula = "G(X(" + args[1]
-        for i in range(2, len(args)):
-            formula += "||" + args[i]
-        formula += ") -> " + args[0] + ")"
-        return formula
-
-    def not_responded_existence(*args: str) -> str:
-        formula = "F(" + args[0] + ") -> !(F(" + args[1] + "))"
-        for i in range(2, len(args)):
-            formula += "||!(F(" + args[i] + "))"
-        return formula
-
-    def not_response(*args:str) -> str:
-        formula = "G(" + args[0] + " -> !(F(" + args[1] + "))"
-        for i in range(2, len(args)):
-            formula += "||!(F(" + args[i] + "))"
-        formula += ")"
-        return formula
-
-    def not_precedence(*args: str) -> str:
-        formula = "G(F(" + args [1] + ")"
-        for i in range(2, len(args)):
-            formula += "||F(" + args[i] + ")"
-        formula += "->!(" + args[0] + "))"
-        return formula
-
-    def not_chain_response(self, *args:str) -> str:
-        formula = "G(" + args[0] + " -> X(!(" + args[1] + ")"
-        for i in range(2, len(args)):
-            formula += "||!(" + args[i] + ")"
-
+    def chain_precedence(sour: [str], target:[str]) -> str:
+        formula = "G(X(" + target[0]
+        for i in range(1, len(target)):
+            formula += "||" + target[i]
+        formula += ") -> " + "(" + sour[0]
+        for i in range(1, len(sour)):
+            formula += "||" + sour[i]
         formula += "))"
         return formula
 
-    def not_chain_precedence(*args: str) -> str:
-        formula = "G( X(" + args[1]
-        for i in range(2, len(args)):
-            formula += "||" + args[i]
+    def not_responded_existence(sour: [str], target:[str]) -> str:
+        formula = "F(" + sour[0]
+        for i in range(1,len(sour)):
+            formula += "||" + sour[i]
+        formula += ") -> !(F(" + target[0] + ")"
+        for i in range(1, len(target)):
+            formula += "|| F(" + target[i] + ")"
+        formula += ")"
+        return formula
 
-        formula += ") -> !(" + args[0] + "))"
+    def not_response(sour: [str], target:[str]) -> str:
+        formula = "G(" + sour[0]
+        for i in range(1,len(sour)):
+            formula += "|| " + sour[i]
+        formula += " -> !(F(" + target[0] + "))"
+        for i in range(1, len(target)):
+            formula += "||!(F(" + target[i] + "))"
+        formula += ")"
+        return formula
+
+    def not_precedence(sour: [str], target:[str]) -> str:
+        formula = "G(F(" + target[0] + ")"
+        for i in range(1, len(target)):
+            formula += "|| F(" + target[i] + ")"
+        formula += "->!(" + sour[0]
+        for i in range(1,len(sour)):
+            formula += "||" + sour[i]
+        formula += "))"
+        return formula
+
+    def not_chain_response(sour: [str], target:[str]) -> str:
+        formula = "G(" + sour[0]
+        for i in range(1,len(sour)):
+            formula += "|| " + sour[i]
+        formula += " -> X(!(" + target[0] + ")"
+        for i in range(1, len(target)):
+            formula += "||!(" + target[i] + ")"
+        formula += "))"
+        return formula
+
+    def not_chain_precedence(sour: [str], target:[str]) -> str:
+        formula = "G( X(" + target[0]
+        for i in range(1, len(target)):
+            formula += "||" + target[i]
+        formula += ") -> !(" + sour[0] + ")"
+        for i in range(1,len(sour)):
+            formula += "|| !("+sour[i]+")"
+        formula +=")"
         return formula
 
     templates = {'eventually_activity_a': eventually_activity_a, 'eventually_a_then_b': eventually_a_then_b,
@@ -236,6 +281,6 @@ class LTLModelTemplate:
             m.parse_from_string(formula)
             m.parameters = self.parameters
         except (TypeError, RuntimeError):
-            raise TypeError("Mismatched number of parameters")
+            raise TypeError("Mismatched number of parameters or type")
         return m
 
