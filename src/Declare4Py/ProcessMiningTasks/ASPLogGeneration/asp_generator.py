@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import json
 import logging
 import math
 import re
@@ -80,10 +81,12 @@ class AspGenerator(LogGenerator):
         self.run_parallel: bool = False
         self.parallel_futures: [] = []
         # instead of using distribution
-        self._custom_counter: dict[str, typing.Union[collections.Counter, None]] = {"positive": None, "negative": None}
+        self._custom_counter: dict[
+            str, typing.Union[collections.Counter, None]] = None  # {"positive": None, "negative": None}
         # self._custom_counter: { "positive": collections.Counter | None, "negative": collections.Counter | None} | None = None
 
         self.lp_model: ASPModel = None
+        self.traces_generated_events = None
         self.encode_decl_model = encode_decl_model
         self.py_logger.debug(f"Distribution for traces {self.distributor_type}")
         self.py_logger.debug(
@@ -141,7 +144,8 @@ class AspGenerator(LogGenerator):
         # decl_model.templates[0].template_line
         for template_def, cond_num_list in self.activation_conditions.items():
             template_def = template_def.strip()
-            decl_template_parsed: [DeclareModelConstraintTemplate] = [val for key, val in decl_model.templates.items() if val.line == template_def]
+            decl_template_parsed: [DeclareModelConstraintTemplate] = [val for key, val in decl_model.templates.items()
+                                                                      if val.line == template_def]
             decl_template_parsed: DeclareModelConstraintTemplate = decl_template_parsed[0]
             asp_template_idx = decl_template_parsed.template_index
             if decl_template_parsed is None:
@@ -150,24 +154,33 @@ class AspGenerator(LogGenerator):
                 if cond_num_list[0] <= 0:
                     # left side tends to -inf or 0 starting from cond_num_list[1]. cond_num_list = [0, 2]
                     # means it can have only at most 2 activations
-                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
                     if decl_template_parsed.template.both_activation_condition:  # some templates's both conditions are activation conditions
-                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                        self.lp_model.add_asp_line(
+                            f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
                 elif cond_num_list[1] == math.inf:
                     # right side tends to inf from cond_num_list[0] to +inf. cond_num_list = [2, math.inf]
                     # means it can have it should at least 2 activations and can go to infinite
-                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
                     if decl_template_parsed.template.both_activation_condition:
-                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                        self.lp_model.add_asp_line(
+                            f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
                 else:
                     # ie cond_num_list = [2, 4]
-                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
-                    self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
                     if decl_template_parsed.template.both_activation_condition:
-                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
-                        self.lp_model.add_asp_line(f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                        self.lp_model.add_asp_line(
+                            f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                        self.lp_model.add_asp_line(
+                            f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
             else:
-                raise ValueError("Interval values are wrong. It must have only 2 values, represents, left and right interval")
+                raise ValueError(
+                    "Interval values are wrong. It must have only 2 values, represents, left and right interval")
 
     def run(self, generated_asp_file_path: typing.Union[str, None] = None):
         """
@@ -184,10 +197,11 @@ class AspGenerator(LogGenerator):
         pos_traces = self.log_length - self.negative_traces
         neg_traces = self.negative_traces
         self.parallel_futures = []
-        if self._custom_counter is not None and ("positive" in self._custom_counter) or ("negative" in self._custom_counter):
+        if self._custom_counter is not None:
             self.py_logger.debug("******* Using custom traces length *******")
-            pos_traces_dist = self._custom_counter["positive"]
-            neg_traces_dist = self._custom_counter["negative"]
+            if ("positive" in self._custom_counter) or ("negative" in self._custom_counter):
+                pos_traces_dist = self._custom_counter["positive"]
+                neg_traces_dist = self._custom_counter["negative"]
         else:
             self.py_logger.debug("Using custom traces length")
             pos_traces_dist = self.compute_distribution(pos_traces)
@@ -249,7 +263,8 @@ class AspGenerator(LogGenerator):
                     self.parallel_futures.append(future)
         else:
             for events, traces in traces_to_generate.items():
-                self.py_logger.debug(f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
+                self.py_logger.debug(
+                    f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
                 self.__generate_asp_trace(lp_model, events, traces, trace_type)
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
@@ -317,7 +332,7 @@ class AspGenerator(LogGenerator):
             """
             warnings.warn(
                 f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model.')
-            return # we exit because we cannot generate more traces with same params.
+            return  # we exit because we cannot generate more traces with same params.
         elif self.num_repetition_per_trace > 0:
             self.trace_counter = self.trace_counter + 1
             self.clingo_output_traces_variation[
@@ -381,7 +396,7 @@ class AspGenerator(LogGenerator):
         # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
         seed = randrange(0, 2 ** 30 - 1)
         self.py_logger.debug(f" Generating variation trace: {num_traces}, events{num_events}, seed:{seed}")
-        ctl = clingo.Control([f"-c t={int(num_events)}", "--project", f"1", # f"{int(num_traces)}",
+        ctl = clingo.Control([f"-c t={int(num_events)}", "--project", f"1",  # f"{int(num_traces)}",
                               f"--seed={seed}", f"--sign-def=rnd", f"--restart-on-model", f"--rand-freq={freq}"])
         ctl.add(asp)
         ctl.add(self.asp_encoding)
@@ -453,19 +468,25 @@ class AspGenerator(LogGenerator):
         decl_model: DeclareParsedDataModel = self.process_model.parsed_model
         attr_list: dict[str, DeclareModelAttr] = decl_model.attributes_list
         tot_traces_generated = 0
+        flattened = {}
         for result in self.asp_generated_traces:
             tot_traces_generated = tot_traces_generated + len(self.asp_generated_traces[result])
             traces_generated = self.asp_generated_traces[result]
             # traces_generated.sort(key=lambda x: x.name)
             traces_generated = sorted(traces_generated, key=custom_sort_trace_key)
+            instance = []
             for trace in traces_generated:  # Positive, Negative...
                 trace_gen = lg.Trace()
                 trace_gen.attributes["concept:name"] = trace.name
                 trace_gen.attributes["label"] = result
+                _instance = {"trace_name": trace.name, "posNeg": result, "events": []}
                 for asp_event in trace.parsed_result:
                     event = lg.Event()
+                    _event = {}
                     event["lifecycle:transition"] = "complete"  # NOTE: I don't know why we need it
                     event["concept:name"] = decl_model.decode_value(asp_event['name'], self.encode_decl_model)
+                    _event = {"ev": event["concept:name"], "lifecycle:transition": "complete", "resources": []}
+                    _instance["events"].append(_event)
                     for res_name, res_value in asp_event['resources'].items():
                         if res_name == '__position':  # private property
                             continue
@@ -485,17 +506,40 @@ class AspGenerator(LogGenerator):
                                     res_value_decoded = num
                         if isinstance(res_value_decoded, str):
                             event[res_name_decoded] = res_value_decoded.strip()
+                            _event["resources"].append({res_name_decoded: res_value_decoded.strip()})
                         else:
                             event[res_name_decoded] = res_value_decoded
+                            _event["resources"].append({res_name_decoded: res_value_decoded})
                         event["time:timestamp"] = datetime.now()
                     trace_gen.append(event)
                 self.event_log.log.append(trace_gen)
+                instance.append(_instance)
+            flattened[result] = instance
+
+        self.traces_generated_events = flattened
         if tot_traces_generated != self.log_length:
             num = self.num_repetition_per_trace
             if num <= 0:
                 num = 1
             self.py_logger.warning(f'PM4PY log generated: {tot_traces_generated}/{self.log_length * num} only.')
         self.py_logger.debug(f"Pm4py generated but not saved yet")
+
+    def toPD(self, data):
+        activities = []
+        for trace_type in data:
+            for trace in data[trace_type]:
+                trace_id = trace["trace_name"]
+                for event in trace["events"]:
+                    for res in event["resources"]:
+                        for k, v in res.items():
+                            activities.append({
+                                "caseId": f'{trace_id}',
+                                "timeStamp": datetime.now().isoformat(),
+                                "lifecycle:transition": event["lifecycle:transition"],
+                                "activity": event["ev"],
+                                k: v
+                            })
+        return activities
 
     def to_xes(self, output_fn: str):
         """
@@ -510,6 +554,9 @@ class AspGenerator(LogGenerator):
         """
         if self.event_log.log is None:
             self.__pm4py_log()
+        acts = self.toPD(self.traces_generated_events)
+        print(acts)
+
         pm4py.write_xes(self.event_log.log, output_fn)
 
     def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
@@ -533,7 +580,8 @@ class AspGenerator(LogGenerator):
         self.violate_all_constraints = violate_all
         self.add_constraints_to_violate(constraints_list)
 
-    def set_constraints_to_violate_by_template_index(self, tot_negative_trace: int, violate_all: bool, constraints_idx_list: list[int]):
+    def set_constraints_to_violate_by_template_index(self, tot_negative_trace: int, violate_all: bool,
+                                                     constraints_idx_list: list[int]):
         """
         Add constraints to violate
 
@@ -663,13 +711,16 @@ class AspGenerator(LogGenerator):
                     traces_len[k] = v
             self.py_logger.info(f"Gaussian distribution after refinement {traces_len}")
         else:
-            traces_len: typing.Union[collections.Counter, None] = d.distribution(self.min_events, self.max_events, total_traces,
-                                                                    self.distributor_type, self.custom_probabilities)
+            traces_len: typing.Union[collections.Counter, None] = d.distribution(self.min_events, self.max_events,
+                                                                                 total_traces,
+                                                                                 self.distributor_type,
+                                                                                 self.custom_probabilities)
         self.py_logger.info(f"Distribution result {traces_len}")
         self.traces_length = traces_len
         return traces_len
 
-    def set_custom_trace_lengths(self, custom_lengths: dict[int, int], negative_custom_lengths: dict[int, int] | None = None):
+    def set_custom_trace_lengths(self, custom_lengths: dict[int, int],
+                                 negative_custom_lengths: dict[int, int] | None = None):
         """
         Set custom traces lengths in order to generate positive and negative traces instead of
         using the distributions
@@ -702,7 +753,8 @@ class AspGenerator(LogGenerator):
             self.negative_traces = sum(negative_custom_lengths.values())
             self.traces_length = self.traces_length + self.negative_traces
         self.py_logger.info(f"****----**** Trace lengths, min_events, max_events are updated ****----****")
-        self.py_logger.info(f"**--** Pos: {self.traces_length}, Neg: {self.negative_traces}, min {self.min_events}, max: {self.max_events} **--**")
+        self.py_logger.info(
+            f"**--** Pos: {self.traces_length}, Neg: {self.negative_traces}, min {self.min_events}, max: {self.max_events} **--**")
         self._custom_counter = {"positive": custom_lengths, "negative": negative_custom_lengths}
 
     def set_distribution(self, distributor_type: typing.Literal["uniform", "gaussian", "custom"] = "uniform",
