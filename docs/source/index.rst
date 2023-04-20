@@ -18,8 +18,8 @@ To add:
    :maxdepth: 2
    :caption: Contents:
    
-   Declare4Py
-   modules
+   
+   
 
 
 Indices and tables

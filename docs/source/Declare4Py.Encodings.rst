@@ -12,66 +12,74 @@ Subpackages
 Submodules
 ----------
 
-Declare4Py.Encodings.AggregateTransformer module
-------------------------------------------------
+Declare4Py.Encodings.Aggregate module
+-------------------------------------
 
-.. automodule:: Declare4Py.Encodings.AggregateTransformer
+.. automodule:: Declare4Py.Encodings.Aggregate
    :members:
    :undoc-members:
    :show-inheritance:
 
-Declare4Py.Encodings.ComplexIndexBasedTransformer module
---------------------------------------------------------
-
-.. automodule:: Declare4Py.Encodings.ComplexIndexBasedTransformer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Declare4Py.Encodings.ComplexIndexNgramTransformer module
---------------------------------------------------------
-
-.. automodule:: Declare4Py.Encodings.ComplexIndexNgramTransformer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Declare4Py.Encodings.IndexBasedTransformer module
--------------------------------------------------
-
-.. automodule:: Declare4Py.Encodings.IndexBasedTransformer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Declare4Py.Encodings.LastStateTransformer module
-------------------------------------------------
-
-.. automodule:: Declare4Py.Encodings.LastStateTransformer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Declare4Py.Encodings.NgramTransformer module
---------------------------------------------
-
-.. automodule:: Declare4Py.Encodings.NgramTransformer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Declare4Py.Encodings.PreviousStateTransformer module
-----------------------------------------------------
-
-.. automodule:: Declare4Py.Encodings.PreviousStateTransformer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Declare4Py.Encodings.StaticTransformer module
+Declare4Py.Encodings.ComplexIndexBased module
 ---------------------------------------------
 
-.. automodule:: Declare4Py.Encodings.StaticTransformer
+.. automodule:: Declare4Py.Encodings.ComplexIndexBased
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Declare4Py.Encodings.ComplexIndexNgram module
+---------------------------------------------
+
+.. automodule:: Declare4Py.Encodings.ComplexIndexNgram
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Declare4Py.Encodings.Declare module
+-----------------------------------
+
+.. automodule:: Declare4Py.Encodings.Declare
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Declare4Py.Encodings.IndexBased module
+--------------------------------------
+
+.. automodule:: Declare4Py.Encodings.IndexBased
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Declare4Py.Encodings.LastState module
+-------------------------------------
+
+.. automodule:: Declare4Py.Encodings.LastState
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Declare4Py.Encodings.Ngram module
+---------------------------------
+
+.. automodule:: Declare4Py.Encodings.Ngram
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Declare4Py.Encodings.PreviousState module
+-----------------------------------------
+
+.. automodule:: Declare4Py.Encodings.PreviousState
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Declare4Py.Encodings.Static module
+----------------------------------
+
+.. automodule:: Declare4Py.Encodings.Static
    :members:
    :undoc-members:
    :show-inheritance:
