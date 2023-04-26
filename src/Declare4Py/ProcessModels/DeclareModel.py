@@ -1189,7 +1189,7 @@ class DeclareParsedDataModel:
             The decoded value.
         """
         if is_encoded:
-            DeclareModelCoderSingleton().decode_value(val)
+            val = DeclareModelCoderSingleton().decode_value(val)
         return val
 
     def to_dict(self):

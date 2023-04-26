@@ -148,11 +148,11 @@ def r_time():
 if __name__ == '__main__':
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/BusinessTrip.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/xRay.decl")
-    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
+    model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
-    model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
     print("Total Activities/Events: ", model.parsed_model.get_total_events())
     print("Total Attributes: ", len(model.parsed_model.attributes_list))
     print("Total Constraints: ", len(model.parsed_model.templates))
@@ -161,9 +161,9 @@ if __name__ == '__main__':
     #     d = model.parsed_model.to_dict()
     #     json.dump(d, file, indent=4)
     # exit(0)
-    num_of_traces = 50
-    num_min_events = 40
-    num_max_events = 62
+    num_of_traces = 5
+    num_min_events = 5
+    num_max_events = 10
 
     start_time = r_time()
     asp = AspGenerator(
@@ -171,18 +171,19 @@ if __name__ == '__main__':
             # encode_decl_model=False
         )
     asp.run_parallel = True
-    asp.set_custom_trace_lengths({
-        40: 10,
-        42: 7,
-        47: 8,
-        46: 4,
-        57: 5,
-        55: 5,
-        51: 4,
-        60: 3,
-        62: 4,
-        # 40: 10, 42: 1, 47: 1, 46: 1, 57: 2, 60: 10, 62: 20, 55: 5, 51: 10
-     })
+    # asp.set_custom_trace_lengths({
+    #     40: 10,
+    #     42: 7,
+    #     47: 8,
+    #     46: 4,
+    #     57: 5,
+    #     55: 5,
+    #     51: 4,
+    #     60: 3,
+    #     62: 4,
+    #     # 40: 10, 42: 1, 47: 1, 46: 1, 57: 2, 60: 10, 62: 20, 55: 5, 51: 10
+    #  })
+
     # asp.set_distribution("Uniform")
     # asp.set_distribution("custom", custom_probabilities=[.2, .2, .2, .2, .2])
 
