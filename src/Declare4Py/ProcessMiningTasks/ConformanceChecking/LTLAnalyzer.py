@@ -34,10 +34,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
             raise RuntimeError("You must load the LTL model before checking the model.")
         dfa = ltl2dfa(self.process_model.parsed_formula, backend="lydia")
         dfa = dfa.minimize()
-        graph = dfa.to_graphviz()
-        graph.render("/home/xhedj/Desktop/graph")
         g_log = self.event_log.get_log()
-        # TO be changed!
         parameters = self.process_model.parameters
 
         df = pandas.DataFrame()

@@ -3,6 +3,7 @@ from abc import ABC
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from pylogics.parsers import parse_ltl
 from src.Declare4Py.Utils.utils import Utils
+from typing import Union
 
 class LTLModel(ProcessModel, ABC):
 
@@ -65,32 +66,32 @@ class LTLModelTemplate:
     """
 
     # Set of basic LTL formulae for user
-    def eventually_activity_a(activity: str) -> str:
-        formula_str = "F(" + activity + ")"
+    def eventually_activity_a(activity: [str]) -> str:
+        formula_str = "F(" + activity[0] + ")"
         return formula_str
 
-    def eventually_a_then_b(activity1: str, activity2: str) -> str:
-        formula_str = "F(" + activity1 + " && F(" + activity2 + "))"
+    def eventually_a_then_b(activity: [str]) -> str:
+        formula_str = "F(" + activity[0] + " && F(" + activity[1] + "))"
         return formula_str
 
-    def eventually_a_or_b(activity1: str, activity2: str) -> str:
-        formula_str = "F(" + activity1 + ") || F(" + activity2 + ")"
+    def eventually_a_or_b(activity: [str]) -> str:
+        formula_str = "F(" + activity[0] + ") || F(" + activity[1] + ")"
         return formula_str
 
-    def eventually_a_next_b(activity1: str, activity2: str) -> str:
-        formula_str = "F(" + activity1 + " && X(" + activity2 + "))"
+    def eventually_a_next_b(activity: [str]) -> str:
+        formula_str = "F(" + activity[0] + " && X(" + activity[1] + "))"
         return formula_str
 
-    def eventually_a_then_b_then_c(activity1: str, activity2: str, activity3: str) -> str:
-        formula_str = "F(" + activity1 + " && F(" + activity2 + " && F(" + activity3 + ")))"
+    def eventually_a_then_b_then_c(activity: [str]) -> str:
+        formula_str = "F(" + activity[0] + " && F(" + activity[1] + " && F(" + activity[2] + ")))"
         return formula_str
 
-    def eventually_a_next_b_next_c(activity1: str, activity2: str, activity3: str) -> str:
-        formula_str = "F(" + activity1 + " && X(" + activity2 + " && X(" + activity3 + ")))"
+    def eventually_a_next_b_next_c(activity: [str]) -> str:
+        formula_str = "F(" + activity[0] + " && X(" + activity[1] + " && X(" + activity[2] + ")))"
         return formula_str
 
-    def next_a(act: str) -> str:
-        formula_str = "X(" + act + ")"
+    def next_a(act: [str]) -> str:
+        formula_str = "X(" + act[0] + ")"
         return formula_str
 
     # Branched Declare Models
@@ -274,13 +275,12 @@ class LTLModelTemplate:
         try:
             formula = func(*activities)
             for act in activities:
-                act = Utils.parse_activity(act)
-                act = act.lower()
-                self.parameters.append(act)
+                act = [item.lower() for item in act]
+                act = [Utils.parse_activity(item) for item in act]
+                self.parameters += act
             m = LTLModel()
             m.parse_from_string(formula)
             m.parameters = self.parameters
         except (TypeError, RuntimeError):
             raise TypeError("Mismatched number of parameters or type")
         return m
-
