@@ -14,12 +14,12 @@ sys.path.insert(0, os.path.abspath("../../src/Declare4Py"))
 
 project = 'Declare4Py'
 copyright = '2023, Fabrizio Maria Maggi, Ivan Donadello'
-author = 'Fabrizio Maria Maggi, Ivan Donadello'
+author = 'Ivan Donadello, Fabrizio Maria Maggi, Francesco Riva'
 release = '2.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-extensions = ['sphinx.ext.napoleon', 'sphinx.ext.autodoc']
+extensions = ['sphinx.ext.napoleon', 'sphinx.ext.autodoc', 'nbsphinx']
 
 templates_path = ['_templates']
 exclude_patterns = []
