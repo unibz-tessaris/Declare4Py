@@ -16,10 +16,16 @@ To add:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Introduction:
    
-   
-   
+   Site navigation.rst
+   gettingstarted.rst
+   creating
+   Example.ipynb
+   Publications.rst
+   collaborators.rst
+   contribute.rst
+   test.rst
 
 
 Indices and tables
