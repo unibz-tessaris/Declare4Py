@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath("../../src/Declare4Py"))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Declare4Py'
-copyright = '2023, Fabrizio Maria Maggi, Ivan Donadello'
+copyright = '2023, Ivan Donadello, Fabrizio Maria Maggi, Francesco Riva'
 author = 'Ivan Donadello, Fabrizio Maria Maggi, Francesco Riva'
 release = '2.0'
 
