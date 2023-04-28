@@ -3,7 +3,7 @@ Credits
 
 Maintainers
 -------------
-* `Ivan Donadello<https://www.unibz.it/it/faculties/engineering/academic-staff/person/45237-ivan-donadello>`_ <ivanDOTdonadelloATunibzDOTit>
+* `Ivan Donadello <https://www.unibz.it/it/faculties/engineering/academic-staff/person/45237-ivan-donadello>`_ <ivanDOTdonadelloATunibzDOTit>
 
 Contributors
 -------------
