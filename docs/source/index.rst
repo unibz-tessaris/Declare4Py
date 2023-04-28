@@ -22,8 +22,8 @@ To add:
    creating
    Example.ipynb
    Publications.rst
-   credits.rst
-   contribute.rst
+   Credits.rst
+   How to contribute.rst
    test.rst
 
 
