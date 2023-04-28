@@ -1,3 +1,5 @@
+.. _Credits:
+
 Credits
 =============
 
