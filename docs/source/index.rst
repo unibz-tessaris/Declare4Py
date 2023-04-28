@@ -12,7 +12,6 @@ To add:
 **Installation**
 **Tutorials**
 **Citing Declare4Py**
-**Authors**
 
 .. toctree::
    :maxdepth: 2
@@ -23,7 +22,7 @@ To add:
    creating
    Example.ipynb
    Publications.rst
-   collaborators.rst
+   credits.rst
    contribute.rst
    test.rst
 
