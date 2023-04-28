@@ -4,6 +4,7 @@ Credits
 Maintainers
 -------------
 * `Ivan Donadello <https://www.unibz.it/it/faculties/engineering/academic-staff/person/45237-ivan-donadello>`_ ivanDOTdonadelloATunibzDOTit
+* `Fabrizio Maria Maggi <https://www.unibz.it/it/faculties/engineering/academic-staff/person/41895-fabrizio-maria-maggi>`_ maggiATinfDOTunibzDOTit
 
 Contributors
 -------------
