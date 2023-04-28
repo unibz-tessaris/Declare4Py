@@ -15,7 +15,7 @@ To add:
 
 .. toctree::
    :maxdepth: 2
-   :caption:
+   :caption: Introduction:
    
    Site navigation.rst
    gettingstarted.rst
