@@ -202,7 +202,7 @@ if __name__ == '__main__':
     start = time.time()
     asp.run('../../output/generated_asp.lp')
     print("Log Generation Time", time.time() - start)
-    asp.to_xes("../../output/generated.xes")
+    asp.to_xes("../../output/generated23.xes")
 
     # profiler.disable()
     # profiler.dump_stats("../../result.txt")

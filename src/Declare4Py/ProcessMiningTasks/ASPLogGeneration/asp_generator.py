@@ -26,7 +26,7 @@ from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
     DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr
 import concurrent.futures
-
+import pandas as pd
 
 class LogTracesType(typing.TypedDict):
     positive: typing.List
@@ -524,7 +524,7 @@ class AspGenerator(LogGenerator):
             self.py_logger.warning(f'PM4PY log generated: {tot_traces_generated}/{self.log_length * num} only.')
         self.py_logger.debug(f"Pm4py generated but not saved yet")
 
-    def toPD(self, data):
+    def toPD(self, data) -> pd.DataFrame:
         activities = []
         for trace_type in data:
             for trace in data[trace_type]:
@@ -537,9 +537,27 @@ class AspGenerator(LogGenerator):
                                 "timeStamp": datetime.now().isoformat(),
                                 "lifecycle:transition": event["lifecycle:transition"],
                                 "activity": event["ev"],
+                                "resourceName": k,
+                                "resourceValue": v,
+                                "trace_type": "complete",
                                 k: v
                             })
-        return activities
+        data = {
+            # 'case:concept:name': [traceName['case:concept:name'] for traceName in activities],
+            # 'case:attribute': [traceName['case:attribute'] for traceName in activities],
+            # 'org:group': [traceName['org:group'] for traceName in activities],
+            # 'concept:name': [traceName['concept:name'] for traceName in activities],
+            # 'time:timestamp': [traceName['time:timestamp'] for traceName in activities],
+            'case:concept:name': [traceName['caseId'] for traceName in activities],
+            'case:label': [traceName['trace_type'] for traceName in activities],
+            'res:name': [traceName['resourceName'] for traceName in activities],  # resource value
+            'res:value': [traceName['resourceValue'] for traceName in activities],  # resource value
+            'concept:name': [traceName['activity'] for traceName in activities],
+            'lifecycle:transition': [traceName['lifecycle:transition'] for traceName in activities],
+            'time:timestamp': [traceName['timeStamp'] for traceName in activities],
+        }
+        log = pd.DataFrame(data)
+        return log
 
     def to_xes(self, output_fn: str):
         """
@@ -554,10 +572,9 @@ class AspGenerator(LogGenerator):
         """
         if self.event_log.log is None:
             self.__pm4py_log()
-        acts = self.toPD(self.traces_generated_events)
-        print(acts)
-
-        pm4py.write_xes(self.event_log.log, output_fn)
+        pd_dataframe = self.toPD(self.traces_generated_events)
+        # pm4py.write_xes(self.event_log.log, output_fn)
+        pm4py.write_xes(pd_dataframe, output_fn)
 
     def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
         """
