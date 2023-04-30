@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import collections
+import copy
 import json
 import logging
 import math
+import os
 import re
 import typing
 import warnings
 from datetime import datetime
+from multiprocessing import Manager
 from random import randrange
 
 import clingo
@@ -24,9 +27,10 @@ from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.distribution im
 from src.Declare4Py.ProcessMiningTasks.log_generator import LogGenerator
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
-    DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr
+    DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr, DeclareModelCoderSingleton
 import concurrent.futures
 import pandas as pd
+
 
 class LogTracesType(typing.TypedDict):
     positive: typing.List
@@ -65,7 +69,7 @@ class AspGenerator(LogGenerator):
         Because, clingo doesn't accept some names such as a name starting with capital letter.
         """
         super().__init__(num_traces, min_event, max_event, decl_model)
-        self.py_logger = logging.getLogger("ASP generator")
+        self.py_logger = logging.getLogger(f"ASP generator (PID: {os.getpid()})")
         self.clingo_output = []
         self.clingo_current_output: typing.Sequence[Symbol]
         self.clingo_output_traces_variation = []
@@ -80,6 +84,7 @@ class AspGenerator(LogGenerator):
         self.trace_counter_id = 0
         self.run_parallel: bool = False
         self.parallel_futures: [] = []
+        self.decl_model_encoded_vals: dict[str, str] = {}  # mainly used for the Parallel runs
         # instead of using distribution
         self._custom_counter: dict[
             str, typing.Union[collections.Counter, None]] = None  # {"positive": None, "negative": None}
@@ -182,6 +187,78 @@ class AspGenerator(LogGenerator):
                 raise ValueError(
                     "Interval values are wrong. It must have only 2 values, represents, left and right interval")
 
+    def run_parallel_fn(self, output_file: str, generated_asp_file: str = None, workers=10):
+        total_traces = self.log_length
+        # create intervals to divide traces in different sizes
+        trace_sizes = [total_traces // workers + (1 if i < total_traces % workers else 0) for i in range(workers)]
+        instances = []
+
+        for ts in trace_sizes:
+            if ts > 0:
+                instanc = copy.deepcopy(self)
+                instances.append(instanc)
+                instanc.traces_length = ts  # TODO: fix create a method which updates also other settings
+
+        # manager = Manager()  # Create a Manager object
+        xes_output_filenames = []
+
+        # Split the path into directory, filename, and extension
+        dir_path, file_name_with_ext = os.path.split(output_file)
+        file_name, file_ext = os.path.splitext(file_name_with_ext)
+        ASPModel(True).from_decl_model(self.process_model)  # to fill the encoded_dictionary.... agrahhh getting spaghetti code
+        decl_model_encoded_vals = DeclareModelCoderSingleton().get_model_encoded_values()
+        with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
+            futures_to_instances = {}
+            for idx in range(0, len(instances)):
+                instance_ = instances[idx]
+                new_file_name = f"{file_name}.{idx}{file_ext}"
+                new_file_name = os.path.join(dir_path, new_file_name)
+                xes_output_filenames.append(new_file_name)
+                future = executor.submit(instance_.run_parallel23, decl_model_encoded_vals, new_file_name, generated_asp_file)
+                futures_to_instances[future] = instance_
+            # for future in concurrent.futures.as_completed(futures_to_instances):
+            #     instance_ = futures_to_instances[future]
+            #     try:
+            #         future.result()  # Wait for the task to finish
+            #     except Exception as e:
+            #         self.py_logger.error(f"Error occurred while executing instance {instance_}: {e}")
+        concurrent.futures.wait(futures_to_instances.keys())
+
+    def run_parallel23(self, decl_model_encoded_values, output_file: str, generated_asp_file: str):
+        self.decl_model_encoded_vals = decl_model_encoded_values
+        try:
+            self.run(generated_asp_file)
+            self.to_xes(output_file)
+        except Exception as e:
+            # Log or print the exception along with traceback
+            import traceback
+            print("An error occurred in __run_parallel():", e)
+            print(traceback.format_exc())
+
+    def decode_value(self, s: str, is_encoded: bool) -> str:
+        """
+        Decode the given value if it finds in the encoded_values list.
+        Parameters
+        ----------
+        s: str
+            a string value to decode.
+
+        Returns
+        -------
+        str
+        """
+
+        if not is_encoded:
+            return s
+        if not isinstance(s, str):
+            return s
+        if s.isnumeric():
+            return s
+        s = s.strip()
+        if s in self.decl_model_encoded_vals:
+            return self.decl_model_encoded_vals[s]
+        return self.process_model.parsed_model.decode_value(s, self.encode_decl_model)
+
     def run(self, generated_asp_file_path: typing.Union[str, None] = None):
         """
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
@@ -263,8 +340,7 @@ class AspGenerator(LogGenerator):
                     self.parallel_futures.append(future)
         else:
             for events, traces in traces_to_generate.items():
-                self.py_logger.debug(
-                    f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
+                self.py_logger.debug(f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
                 self.__generate_asp_trace(lp_model, events, traces, trace_type)
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
@@ -454,6 +530,9 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug(f" Variation traces generated :{symbols}")
         self.clingo_output_traces_variation[len(self.clingo_output_traces_variation) - 1].append(symbols)
 
+    def decode_declare_model(self):
+        langs = DeclareModelCoderSingleton.get_model_encoded_values()
+
     def __pm4py_log(self):
         """
         Generate event logs in pm4py Format
@@ -484,7 +563,7 @@ class AspGenerator(LogGenerator):
                     event = lg.Event()
                     _event = {}
                     event["lifecycle:transition"] = "complete"  # NOTE: I don't know why we need it
-                    event["concept:name"] = decl_model.decode_value(asp_event['name'], self.encode_decl_model)
+                    event["concept:name"] = self.decode_value(asp_event['name'], self.encode_decl_model)
                     _event = {"ev": event["concept:name"], "lifecycle:transition": "complete", "resources": []}
                     _instance["events"].append(_event)
                     for res_name, res_value in asp_event['resources'].items():

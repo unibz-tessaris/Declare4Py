@@ -454,6 +454,9 @@ class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
         self._inverse_encoded_values_store[val2encode] = encoded_val
         return encoded_val
 
+    def get_model_encoded_values(self) -> dict[str, str]:
+        return self.encoded_values
+
     def decode_value(self, s: str) -> str:
         """
         Decode the given value if it finds in the encoded_values list.
