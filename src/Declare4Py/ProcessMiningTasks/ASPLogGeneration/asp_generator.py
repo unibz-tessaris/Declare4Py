@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 import collections
+import ctypes
 import json
 import logging
 import math
+import multiprocessing
+from multiprocessing import Queue
+import os
 import re
+import time
 import typing
 import warnings
 from datetime import datetime
@@ -27,6 +32,7 @@ from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParse
     DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr
 import concurrent.futures
 import pandas as pd
+
 
 class LogTracesType(typing.TypedDict):
     positive: typing.List
@@ -188,7 +194,7 @@ class AspGenerator(LogGenerator):
         Parameters
         ----------
         generated_asp_file_path: str, optional
-            Specify the file name if you want to write the ASP generated program
+            Specify the file name if you want to write or save the ASP generated program
         """
         if self.negative_traces > self.log_length:
             warnings.warn("Negative traces can not be greater than total traces asked to generate. Nothing Generating")
@@ -197,6 +203,8 @@ class AspGenerator(LogGenerator):
         pos_traces = self.log_length - self.negative_traces
         neg_traces = self.negative_traces
         self.parallel_futures = []
+        pos_traces_dist = []
+        neg_traces_dist = []
         if self._custom_counter is not None:
             self.py_logger.debug("******* Using custom traces length *******")
             if ("positive" in self._custom_counter) or ("negative" in self._custom_counter):
@@ -209,6 +217,8 @@ class AspGenerator(LogGenerator):
 
         result: LogTracesType = LogTracesType(negative=[], positive=[])
         result_variation: LogTracesType = LogTracesType(negative=[], positive=[])
+
+        clingo_gen_instances = []
         if self.negative_traces > 0:
             self.py_logger.debug("Generating negative traces")
             violation = {'constraint_violation': True, 'violate_all_constraints': self.violate_all_constraints}
@@ -218,19 +228,23 @@ class AspGenerator(LogGenerator):
                                                        dupl_decl_model, violation)
             else:
                 lp = self.generate_asp_from_decl_model(self.encode_decl_model, None, dupl_decl_model, violation)
-                self.__generate_traces(lp, neg_traces_dist, "negative")
-
-            result['negative'] = self.clingo_output
-            result_variation['negative'] = self.clingo_output_traces_variation
+            clingo_gen_instances = self.__generate_traces(lp, neg_traces_dist, "negative")
 
         self.py_logger.debug("Generating traces")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
-        # print(lp)
-        self.__generate_traces(lp, pos_traces_dist, "positive")
+        clingo_gen_instances.extend(self.__generate_traces(lp, pos_traces_dist, "positive"))
+        # clingo_gen_instances = [clingo_gen_instances + ]
+
         if self.run_parallel:
             concurrent.futures.wait(self.parallel_futures)
-        result['positive'] = self.clingo_output
-        result_variation['positive'] = self.clingo_output_traces_variation
+            # for fut in self.parallel_futures:
+            #     t = fut.result()
+            #     print(t)
+
+        for inst in clingo_gen_instances:
+            result[inst.trace_type].extend(inst.clingo_output)  # = self.clingo_output
+            result_variation[inst.trace_type].extend(
+                inst.clingo_output_traces_variation)  # = self.clingo_output_traces_variation
 
         self.py_logger.debug(f"Traces generated. Positive: {len(result['positive'])}"
                              f" Neg: {len(result['negative'])}. Parsing Trace results.")
@@ -253,19 +267,83 @@ class AspGenerator(LogGenerator):
         Returns
         -------
         """
-        self.clingo_output = []
         self.clingo_output_traces_variation = {}
         self.py_logger.debug(f"Start generating traces: {traces_to_generate}")
+
+        instances = []
+        for events, traces in traces_to_generate.items():
+            for i in range(traces):
+                a = ASPGeneratorTrace(trace_idx=f"trace_{i}",
+                                      lp_model=self.lp_model,
+                                      num_traces=traces,
+                                      num_events=events,
+                                      variation=self.num_repetition_per_trace,
+                                      trace_type=trace_type,
+                                      negative_traces=self.negative_traces)
+                instances.append(a)
+
         if self.run_parallel:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=self.parallel_workers) as executor:
-                for events, traces in traces_to_generate.items():
-                    future = executor.submit(self.__generate_asp_trace, lp_model, events, traces, trace_type)
-                    self.parallel_futures.append(future)
+            # with concurrent.futures.ProcessPoolExecutor(max_workers=self.parallel_workers) as executor:
+            #     for instance_ in instances:
+            #         future = executor.submit(instance_.run_clingo, lp_model, 0.9)
+            #         self.parallel_futures.append(future)
+            # future.result(timeout=0.5)
+
+            # with concurrent.futures.ProcessPoolExecutor(max_workers=self.parallel_workers) as executor:
+            #     # Submit all instances to the executor
+            #     futures_to_instances = {executor.submit(instance_.run_clingo, lp_model, 0.9): instance_ for instance_ in
+            #                             instances}
+            #     self.parallel_futures.extend(futures_to_instances)
+            #     for future in concurrent.futures.as_completed(futures_to_instances):  # Collect results as they become available
+            #         instance_ = futures_to_instances[future]
+            #         try:
+            #             result = future.result()  # Save the result to the instance, e.g., as an attribute
+            #             print("result", result)
+            #             instance_.clingo_result = result
+            #         except Exception as e:
+            #             self.py_logger.error(f"Error occurred while getting result from process: {e}")
+
+            with concurrent.futures.ProcessPoolExecutor(max_workers=self.parallel_workers) as executor:
+                futures_to_instances = {}
+                for instance_ in instances:
+                    clingo_args = instance_.prepare_clingo_arguments(lp_model, 0.9)
+                    future = executor.submit(ASPGeneratorTrace.run_clingo_with_args23, *clingo_args)
+                    futures_to_instances[future] = instance_
+
+                for future in concurrent.futures.as_completed(futures_to_instances):
+                    instance_ = futures_to_instances[future]
+                    try:
+                        result = future.result()
+                        print(result)
+                        instance_.clingo_result = result
+                    except Exception as e:
+                        self.py_logger.error(f"Error occurred while executing instance {instance_}: {e}")
+
+            # manager = multiprocessing.Manager()  # Create a Manager object
+            # with concurrent.futures.ProcessPoolExecutor(max_workers=self.parallel_workers) as executor:
+            #     futures_to_instances = {}
+            #     shared_outputs = []
+            #     for instance_ in instances:
+            #         clingo_args = instance_.prepare_clingo_arguments(lp_model, 0.9)
+            #         clingo_output_shared = manager.list()  # Create a shared list using the Manager
+            #         shared_outputs.append(clingo_output_shared)
+            #         future = executor.submit(instance_.run_clingo_with_args, *clingo_args, clingo_output_shared)
+            #         futures_to_instances[future] = instance_
+            #
+            #     for future in concurrent.futures.as_completed(futures_to_instances):
+            #         instance_ = futures_to_instances[future]
+            #         try:
+            #             future.result()  # Wait for the task to finish
+            #             instance_.clingo_result = shared_outputs.pop(0)[:]  # Retrieve the result from the shared list
+            #         except Exception as e:
+            #             self.py_logger.error(f"Error occurred while executing instance {instance_}: {e}")
+
+            time.sleep(10)
+
         else:
-            for events, traces in traces_to_generate.items():
-                self.py_logger.debug(
-                    f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
-                self.__generate_asp_trace(lp_model, events, traces, trace_type)
+            for instance_ in instances:
+                instance_.run_clingo(lp_model, 0.9)
+        return instances
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
         """
@@ -576,6 +654,58 @@ class AspGenerator(LogGenerator):
         # pm4py.write_xes(self.event_log.log, output_fn)
         pm4py.write_xes(pd_dataframe, output_fn)
 
+    def compute_distribution(self, total_traces: typing.Union[int, None] = None):
+        """
+         The compute_distribution method computes the distribution of the number of events in a trace based on
+         the distributor_type parameter. If the distributor_type is "gaussian", it uses the loc and scale parameters
+         to compute a Gaussian distribution. Otherwise, it uses a uniform or custom distribution.+
+
+         Parameters
+         total_traces: int, optional
+            the number of traces
+        """
+        self.py_logger.info("Computing distribution")
+        d = Distributor()
+        if total_traces is None:
+            total_traces = self.log_length
+        traces_len = {}
+        if self.distributor_type == "gaussian":
+            self.py_logger.info(f"Computing gaussian distribution with mu={self.loc} and sigma={self.scale}")
+            assert self.loc > 1  # Mu atleast should be 2
+            assert self.scale >= 0  # standard deviation must be a positive value
+            result: typing.Union[collections.Counter, None] = d.distribution(
+                self.loc, self.scale, total_traces, self.distributor_type, self.custom_probabilities)
+            self.py_logger.info(f"Gaussian distribution result {result}")
+            if result is None or len(result) == 0:
+                raise ValueError("Unable to found the number of traces with events to produce in log.")
+            for k, v in result.items():
+                if self.min_events <= k <= self.max_events:  # TODO: ask whether the boundaries should be included
+                    traces_len[k] = v
+            self.py_logger.info(f"Gaussian distribution after refinement {traces_len}")
+        else:
+            traces_len: typing.Union[collections.Counter, None] = d.distribution(self.min_events, self.max_events,
+                                                                                 total_traces,
+                                                                                 self.distributor_type,
+                                                                                 self.custom_probabilities)
+        self.py_logger.info(f"Distribution result {traces_len}")
+        self.traces_length = traces_len
+        return traces_len
+
+    def __get_decl_model_with_violate_constraint(self) -> DeclareModel:
+        """
+        Creates a duplicate process model with change in template list, assigning a boolean value to `violate` property
+
+        Returns
+        -------
+        DeclModel
+        """
+        parsed_tmpl: dict[int, DeclareModelConstraintTemplate] = self.process_model.parsed_model.templates
+        for cv in self.violatable_constraints:
+            for tmpl_idx, tmpl in parsed_tmpl.items():
+                if tmpl.line == cv:
+                    tmpl.violate = True
+        return self.process_model
+
     def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
         """
         Add constraints to violate
@@ -636,21 +766,6 @@ class AspGenerator(LogGenerator):
         """
         self.num_repetition_per_trace = repetition
 
-    def __get_decl_model_with_violate_constraint(self) -> DeclareModel:
-        """
-        Creates a duplicate process model with change in template list, assigning a boolean value to `violate` property
-
-        Returns
-        -------
-        DeclModel
-        """
-        parsed_tmpl: dict[int, DeclareModelConstraintTemplate] = self.process_model.parsed_model.templates
-        for cv in self.violatable_constraints:
-            for tmpl_idx, tmpl in parsed_tmpl.items():
-                if tmpl.line == cv:
-                    tmpl.violate = True
-        return self.process_model
-
     def set_activation_conditions(self, activations_list: dict[str, list[int]]):
         """
         the activation conditions are used TODO: add more info about it.
@@ -698,43 +813,6 @@ class AspGenerator(LogGenerator):
             n_dict[templates[m].line] = n
         self.activation_conditions = n_dict
         return self
-
-    def compute_distribution(self, total_traces: typing.Union[int, None] = None):
-        """
-         The compute_distribution method computes the distribution of the number of events in a trace based on
-         the distributor_type parameter. If the distributor_type is "gaussian", it uses the loc and scale parameters
-         to compute a Gaussian distribution. Otherwise, it uses a uniform or custom distribution.+
-
-         Parameters
-         total_traces: int, optional
-            the number of traces
-        """
-        self.py_logger.info("Computing distribution")
-        d = Distributor()
-        if total_traces is None:
-            total_traces = self.log_length
-        traces_len = {}
-        if self.distributor_type == "gaussian":
-            self.py_logger.info(f"Computing gaussian distribution with mu={self.loc} and sigma={self.scale}")
-            assert self.loc > 1  # Mu atleast should be 2
-            assert self.scale >= 0  # standard deviation must be a positive value
-            result: typing.Union[collections.Counter, None] = d.distribution(
-                self.loc, self.scale, total_traces, self.distributor_type, self.custom_probabilities)
-            self.py_logger.info(f"Gaussian distribution result {result}")
-            if result is None or len(result) == 0:
-                raise ValueError("Unable to found the number of traces with events to produce in log.")
-            for k, v in result.items():
-                if self.min_events <= k <= self.max_events:  # TODO: ask whether the boundaries should be included
-                    traces_len[k] = v
-            self.py_logger.info(f"Gaussian distribution after refinement {traces_len}")
-        else:
-            traces_len: typing.Union[collections.Counter, None] = d.distribution(self.min_events, self.max_events,
-                                                                                 total_traces,
-                                                                                 self.distributor_type,
-                                                                                 self.custom_probabilities)
-        self.py_logger.info(f"Distribution result {traces_len}")
-        self.traces_length = traces_len
-        return traces_len
 
     def set_custom_trace_lengths(self, custom_lengths: dict[int, int],
                                  negative_custom_lengths: dict[int, int] | None = None):
@@ -800,3 +878,143 @@ class AspGenerator(LogGenerator):
         self.custom_probabilities = custom_probabilities
         self.scale = scale
         self.loc = loc
+
+
+class ASPGeneratorTrace:
+
+    def __init__(self, trace_idx: str, lp_model: ASPModel, num_traces: int, num_events: int,
+                 trace_type: LogTracesType, variation: int = 0, negative_traces: int = 0):
+        pid = os.getpid()
+        self.py_logger = logging.getLogger(f"ASP Generator Trace(PID:{pid})")
+        # self.asp_encoding = ASPEncoding().get_ASP_encoding()
+        self.asp_template = ASPTemplate().value
+        self.negative_traces = negative_traces
+        self.lp_model = lp_model
+        self.clingo_output = []
+        self.clingo_output_traces_variation = []
+        self.trace_idx = trace_idx
+        self.asp_encoding = ASPEncoding(self.negative_traces > 0).get_ASP_encoding(self.lp_model.fact_names)
+        self.trace_variations = variation
+        self.variations_trace_counter = 0
+        self.asp = ""
+        self.num_traces = num_traces
+        self.num_events = num_events
+        self.trace_type = trace_type
+        self.freq = 0
+
+    def run_clingo(self, asp: str, freq: float):
+        self.asp = asp
+        self.freq = freq
+        trace_type = self.trace_type
+        seed = randrange(0, 2 ** 32 - 1)
+        self.py_logger.debug(
+            f" Initializing clingo trace({self.trace_idx}/{self.num_traces}) with length:{self.num_events}), Seed {seed}")
+        ctl = clingo.Control([
+            "-c",
+            f"t={int(self.num_events)}",
+            f"1",
+            "--project",
+            "--sign-def=rnd",
+            f"--rand-freq={freq}",
+            f"--restart-on-model",
+            # f"--seed=8794",
+            f"--seed={seed}",
+        ])
+        ctl.add(self.asp)
+        ctl.add(self.asp_encoding)
+        ctl.add(self.asp_template)
+        ctl.ground([("base", [])], context=self)
+        result = ctl.solve(on_model=self.__handle_clingo_result)
+        self.py_logger.debug(f" Clingo Result: {str(result)}")
+        if result.unsatisfiable:
+            # Clingo was not able to generate trace events with exactly num_events, thus it returns unsatisfiable.
+            warnings.warn(
+                f'WARNING: Cannot generate {self.num_traces} {trace_type} trace/s exactly with {self.num_events} events with this Declare model.')
+            # return  # we exit because we cannot generate more traces with same params.
+        return self
+
+    def prepare_clingo_arguments(self, asp: str, freq: float):
+        self.asp = asp
+        self.freq = freq
+        return self.num_events, self.asp, self.asp_encoding, self.asp_template, self.trace_type, freq
+
+    @staticmethod
+    def run_clingo_with_args23(num_events: int, asp: str, asp_encoding: str, asp_template: str,
+                               trace_type: LogTracesType,
+                               freq: float):
+        rr = []
+        seed = randrange(0, 2 ** 32 - 1)
+        ctl = clingo.Control([
+            "-c",
+            f"t={int(num_events)}",
+            f"1",
+            "--project",
+            "--sign-def=rnd",
+            f"--rand-freq={freq}",
+            f"--restart-on-model",
+            f"--seed={seed}",
+        ])
+        ctl.add(asp)
+        ctl.add(asp_encoding)
+        ctl.add(asp_template)
+        ctl.ground([("base", [])], context=None)  # Remove the context=self
+        result = ctl.solve(
+            on_model=lambda x: rr.append(x.symbols(shown=True)))  # Remove the on_model=self.__handle_clingo_result
+        # Process the result and return it as needed
+        return rr
+
+    def __run_clingo_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
+        """
+        Generate variation traces based on the parameters
+        Parameters
+        ----------
+        asp: str
+            asp model program
+        num_events: int
+            number of events in a trace
+        num_traces: int
+            number of traces
+        freq: float
+            any float number between 0 to 1
+
+        Returns
+        -------
+
+        """
+        """ """
+        # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
+        seed = randrange(0, 2 ** 30 - 1)
+        self.py_logger.debug(f" Generating variation trace: {num_traces}, events{num_events}, seed:{seed}")
+        ctl = clingo.Control([f"-c t={int(num_events)}", "--project", f"1",  # f"{int(num_traces)}",
+                              f"--seed={seed}", f"--sign-def=rnd", f"--restart-on-model", f"--rand-freq={freq}"])
+        ctl.add(asp)
+        ctl.add(self.asp_encoding)
+        ctl.add(self.asp_template)
+        ctl.ground([("base", [])], context=self)
+        result = ctl.solve(on_model=self.__handle_clingo_variation_result)
+        self.py_logger.debug(f" Clingo variation Result :{str(result)}")
+        if result.unsatisfiable:
+            warnings.warn(f'WARNING: Failed to generate trace variation/case.')
+
+    def __handle_clingo_result(self, output: clingo.solving.Model):
+        """A callback method which is given to the clingo """
+        symbols = output.symbols(shown=True)
+        self.py_logger.debug(f" Traces generated :{symbols}")
+        self.clingo_output.append(symbols)
+
+        # Generate variation if wanted
+        if self.trace_variations > 1:
+            if symbols is not None:
+                c = ASPResultTraceModel(f"variation_{self.trace_idx}_trace_{self.variations_trace_counter}", symbols)
+                self.variations_trace_counter = self.variations_trace_counter + 1
+                asp_variation = self.asp + "\n"
+                for ev in c.events:
+                    asp_variation = asp_variation + f"trace({ev.name}, {ev.pos}).\n"
+                for nm in range(0, self.trace_variations):
+                    self.__run_clingo_trace_variation(asp_variation, self.num_events, self.num_traces, self.freq)
+
+    def __handle_clingo_variation_result(self, output: clingo.solving.Model):
+        """A callback method which is given to the clingo """
+        symbols = output.symbols(shown=True)
+        self.py_logger.debug(f" Variation traces generated :{symbols}")
+        self.clingo_output_traces_variation[len(self.clingo_output_traces_variation) - 1].append(symbols)
