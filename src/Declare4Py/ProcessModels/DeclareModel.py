@@ -1195,6 +1195,29 @@ class DeclareParsedDataModel:
             val = DeclareModelCoderSingleton().decode_value(val)
         return val
 
+    def compute_encoded_values(self):
+        """
+        Method which generates the encoded values in case to be use in multiprocessing
+        and in order to avoid process memory sharing
+        Returns
+        -------
+
+        """
+        for key, val in self.events.items():
+            value = val.values()
+            for v in value:
+                v.event_type.get_encoded_name()
+                v.event_name.get_encoded_name()
+
+        for key, val in self.attributes_list.items():
+            val.attr_name.get_encoded_name()
+            values = val.attr_value.get_precisioned_value()
+            for v in values:
+                if isinstance(v, int):
+                    continue
+                v.get_encoded_name()
+        return DeclareModelCoderSingleton().get_model_encoded_values()
+
     def to_dict(self):
         """
         Convert the DeclareParsedDataModel object to a dictionary representation.
