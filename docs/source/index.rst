@@ -24,7 +24,7 @@ To add:
    Publications.rst
    Credits.rst
    How to contribute.rst
-   test.rst
+   Citing.rst
 
 
 Indices and tables
