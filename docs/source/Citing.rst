@@ -1,7 +1,7 @@
 Citing Declare4Py
 ==============
 
-If you use Declare4Py in your research, please use the following BibTeX entry::
+If you use Declare4Py in your research, please use the following BibTeX entry:::
 
 @inproceedings{DonadelloRMS22,
   author    = {Ivan Donadello and
