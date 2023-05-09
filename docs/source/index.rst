@@ -3,15 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Declare4py's documentation!
+Declare4Py: a Python bridge between declarative Process Mining and Machine Learning
 ======================================
-Declare4Py is a novel and easy-to-use Python package that covers the main tasks of process mining based on the declarative modeling language DECLARE. Some functions include also the MP-DECLARE standard, that is, the multi-perspective extension of DECLARE that supports also data constraints. The declare4PY APIs implement simple log analysis, consistency checking, model discovery and query checking from logs by considering (MP)-DECLARE models. Declare4Py can be easily integrated into your process mining software project!
+Declare4Py is the first Python package for declarative Process Mining with core functionalities to easily implement Machine Learning applications for Process Mining. Declarative process mining uses declarative behavioural rules (based on Linear Temporal Logic) for defining process models. This results in a high flexibility of the business process model definition without neglecting hard constraints that must be satisfied. Moreover, declarative languages can be used as a bridge between Process Mining and Machine learning with the DECLARE encoding that encodes the traces in a log into a numeric format suitable as input to Machine Learning algorithms. Declare4Py implements such a bridge by including standard algorithms for i) declarative Process Mining (e.g., conformance checking, model discovery, trace generation, query checking); ii) log encodings (e.g., complex-index, aggregate, \Declare); iii) log labelling according to filtering or declarative rules. All the Declare4Py data formats are compatible with the main Machine Learning Python packages: scikit-learn, Tensorflow and PyTorch.
 
 To add:
-**Requirements** 
-**Installation**
-**Tutorials**
-**Citing Declare4Py**
+- **Requirements** 
+- **Installation**
+- **Tutorials**
 
 .. toctree::
    :maxdepth: 2
