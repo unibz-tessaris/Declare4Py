@@ -15,19 +15,14 @@ Declare4Py is the first Python package for declarative Process Mining with core 
 
 All the Declare4Py data formats are compatible with the main Machine Learning Python packages: scikit-learn, Tensorflow and PyTorch.
 
-To add:
-- **Requirements** 
-- **Installation**
-- **Tutorials**
 
 .. toctree::
    :maxdepth: 2
    :caption: Introduction:
    
-   Site navigation.rst
    installation.rst
    gettingstarted.rst
-   Example.ipynb
+   documentation.ipynb
    Publications.rst
    Credits.rst
    How to contribute.rst
