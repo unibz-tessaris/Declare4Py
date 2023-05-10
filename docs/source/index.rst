@@ -25,8 +25,8 @@ To add:
    :caption: Introduction:
    
    Site navigation.rst
+   installation.rst
    gettingstarted.rst
-   creating
    Example.ipynb
    Publications.rst
    Credits.rst
