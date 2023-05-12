@@ -6,7 +6,7 @@ An Overview of Declare4Py
 
 To better have an overview of Declare4Py let's focus on the mind map here below.
 
-.. figure:: images/d4py_mindmap.pdf
+.. image:: images/d4py_mindmap.pdf
    :alt: Declare4Py mind map
    :align: center
    
