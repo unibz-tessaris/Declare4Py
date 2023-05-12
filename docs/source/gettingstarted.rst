@@ -4,7 +4,7 @@ Getting Started
 An Overview of Declare4Py
 -------------------
 
-.. figure:: /images/dog.jpg
+.. figure:: images/dog.jpg
    :alt: not a dog
    :align: center
    
