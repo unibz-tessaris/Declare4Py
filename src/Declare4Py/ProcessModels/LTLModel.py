@@ -11,7 +11,6 @@ class LTLModel(ProcessModel, ABC):
         super().__init__()
         self.formula: str = ""
         self.parsed_formula = None
-        self.parameters = []
 
     def parse_from_string(self, formula: str, new_line_ctrl: str = "\n") -> None:
         """
@@ -249,15 +248,13 @@ class LTLModelTemplate:
                  'not_chain_precedence':not_chain_precedence}
     templ_str: str = None
 
-    parameters: [str] = []
-
     def __init__(self, templ_str: str):
         if templ_str in self.templates:
             self.templ_str = templ_str
         else:
             raise RuntimeError("Inserted parameter is not of type string or is not a template")
 
-    def get_templ_model(self, *activities: str) -> LTLModel:
+    def get_templ_model(self, *activities: list[str]) -> LTLModel:
         """
         Function used to retrieve the selected template and returns an LTLModel object containing such template
 
@@ -277,10 +274,12 @@ class LTLModelTemplate:
             for act in activities:
                 act = [item.lower() for item in act]
                 act = [Utils.parse_activity(item) for item in act]
-                self.parameters += act
             m = LTLModel()
             m.parse_from_string(formula)
-            m.parameters = self.parameters
         except (TypeError, RuntimeError):
             raise TypeError("Mismatched number of parameters or type")
         return m
+
+
+
+
