@@ -9,8 +9,8 @@ or submit a `Pull request <https://github.com/ivanDonadello/Declare4Py/pulls>`_.
 
 
 I want to add a new Process Mining task
---------------
+------------------------------------------
 
 
-I want to add a new more cool implementation of an existing Process Mining task
---------------
+I want to add a more cool implementation of an existing Process Mining task
+------------------------------------------------------------------------------------
