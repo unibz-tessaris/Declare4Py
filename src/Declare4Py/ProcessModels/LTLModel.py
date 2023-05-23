@@ -257,7 +257,7 @@ class LTLModelTemplate:
         else:
             raise RuntimeError("Inserted parameter is not of type string or is not a template")
 
-    def get_templ_model(self, *activities: str) -> LTLModel:
+    def get_templ_model(self, *activities: list[str]) -> LTLModel:
         """
         Function used to retrieve the selected template and returns an LTLModel object containing such template
 

@@ -47,10 +47,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
                 symbol = Utils.parse_activity(symbol)
                 symbol = symbol.lower()
                 temp = dict()
-                if symbol in parameters:
-                    temp[symbol] = True
-                else:
-                    temp[symbol] = False
+                temp[symbol] = True
                 current_states = reduce(
                     set.union,
                     map(lambda x: dfa.get_successors(x, temp), current_states),
