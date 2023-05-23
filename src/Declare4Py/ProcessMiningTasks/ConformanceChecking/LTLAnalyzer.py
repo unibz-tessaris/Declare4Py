@@ -76,9 +76,7 @@ class LTLAnalyzer():
         group = self.data_frame.groupby('case:concept:name', group_keys=True)
 
         result = group['concept:name'].apply(self.ltl_conf_check)
-
         result = result.to_frame()
-        print(result)
         # result = group['concept:name'].transform(self.ltl_conf_check, engine='numba', engine_kwargs = {'nopython': True, 'nogil': False, 'parallel': True})
 
 
