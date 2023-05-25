@@ -17,6 +17,7 @@ All the Declare4Py data formats are compatible with the main Machine Learning Py
 .. toctree::
    :maxdepth: 2
    :caption: Introduction:
+   :includehidden:
    
    installation.rst
    gettingstarted.rst
