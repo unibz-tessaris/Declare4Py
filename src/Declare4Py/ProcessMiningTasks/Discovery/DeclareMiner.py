@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 from abc import ABC
 
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
@@ -70,7 +69,7 @@ class DeclareMiner(AbstractDiscovery, ABC):
         frequent_item_sets = self.event_log.compute_frequent_itemsets(min_support=self.itemsets_support,
                                                                       case_id_col=self.event_log.get_case_name(),
                                                                       categorical_attributes=[self.event_log.get_concept_name()],
-                                                                      algorithm= 'fpgrowth', remove_column_prefix=True)
+                                                                      algorithm='fpgrowth', remove_column_prefix=True)
 
         self.process_model.activities = self.event_log.get_log_alphabet_attribute(self.event_log.get_concept_name())
         for item_set in frequent_item_sets['itemsets']:
@@ -92,9 +91,9 @@ class DeclareMiner(AbstractDiscovery, ABC):
                         for i in range(self.max_declare_cardinality):
                             constraint['n'] = i + 1
                             constraint_satisfaction = ConstraintChecker().constraint_checking_with_support(constraint,
-                                                                                                  self.event_log,
-                                                                                                  self.consider_vacuity,
-                                                                                                  self.min_support)
+                                                                                                           self.event_log,
+                                                                                                           self.consider_vacuity,
+                                                                                                           self.min_support)
                             # self.basic_discovery_results,= self.discover_constraint(self.event_log, constraint,
                             #                                                        self.consider_vacuity)
                             if constraint_satisfaction:

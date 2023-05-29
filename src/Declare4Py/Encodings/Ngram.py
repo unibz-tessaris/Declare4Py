@@ -63,10 +63,8 @@ class Ngram(BaseEstimator, TransformerMixin):
         nested_list = list(ngram.values)
         my_unnested_list = list(chain(*nested_list))
         ngram_list = list(set(my_unnested_list))
-        import pdb
 
         X = X.groupby([self.case_id_col], sort=False).apply(lambda x: np.array(x[self.act_col]))
-        pdb.set_trace()
         X = X.apply(lambda x: self.func_ngram(x, n=self.n, v=0.7, ngram_list=ngram_list))
         
         dt_transformed = pd.DataFrame(columns=[i for i in ngram_list])
@@ -138,7 +136,6 @@ class Ngram(BaseEstimator, TransformerMixin):
                 layer1.append(sum(v**(np.array(loc2) - i)))
         else:
             layer1.append(0)
-        
         return np.sum(layer1)
 
     @staticmethod
@@ -177,7 +174,7 @@ class Ngram(BaseEstimator, TransformerMixin):
                     layer1.append(0)
         else:
             layer1.append(0)
-        return np.sum(layer1)
+        return sum(layer1)
 
     @staticmethod
     def fourgram(x: str, y: array, v: float) -> float:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pdb
 from abc import ABC
 from datetime import timedelta
 from math import ceil
@@ -118,8 +119,12 @@ class TemplateConstraintChecker(ABC):
         -------
 
         """
+
         template_checker_name = f"mp{template.templ_str.replace(' ', '')}"
-        return getattr(self, template_checker_name)
+        try:
+            return getattr(self, template_checker_name)
+        except AttributeError:
+            print(f"The checker function for template {template.templ_str} has not been implemented yet.")
 
     def mpChoice(self) -> CheckerResult:
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
@@ -241,6 +246,23 @@ class TemplateConstraintChecker(ABC):
                              state=state)
 
     """
+        mp-init constraint checker
+        Description: The future constraining constraint init(e) indicates
+        that event e is the first event that occurs in the trace.
+    """
+    def mpEnd(self):
+        activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
+
+        state = TraceState.VIOLATED
+        if self.traces[-1][self.concept_name] == self.activities[0]:
+            locl = {'A': self.traces[-1]}
+            if eval(activation_rules, glob, locl):
+                state = TraceState.SATISFIED
+
+        return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
+                             state=state)
+
+    """
         mp-exactly constraint checker
     """
     def mpExactly(self):
@@ -323,8 +345,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings,
-                             num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state)
 
     def mpResponse(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
@@ -373,8 +394,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings,
-                             num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state)
 
     # mp-alternate-response constraint checker
     # Description:
@@ -427,8 +447,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings,
-                             num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state)
 
     def mpChainResponse(self):
         """
@@ -482,8 +501,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings,
-                             num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state)
 
     def mpPrecedence(self):
         """
@@ -676,8 +694,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings,
-                             num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state)
 
     def mpNotResponse(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
@@ -724,8 +741,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings,
-                             num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state)
 
     def mpNotPrecedence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])

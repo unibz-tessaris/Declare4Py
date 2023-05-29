@@ -8,7 +8,7 @@ import numpy as np
 
 class LastState(BaseEstimator, TransformerMixin):
     
-    def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], fillna: bool = True):
+    def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str] = [], fillna: bool = True):
         """
         Parameters
         -------------------

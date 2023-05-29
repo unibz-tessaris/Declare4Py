@@ -1,94 +1,89 @@
+import pdb
+
+from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from sklearn.base import TransformerMixin, BaseEstimator
 import pandas as pd
 import numpy as np
 from time import time
 from typing import Union, List
 from pandas import DataFrame, Index
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
+from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelTemplate
+from src.Declare4Py.ProcessMiningTasks.ConformanceChecking.MPDeclareAnalyzer import MPDeclareAnalyzer
+from src.Declare4Py.ProcessMiningTasks.ConformanceChecking.MPDeclareResultsBrowser import MPDeclareResultsBrowser
 
 
 class Declare(BaseEstimator, TransformerMixin):
     
-    def __init__(self, case_id_col: str, cat_cols: List[str], num_cols: List[str], boolean: bool = False,
-                 fillna: bool = True, aggregation_functions: List[str] = ('mean', 'max', 'min', 'sum')):
+    def __init__(self, event_log: D4PyEventLog, act_col: str = 'concept:name', itemset_support: float = 0.1,
+                 boolean: bool = True, max_declare_cardinality: int = 1):
         """
         Parameters
         -------------------
-        case_id_col
-            a column indicating the case identifier in an event log
-        cat_cols
+        act_col
             columns indicating the categorical attributes in an event log
-        num_cols
+        itemset_support
             columns indicating the numerical attributes in an event log       
         boolean
             TRUE: Result the existence of a value as 1/0  / False: Count the frequency
-        fillna        
-            TRUE: replace NA to 0 value in dataframe / FALSE: keep NA           
+        max_declare_cardinality
+            TRUE: Result the existence of a value as 1/0  / False: Count the frequency
         """
-        
-        self.case_id_col = case_id_col  
-        self.cat_cols = cat_cols    
-        self.num_cols = num_cols    
-        self.boolean = boolean    
-        self.fillna = fillna       
+
+        self.act_col = act_col
+        self.itemset_support = itemset_support
+        self.boolean = boolean
         self.columns = None
-        self.fit_time = 0
         self.transform_time = 0
-        self.aggregation_functions = aggregation_functions
+        self.event_log = event_log
+        self.max_declare_cardinality = max_declare_cardinality
 
     def fit(self, X: Union[np.array, DataFrame], y=None):
         return self
     
     def transform(self, X: Union[np.array, DataFrame], y=None) -> DataFrame:
-        """
-        Tranforms the event log X into an aggregated numeric matrix:
-
-        Parameters
-        -------------------
-        X: DataFrame
-            Event log / Pandas DataFrame to be transformed
-            
-        Returns
-        ------------------
-        :rtype: DataFrame
-            Transformed event log
-        """
-        
         start = time()
-        
-        # transform numeric cols
-        if len(self.num_cols) > 0:
-            dt_numeric = X.groupby(self.case_id_col)[self.num_cols].agg(self.aggregation_functions)
-            dt_numeric.columns = ['_'.join(col).strip() for col in dt_numeric.columns.values]
-            
-        # transform cat cols
-        dt_transformed = pd.get_dummies(X[self.cat_cols])
-        dt_transformed[self.case_id_col] = X[self.case_id_col]
-        del X
-        if self.boolean:
-            dt_transformed = dt_transformed.groupby(self.case_id_col).max()
-        else:
-            dt_transformed = dt_transformed.groupby(self.case_id_col).sum()
+        frequent_itemsets = self.event_log.compute_frequent_itemsets(self.itemset_support,
+                                                                     case_id_col=self.event_log.case_id_key,
+                                                                     categorical_attributes=[self.act_col],
+                                                                     algorithm='fpgrowth', len_itemset=2,
+                                                                     remove_column_prefix=True)
 
-        # concatenate
-        if len(self.num_cols) > 0:
-            dt_transformed = pd.concat([dt_transformed, dt_numeric], axis=1)
-            del dt_numeric
-        
-        # fill missing values with 0-s
-        if self.fillna:
-            dt_transformed = dt_transformed.fillna(0)
-            
-        # add missing columns if necessary
-        if self.columns is None:
-            self.columns = dt_transformed.columns
-        else:
-            missing_cols = [col for col in self.columns if col not in dt_transformed.columns]
-            for col in missing_cols:
-                dt_transformed[col] = 0
-            dt_transformed = dt_transformed[self.columns]
-        
+        declare_model = DeclareModel()
+
+        frequent_events = [list(item)[0] for item in frequent_itemsets["itemsets"] if len(item) == 1]
+        frequent_pairs = [list(item) for item in frequent_itemsets["itemsets"] if len(item) == 2]
+
+        for unary_template in DeclareModelTemplate.get_unary_templates():
+            for event in frequent_events:
+                if unary_template.supports_cardinality:
+                    for i in range(self.max_declare_cardinality):
+                        constraint = {"template": unary_template, "activities": [event], "condition": ("", ""),
+                                      "n": i + 1}
+                        declare_model.constraints.append(constraint)
+                else:
+                    constraint = {"template": unary_template, "activities": [event], "condition": ("", "")}
+                    declare_model.constraints.append(constraint)
+
+        for binary_template in DeclareModelTemplate.get_binary_not_shortcut_templates():
+            for event_pair in frequent_pairs:
+                constraint = {"template": binary_template, "activities": event_pair, "condition": ("", "")}
+                declare_model.constraints.append(constraint)
+
+        declare_model.set_constraints()
+
+        basic_checker = MPDeclareAnalyzer(log=self.event_log, declare_model=declare_model, consider_vacuity=False)
+        conf_check_res: MPDeclareResultsBrowser = basic_checker.run()
+
+        df_activations = conf_check_res.get_metric(metric="num_activations")
+        df_state = conf_check_res.get_metric(metric="state")
+        df_transformed = df_state.combine(df_activations, self.combine_fulfillments_and_state)
+        self.columns = df_state.columns
         self.transform_time = time() - start
-        return dt_transformed
+        if self.boolean:
+            return df_state
+        else:
+            return pd.DataFrame(df_transformed, columns=self.columns)
 
     def get_feature_names(self) -> Index:
         """
@@ -100,3 +95,13 @@ class Declare(BaseEstimator, TransformerMixin):
             column names of a Pandas DataFrame
         """
         return self.columns
+
+    @staticmethod
+    def combine_fulfillments_and_state(col1: pd.Series, col2: pd.Series) -> pd.Series:
+        # col1 da state, col2 da activations
+        if col2.isna().any():
+            return col1.replace(0, -1)
+        else:
+            tmp_col = col1 * col2.replace(0, -2)  # create boolean mask: 0 means unsat, pos or neg values mean sat
+            tmp_col = tmp_col.replace(0, -1)  # -1 means unsat, pos values mean sat, neg values mean vacuous sat
+            return tmp_col.replace(-2, 0)  # encode 0 as vacuous sat

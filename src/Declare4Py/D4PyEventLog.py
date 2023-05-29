@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pdb
+
 import packaging
 from packaging import version
 import warnings
@@ -24,17 +26,24 @@ class D4PyEventLog:
         frequent_item_sets: list of the most frequent item sets found along the log traces, together with their support and length
     """
 
-    def __init__(self, case_name: str = "case:concept:name"):
+    def __init__(self, case_name: str = "case:concept:name", log: Optional[EventLog] = None):
         """The class constructor
 
         Example::
 
             d4py_log = D4PyEventLog()
         """
-        self.log: Optional[EventLog] = None
-        self.log_length: Optional[int] = None
-        self.activity_key: Optional[str] = None
-        self.timestamp_key: Optional[str] = None
+
+        if log is not None:
+            self.log: Optional[EventLog] = log
+            self.log_length = len(log)
+            self.timestamp_key = log._properties['pm4py:param:timestamp_key']
+            self.activity_key = log._properties['pm4py:param:activity_key']
+        else:
+            self.log: Optional[EventLog] = None
+            self.log_length: Optional[int] = None
+            self.activity_key: Optional[str] = None
+            self.timestamp_key: Optional[str] = None
         self.case_id_key: str = case_name
 
     def parse_xes_log(self, log_path: str) -> None:
