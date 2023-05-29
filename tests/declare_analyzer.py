@@ -19,6 +19,7 @@ iterations = 4
 
 list_logs = ["InternationalDeclarations"]#["Sepsis Cases"]
 template_list = ["eventually_activity_a", "eventually_a_then_b", "eventually_a_or_b", "eventually_a_next_b_next_c"]
+#template_list = ["eventually_activity_a"]
 ltl_model_params = {"Sepsis Cases": [["ER Triage"],
                                      ["ER Triage", "CRP"],
                                      ["ER Triage", "CRP"],
