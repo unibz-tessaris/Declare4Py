@@ -1,7 +1,7 @@
-Declare4Py
-==========
+src
+===
 
 .. toctree::
    :maxdepth: 4
 
-   Declare4Py
+   src
