@@ -25,11 +25,3 @@ All the Declare4Py data formats are compatible with the main Machine Learning Py
    Credits.rst
    How to contribute.rst
    Citing.rst
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
