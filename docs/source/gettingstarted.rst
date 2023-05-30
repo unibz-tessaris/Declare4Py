@@ -27,3 +27,13 @@ There are five main concepts underlying Declare4Py:
 
 Tutorials
 -------------------
+
+List of available tutorials
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+   
+   tutorials/*
+   tutorials/log_generator/*
+
