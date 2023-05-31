@@ -66,13 +66,14 @@ class D4PyEventLog:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=DeprecationWarning)
             log = pm4py.read_xes(log_path)
+
             if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
                 self.log = pm4py.convert_to_event_log(log)
             else:
                 self.log = log
         self.log_length = len(self.log)
-        self.timestamp_key = self.log._properties['pm4py:param:timestamp_key']
-        self.activity_key = self.log._properties['pm4py:param:activity_key']
+        self.timestamp_key = log._properties['pm4py:param:timestamp_key']
+        self.activity_key = log._properties['pm4py:param:activity_key']
 
     def get_log(self) -> EventLog:
         """
@@ -222,13 +223,23 @@ class D4PyEventLog:
             print(f"{e} attribute does not exist. Check the log.")
         return projection
 
-    def to_dataframe(self) -> DataFrame:
+    def to_dataframe(self):
         if self.log is None:
             raise RuntimeError("You must load a log before.")
+        if isinstance(self.log, DataFrame):
+            raise RuntimeError("Your log is already in a DataFrame format.")
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=DeprecationWarning)
-            df_log = pm4py.convert_to_dataframe(self.log)
-        return df_log
+            self.log = pm4py.convert_to_dataframe(self.log)
+
+    def to_eventlog(self):
+        if self.log is None:
+            raise RuntimeError("You must load a log before.")
+        if isinstance(self.log, EventLog):
+            raise RuntimeError("Your log is already in a EventLog format.")
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            self.log = pm4py.convert_to_event_log(self.log)
 
     def compute_frequent_itemsets(self, min_support: float, case_id_col: str, categorical_attributes: List[str] = None,
                                   algorithm: str = 'fpgrowth', len_itemset: int = 2,
@@ -268,12 +279,15 @@ class D4PyEventLog:
 
             binary_encoded_log.rename(columns=new_col_names, inplace=True)
 
-        if algorithm == 'fpgrowth':
-            frequent_itemsets = fpgrowth(binary_encoded_log, min_support=min_support, use_colnames=True)
-        elif algorithm == 'apriori':
-            frequent_itemsets = apriori(binary_encoded_log, min_support=min_support, use_colnames=True)
-        else:
-            raise RuntimeError(f"{algorithm} algorithm not supported. Choose between fpgrowth and apriori")
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            if algorithm == 'fpgrowth':
+                frequent_itemsets = fpgrowth(binary_encoded_log, min_support=min_support, use_colnames=True)
+            elif algorithm == 'apriori':
+                frequent_itemsets = apriori(binary_encoded_log, min_support=min_support, use_colnames=True)
+            else:
+                raise RuntimeError(f"{algorithm} algorithm not supported. Choose between fpgrowth and apriori")
+
         frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
         if len_itemset is None:
             return frequent_itemsets

@@ -18,6 +18,7 @@ from src.Declare4Py.ProcessModels.LTLModel import LTLModelTemplate
 iterations = 4
 
 list_logs = ["InternationalDeclarations"]#["Sepsis Cases"]
+list_logs = ["Sepsis Cases"]
 template_list = ["eventually_activity_a", "eventually_a_then_b", "eventually_a_or_b", "eventually_a_next_b_next_c"]
 #template_list = ["eventually_activity_a"]
 ltl_model_params = {"Sepsis Cases": [["ER Triage"],
@@ -43,13 +44,14 @@ with open(os.path.join("test_performance", "ltl_analyzer.csv"), 'a') as f:
             param = parameters[i]
             model_template = LTLModelTemplate(template)
             initialized_ltl_model = model_template.get_templ_model(param)
-            analyzer = LTLAnalyzer(event_log, initialized_ltl_model)
+            analyzer = LTLAnalyzer(event_log.to_dataframe(), initialized_ltl_model)
+            #analyzer = LTLAnalyzer(event_log, initialized_ltl_model)
             times = []
             for j in range(iterations):
                 start = time.time()
-                analyzer.run()
+                analyzer.run_aggregate()
                 end = time.time()
                 exec_time = end - start
                 times.append(exec_time)
             writer = csv.writer(f)
-            writer.writerow([log_name, "no_group_by", "no_numba", template] + times)
+            writer.writerow([log_name, "group_by", "aggregate", template] + times)

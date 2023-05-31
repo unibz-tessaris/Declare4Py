@@ -1,0 +1,87 @@
+Sepsis Cases,no_group_by,no_numba,eventually_activity_a,1.2553908824920654,1.0467028617858887,1.0345749855041504,1.056406021118164
+Sepsis Cases,no_group_by,no_numba,eventually_a_then_b,1.221398115158081,1.272150993347168,1.2262277603149414,1.2817041873931885
+Sepsis Cases,no_group_by,no_numba,eventually_a_or_b,1.1467220783233643,1.1131970882415771,1.1349999904632568,1.1572442054748535
+Sepsis Cases,no_group_by,no_numba,eventually_a_next_b_next_c,1.659642219543457,1.6369600296020508,1.7072632312774658,1.6317598819732666
+Sepsis Cases,no_group_by,no_numba,eventually_activity_a,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_then_b,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_or_b,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_next_b_next_c,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_activity_a,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_then_b,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_or_b,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_next_b_next_c,0.0,0.0,9.5367431640625e-07,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_activity_a,0.0,0.0,9.5367431640625e-07,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_then_b,1.1920928955078125e-06,0.0,1.1920928955078125e-06,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_or_b,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_next_b_next_c,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_activity_a,7.152557373046875e-07,0.0,0.0,1.1920928955078125e-06
+Sepsis Cases,no_group_by,no_numba,eventually_a_then_b,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_or_b,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_next_b_next_c,9.5367431640625e-07,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_activity_a,9.5367431640625e-07,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_then_b,0.0,9.5367431640625e-07,0.0,9.5367431640625e-07
+Sepsis Cases,no_group_by,no_numba,eventually_a_or_b,9.5367431640625e-07,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_a_next_b_next_c,0.0,0.0,0.0,0.0
+Sepsis Cases,no_group_by,no_numba,eventually_activity_a,1.287297010421753,1.0754449367523193,1.0621910095214844,1.1416239738464355
+Sepsis Cases,no_group_by,no_numba,eventually_activity_a,1.0051372051239014,0.8804652690887451,0.8303191661834717,0.8219048976898193
+Sepsis Cases,no_group_by,no_numba,eventually_a_then_b,1.033323049545288,0.9939610958099365,1.0288770198822021,1.0521469116210938
+Sepsis Cases,no_group_by,no_numba,eventually_a_or_b,1.0154390335083008,0.9518442153930664,0.9415910243988037,0.9485249519348145
+Sepsis Cases,no_group_by,no_numba,eventually_a_next_b_next_c,1.3441641330718994,1.3425869941711426,1.3425440788269043,1.333867073059082
+Sepsis Cases,no_group_by,no_numba,eventually_activity_a,1.0837819576263428,0.8942537307739258,0.8412570953369141,0.8239037990570068
+Sepsis Cases,no_group_by,no_numba,eventually_a_then_b,1.0697240829467773,1.0366089344024658,1.001798152923584,1.002457857131958
+Sepsis Cases,no_group_by,no_numba,eventually_a_or_b,0.9311051368713379,0.9091520309448242,0.9117109775543213,0.9283390045166016
+Sepsis Cases,no_group_by,no_numba,eventually_a_next_b_next_c,1.3196139335632324,1.360396146774292,1.3397467136383057,1.3015520572662354
+InternationalDeclarations,no_group_by,no_numba,eventually_activity_a,2.799382209777832,2.541084051132202,2.5743041038513184,2.5827159881591797
+InternationalDeclarations,no_group_by,no_numba,eventually_a_then_b,5.312204837799072,5.306051015853882,5.226231813430786,5.2429821491241455
+InternationalDeclarations,no_group_by,no_numba,eventually_a_or_b,3.9861698150634766,3.734382152557373,3.7642621994018555,3.9823410511016846
+InternationalDeclarations,no_group_by,no_numba,eventually_a_next_b_next_c,4.2248170375823975,4.202381134033203,4.239738941192627,4.2552759647369385
+InternationalDeclarations,no_group_by,no_numba,eventually_activity_a,2.797929048538208,2.613413095474243,2.6192424297332764,2.5971059799194336
+InternationalDeclarations,no_group_by,no_numba,eventually_a_then_b,5.346541166305542,5.304072856903076,5.358009099960327,5.3252129554748535
+InternationalDeclarations,no_group_by,no_numba,eventually_a_or_b,3.8061230182647705,3.897109031677246,3.9676289558410645,3.7895679473876953
+InternationalDeclarations,no_group_by,no_numba,eventually_a_next_b_next_c,4.335146903991699,4.2364959716796875,4.255471229553223,4.202116250991821
+InternationalDeclarations,no_group_by,no_numba,eventually_activity_a,3.00858211517334,2.7960898876190186,2.621973991394043,2.6336770057678223
+InternationalDeclarations,no_group_by,no_numba,eventually_a_then_b,5.48058295249939,5.488358736038208,5.412773847579956,5.429098129272461
+InternationalDeclarations,no_group_by,no_numba,eventually_a_or_b,3.9712271690368652,3.906522274017334,3.9143800735473633,3.86273193359375
+InternationalDeclarations,no_group_by,no_numba,eventually_a_next_b_next_c,4.382389068603516,4.2663280963897705,4.292031288146973,4.291150093078613
+InternationalDeclarations,no_group_by,no_numba,eventually_activity_a,2.6831889152526855,2.71787691116333,2.626405954360962,2.686828851699829
+InternationalDeclarations,no_group_by,no_numba,eventually_a_then_b,5.442996978759766,5.397575855255127,5.419466018676758,5.471750020980835
+InternationalDeclarations,no_group_by,no_numba,eventually_a_or_b,4.0214879512786865,3.807094097137451,3.919311046600342,3.8573968410491943
+InternationalDeclarations,no_group_by,no_numba,eventually_a_next_b_next_c,4.586241006851196,4.405038118362427,4.354290962219238,4.230243921279907
+InternationalDeclarations,group_by,no_numba,eventually_activity_a,2.741187810897827,2.663588047027588,2.8098387718200684,2.707827091217041
+InternationalDeclarations,group_by,no_numba,eventually_a_then_b,5.607346296310425,6.591731071472168,5.76479172706604,5.756665945053101
+InternationalDeclarations,group_by,no_numba,eventually_a_or_b,3.976546049118042,4.006335020065308,4.062782287597656,4.08551025390625
+InternationalDeclarations,group_by,no_numba,eventually_a_next_b_next_c,4.42919397354126,4.580539703369141,4.67863392829895,4.520380973815918
+InternationalDeclarations,group_by,transform,eventually_activity_a,2.850477933883667,3.081501007080078,2.856505870819092,2.884305953979492
+InternationalDeclarations,group_by,transform,eventually_a_then_b,5.691570997238159,5.632316827774048,5.630834102630615,5.677534818649292
+InternationalDeclarations,group_by,transform,eventually_a_or_b,4.295697927474976,4.156361818313599,4.277645111083984,6.67346978187561
+InternationalDeclarations,group_by,transform,eventually_a_next_b_next_c,4.476770877838135,4.704061031341553,4.754922151565552,4.588844060897827
+InternationalDeclarations,group_by,transform,eventually_activity_a,2.918360948562622,2.9900741577148438,2.879715919494629,2.9658901691436768
+InternationalDeclarations,group_by,transform,eventually_a_then_b,5.727996110916138,5.754605054855347,5.7426629066467285,5.782320022583008
+InternationalDeclarations,group_by,transform,eventually_a_or_b,4.18301796913147,4.065521717071533,4.104245901107788,6.228755950927734
+InternationalDeclarations,group_by,transform,eventually_a_next_b_next_c,4.594807147979736,4.617811918258667,4.510242700576782,4.576217889785767
+InternationalDeclarations,group_by,apply,eventually_activity_a,2.7242109775543213,2.6997811794281006,2.72489595413208,2.7014541625976562
+InternationalDeclarations,group_by,apply,eventually_a_then_b,5.471703767776489,5.527909994125366,5.467958927154541,5.581778287887573
+InternationalDeclarations,group_by,apply,eventually_a_or_b,3.9335360527038574,4.026226997375488,4.169846057891846,3.975374221801758
+InternationalDeclarations,group_by,apply,eventually_a_next_b_next_c,4.574814081192017,4.574773073196411,4.4233620166778564,4.452301025390625
+InternationalDeclarations,group_by,apply,eventually_activity_a,2.777545928955078,2.906317949295044,2.754545211791992,2.730412006378174
+InternationalDeclarations,group_by,aggregate,eventually_activity_a,2.6569859981536865,2.657935857772827,2.638705253601074,2.777323007583618
+InternationalDeclarations,group_by,aggregate,eventually_a_then_b,5.430055856704712,5.45847225189209,5.503187894821167,5.504042863845825
+InternationalDeclarations,group_by,aggregate,eventually_a_or_b,3.934973955154419,3.914196014404297,3.9111340045928955,4.088222980499268
+InternationalDeclarations,group_by,aggregate,eventually_a_next_b_next_c,4.352431774139404,4.366338014602661,4.300956964492798,4.377089023590088
+InternationalDeclarations,no_group_by,numba,eventually_activity_a,2.7882561683654785,2.7067041397094727,3.0540449619293213,5.343174934387207
+InternationalDeclarations,no_group_by,numba,eventually_activity_a,1.931946039199829,1.1235649585723877,1.0081541538238525,1.6239991188049316
+InternationalDeclarations,no_group_by,numba,eventually_a_then_b,3.2675158977508545,2.2180700302124023,3.0927958488464355,2.6662862300872803
+InternationalDeclarations,no_group_by,numba,eventually_a_or_b,2.5843122005462646,1.1099059581756592,1.1535539627075195,1.1083219051361084
+InternationalDeclarations,no_group_by,numba,eventually_a_next_b_next_c,1.2844598293304443,1.2499489784240723,1.7945940494537354,3.442418098449707
+InternationalDeclarations,no_group_by,-,eventually_activity_a,2.685598850250244,2.7968010902404785,2.652462959289551,2.639247179031372
+InternationalDeclarations,no_group_by,-,eventually_a_then_b,5.359898805618286,5.409817218780518,5.3136069774627686,5.365235805511475
+InternationalDeclarations,no_group_by,-,eventually_a_or_b,3.8148632049560547,3.8030290603637695,3.9021852016448975,3.765048027038574
+InternationalDeclarations,no_group_by,-,eventually_a_next_b_next_c,4.252423048019409,4.195160865783691,4.233508110046387,4.269197940826416
+InternationalDeclarations,group_by,aggregate,eventually_activity_a,2.987861156463623,3.1092450618743896,3.083220958709717,2.8797109127044678
+InternationalDeclarations,group_by,aggregate,eventually_a_then_b,5.538878917694092,5.63089919090271,5.709275245666504,5.523061990737915
+InternationalDeclarations,group_by,aggregate,eventually_a_or_b,4.230713129043579,4.099159002304077,4.022251129150391,4.075103998184204
+InternationalDeclarations,group_by,aggregate,eventually_a_next_b_next_c,4.380291938781738,4.347677946090698,4.3626391887664795,4.320176839828491
+InternationalDeclarations,group_by,aggregate,eventually_activity_a,2.7989909648895264,2.7110300064086914,2.748224973678589,2.683082103729248
+InternationalDeclarations,group_by,aggregate,eventually_a_then_b,5.560626983642578,5.773452043533325,5.547970771789551,5.494127035140991
+InternationalDeclarations,group_by,aggregate,eventually_a_or_b,3.9079458713531494,4.129999876022339,3.89017391204834,3.986893892288208
+InternationalDeclarations,group_by,aggregate,eventually_a_next_b_next_c,4.398637056350708,4.342317819595337,4.31601095199585,4.346983909606934

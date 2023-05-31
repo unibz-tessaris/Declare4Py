@@ -5,6 +5,9 @@ import pdb
 from concurrent.futures import ThreadPoolExecutor
 
 from numba import jit
+from numba.experimental import jitclass
+from pm4py.objects.log.obj import Trace
+from pythomata.impl.symbolic import SymbolicDFA
 
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
@@ -18,18 +21,20 @@ import pandas
 Provides basic conformance checking functionalities
 """
 
+
 class LTLAnalyzer(AbstractConformanceChecking):
 
     def __init__(self, log: D4PyEventLog, ltl_model: LTLModel):
         super().__init__(log, ltl_model)
 
     @staticmethod
-    def run_single_trace(trace, dfa, case_id_key):
+    def run_single_trace(trace: Trace, dfa: SymbolicDFA, activity_key: str = 'concept:name'):
         current_states = {dfa.initial_state}
 
         for event in trace:
-            symbol = event[case_id_key]
-            symbol = Utils.parse_activity(symbol)
+            #symbol = event[activity_key]
+            #event = event[activity_key]
+            symbol = Utils.parse_activity(event)
             symbol = symbol.lower()
             temp = dict()
             temp[symbol] = True
@@ -67,3 +72,25 @@ class LTLAnalyzer(AbstractConformanceChecking):
             results.append([trace.attributes['concept:name'], is_accepted])
 
         return pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
+
+    def run_aggregate(self) -> pandas.DataFrame:
+        """
+        Performs conformance checking for the provided event log and an input LTL model.
+
+        Returns:
+            A pandas Dataframe containing the id of the traces and the result of the conformance check
+        """
+
+        if self.event_log is None:
+            raise RuntimeError("You must load the log before checking the model.")
+        if self.process_model is None:
+            raise RuntimeError("You must load the LTL model before checking the model.")
+        dfa = ltl2dfa(self.process_model.parsed_formula, backend="lydia")
+        dfa = dfa.minimize()
+        pdb.set_trace()
+        #activity_key = self.event_log.activity_key
+        group = self.event_log.groupby('case:concept:name', as_index=True)
+        results = group['concept:name'].aggregate(self.run_single_trace, dfa=dfa, engine='cython')
+        #pdb.set_trace()
+
+        return pandas.DataFrame(results, columns=['self.event_log.case_id_key', "accepted"])
