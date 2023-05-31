@@ -12,7 +12,7 @@ SCRIPT_DIR = pathlib.Path("../", "src").resolve()
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessMiningTasks.ConformanceChecking.LTLAnalyzer import LTLAnalyzer
-from src.Declare4Py.ProcessModels.LTLModel import LTLModelTemplate
+from src.Declare4Py.ProcessModels.LTLModel import LTLTemplate
 
 #event_log = D4PyEventLog()
 iterations = 4
@@ -42,14 +42,14 @@ with open(os.path.join("test_performance", "ltl_analyzer.csv"), 'a') as f:
             template = template_list[i]
             print(f"Running {log_name} with {template} ...")
             param = parameters[i]
-            model_template = LTLModelTemplate(template)
-            initialized_ltl_model = model_template.get_templ_model(param)
-            analyzer = LTLAnalyzer(event_log.to_dataframe(), initialized_ltl_model)
-            #analyzer = LTLAnalyzer(event_log, initialized_ltl_model)
+            model_template = LTLTemplate(template)
+            initialized_ltl_model = model_template.fill_template(param)
+            #analyzer = LTLAnalyzer(event_log.to_dataframe(), initialized_ltl_model)
+            analyzer = LTLAnalyzer(event_log, initialized_ltl_model)
             times = []
             for j in range(iterations):
                 start = time.time()
-                analyzer.run_aggregate()
+                analyzer.run()
                 end = time.time()
                 exec_time = end - start
                 times.append(exec_time)

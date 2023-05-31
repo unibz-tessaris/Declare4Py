@@ -11,7 +11,7 @@ from pythomata.impl.symbolic import SymbolicDFA
 
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
-from src.Declare4Py.ProcessModels.LTLModel import LTLModel, LTLModelTemplate
+from src.Declare4Py.ProcessModels.LTLModel import LTLModel, LTLTemplate
 from src.Declare4Py.Utils.utils import Utils
 from logaut import ltl2dfa
 from functools import reduce
@@ -30,10 +30,11 @@ class LTLAnalyzer(AbstractConformanceChecking):
     @staticmethod
     def run_single_trace(trace: Trace, dfa: SymbolicDFA, activity_key: str = 'concept:name'):
         current_states = {dfa.initial_state}
+        dfa.accepting_states
 
         for event in trace:
             #symbol = event[activity_key]
-            #event = event[activity_key]
+            event = event[activity_key]
             symbol = Utils.parse_activity(event)
             symbol = symbol.lower()
             temp = dict()
@@ -60,13 +61,13 @@ class LTLAnalyzer(AbstractConformanceChecking):
             raise RuntimeError("You must load the log before checking the model.")
         if self.process_model is None:
             raise RuntimeError("You must load the LTL model before checking the model.")
-        dfa = ltl2dfa(self.process_model.parsed_formula, backend="lydia")
+        dfa = ltl2dfa(self.process_model.parsed_formula, backend="lydia") #lydia
         dfa = dfa.minimize()
         g_log = self.event_log.get_log()
         activity_key = self.event_log.activity_key
 
         results = []
-
+        #TODO: mettere activity ID
         for trace in g_log:
             is_accepted = self.run_single_trace(trace, dfa, activity_key)
             results.append([trace.attributes['concept:name'], is_accepted])

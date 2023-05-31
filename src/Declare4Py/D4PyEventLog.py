@@ -71,9 +71,10 @@ class D4PyEventLog:
                 self.log = pm4py.convert_to_event_log(log)
             else:
                 self.log = log
+
         self.log_length = len(self.log)
-        self.timestamp_key = log._properties['pm4py:param:timestamp_key']
-        self.activity_key = log._properties['pm4py:param:activity_key']
+        self.timestamp_key = self.log._properties['pm4py:param:timestamp_key']
+        self.activity_key = self.log._properties['pm4py:param:activity_key']
 
     def get_log(self) -> EventLog:
         """
