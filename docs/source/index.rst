@@ -20,7 +20,8 @@ All the Declare4Py data formats are compatible with the main Machine Learning Py
    
    installation.rst
    gettingstarted.rst
-   documentation.ipynb
+   documentation.rst
+   tutorials.rst
    Publications.rst
    Credits.rst
    How to contribute.rst
