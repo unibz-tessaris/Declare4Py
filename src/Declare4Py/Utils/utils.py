@@ -22,3 +22,22 @@ class Utils:
             act = act.replace(str(int_key), int_char_map[int_key])
         act = re.sub(r"\s\b", "", act)
         return act
+
+    @staticmethod
+    def normalize_formula(input_formula: str) -> str:
+
+        unary_operators = {"g(": "G(", "x(": "X(", "f(": "F(", "x[!](": "X[!]("}
+
+        binary_operators = {" u ": " U ", "u(": "U(", " r ": " R ", "r(": "R(", " w ": " W ",
+                            "w(": "W(", " m ": " M ", "m(": "M(", " v ": " V ", "v(": "V("}
+
+        formula = Utils.parse_activity(input_formula)
+        formula = formula.lower()
+
+        for key, value in unary_operators.items():
+            formula = formula.replace(key, value)
+
+        for key, value in binary_operators.items():
+            formula = formula.replace(key, value)
+
+        return formula

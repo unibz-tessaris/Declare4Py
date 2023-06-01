@@ -71,7 +71,10 @@ class DeclareMiner(AbstractDiscovery, ABC):
                                                                       categorical_attributes=[self.event_log.get_concept_name()],
                                                                       algorithm='fpgrowth', remove_column_prefix=True)
 
-        self.process_model.activities = self.event_log.get_log_alphabet_attribute(self.event_log.get_concept_name())
+        tpm_activities = self.event_log.get_event_attribute_values(self.event_log.get_concept_name())
+        if not isinstance(tpm_activities, list):
+            self.process_model.activities = tpm_activities.keys()
+
         for item_set in frequent_item_sets['itemsets']:
             length = len(item_set)
             if length == 1:

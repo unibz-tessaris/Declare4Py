@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pdb
 import re
 from abc import ABC
 from typing import Optional
@@ -138,10 +139,15 @@ class DeclareQueryChecker(AbstractQueryChecking, ABC):
                     else:
                         templates_to_check.append(template.templ_str)
 
-        activations_to_check = self.event_log.get_log_alphabet_attribute(self.event_log.activity_key) \
+        activations_to_check = self.event_log.get_event_attribute_values(self.event_log.activity_key) \
             if self.activation is None else [self.activation]
-        targets_to_check = self.event_log.get_log_alphabet_attribute(self.event_log.activity_key) \
+        if not isinstance(activations_to_check, list):
+            activations_to_check = activations_to_check.keys()
+
+        targets_to_check = self.event_log.get_event_attribute_values(self.event_log.activity_key) \
             if self.target is None else [self.target]
+        if not isinstance(targets_to_check, list):
+            activations_to_check = targets_to_check.keys()
 
         activity_combos = []
         for activation in activations_to_check:
