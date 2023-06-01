@@ -1,5 +1,8 @@
+import pdb
+
 import matplotlib
 from matplotlib import pyplot as plt
+import pandas as pd
 
 plt.rc('font', family='serif', serif='Times')
 plt.rc('text', usetex=True)
@@ -21,6 +24,7 @@ query_1_nodata_d4py = [0.42098116874694824, 0.4873671531677246, 0.52885317802429
 query_2_nodata_d4py = [2.6443979740142822, 3.0853519439697266, 3.3742330074310303, 3.5121097564697266]
 
 fig = plt.figure()
+"""
 plt.plot(model_checking_data_len, model_checking_data_rum, ls='-.', c='forestgreen', label="RuM", marker='>')
 plt.plot(model_checking_data_len, model_checking_data_d4py, ls='-', c='mediumorchid', label="Declare4Py", marker='D')
 plt.legend()
@@ -48,3 +52,28 @@ plt.xlabel("Declare constraint support")
 plt.ylabel("Time [s]")
 plt.tight_layout()
 fig.savefig(f"query_checking.pdf")
+"""
+
+#PLOT ltl analyzer performance
+
+data_ltl_checker = pd.read_csv("test_performance/ltl_analyzer.csv", names=["dataset", "type", "opt", "constraint",
+                                                                           "t1", "t2", "t3", "t4"])
+list_logs = ["InternationalDeclarations", "Sepsis Cases"]
+
+for log in list_logs:
+    parallel_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) & (data_ltl_checker["opt"] == 'parallel')]
+    sequential_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) & (data_ltl_checker["opt"] == 'sequential')]
+    results_parallel = parallel_df[["t1", "t2", "t3", "t4"]].mean(axis=1)
+    results_sequential = sequential_df[["t1", "t2", "t3", "t4"]].mean(axis=1)
+
+    plt.plot(range(len(results_parallel)), results_parallel, ls='-', c='mediumorchid', label="5 jobs", marker='D')
+    plt.plot(range(len(results_parallel)), results_sequential, ls=':', c='darkorchid', label="1 job", marker='^')
+    plt.legend(loc="upper left")
+
+    plt.title("LTL Conformance Checking")
+    plt.xlabel("LTL Template id")
+    plt.ylabel("Time [s]")
+    plt.tight_layout()
+    fig.savefig(f"{log}_ltl_conformance_checking.pdf")
+    fig.clear()
+

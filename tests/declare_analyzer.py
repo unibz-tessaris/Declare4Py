@@ -64,4 +64,4 @@ if __name__ == "__main__":
                     exec_time = end - start
                     times.append(exec_time)
                 writer = csv.writer(f)
-                writer.writerow([log_name, "group_by", "aggregate", template] + times)
+                writer.writerow([log_name, "no_group_by", "parallel", template] + times)

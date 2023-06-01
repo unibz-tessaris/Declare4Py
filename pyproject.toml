@@ -16,9 +16,7 @@ keywords = [
 authors = [
     { name = "Ivan Donadello", email = "ivan.donadello@unibz.it" },
     { name = "Francesco Riva", email = "francesco.riva@unibz.it" },
-    { name = "Fabrizio Maria Maggi", email = "maggi@inf.unibz.it" },
-    { name = "Manpreet Singh", email = "manpreet2681995@gmail.com" },
-    { name = "Aladdin Shikhizada", email = "aladdin.shikhizada@gmail.com" }
+    { name = "Fabrizio Maria Maggi", email = "maggi@inf.unibz.it" }
 ]
 dependencies = [
     "logaut",
