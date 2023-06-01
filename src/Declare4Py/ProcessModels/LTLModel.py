@@ -86,19 +86,17 @@ class LTLModel(ProcessModel, ABC):
             Void
 
         """
-        parsed = None
         if type(formula) is not str:
             raise RuntimeError("You must specify a string as input formula.")
 
         formula = Utils.normalize_formula(formula)
 
         try:
-            parsed = parse_ltl(formula)
+            self.parsed_formula = parse_ltl(formula)
         except RuntimeError:
             raise RuntimeError(f"The inserted string: \"{formula}\" is not a valid LTL formula")
 
         self.formula = formula
-        self.parsed_formula = parsed
 
 
 class LTLTemplate:
@@ -107,6 +105,36 @@ class LTLTemplate:
     Makes use of the class LTLModel.
     Insert a string representing one of the seven available template functions
     """
+
+    def __init__(self, template_str: str):
+        self.template_str: str = None
+        self.parameters: [str] = []
+        self.templates = {'eventually_activity_a': self.eventually_activity_a,
+                          'eventually_a_then_b': self.eventually_a_then_b,
+                          'eventually_a_or_b': self.eventually_a_or_b,
+                          'eventually_a_next_b': self.eventually_a_next_b,
+                          'eventually_a_then_b_then_c': self.eventually_a_then_b_then_c,
+                          'eventually_a_next_b_next_c': self.eventually_a_next_b_next_c,
+                          'next_a': self.next_a,
+                          'responded_existence': self.responded_existence,
+                          'response': self.response,
+                          'alternate_response': self.alternate_response,
+                          'chain_response': self.chain_response,
+                          'precedence': self.precedence,
+                          'alternate_precedence': self.alternate_precedence,
+                          'chain_precedence': self.chain_precedence,
+                          'not_responded_existence': self.not_responded_existence,
+                          'not_response': self.not_response,
+                          'not_precedence': self.not_precedence,
+                          'not_chain_response': self.not_chain_response,
+                          'not_chain_precedence': self.not_chain_precedence}
+
+        if template_str in self.templates:
+            self.template_str = template_str
+        else:
+            raise RuntimeError(f"{template_str} is a not a valid template. Check the tutorial here "
+                               f"https://declare4py.readthedocs.io/en/latest/tutorials/2.Conformance_checking_LTL.html "
+                               f"for a list of the valid templates")
 
     @staticmethod
     def eventually_activity_a(activity: List[str]) -> str:
@@ -297,36 +325,6 @@ class LTLTemplate:
         formula += ")"
         return formula
 
-    def __init__(self, template_str: str):
-        self.template_str: str = None
-        self.parameters: [str] = []
-        self.templates = {'eventually_activity_a': self.eventually_activity_a,
-                          'eventually_a_then_b': self.eventually_a_then_b,
-                          'eventually_a_or_b': self.eventually_a_or_b,
-                          'eventually_a_next_b': self.eventually_a_next_b,
-                          'eventually_a_then_b_then_c': self.eventually_a_then_b_then_c,
-                          'eventually_a_next_b_next_c': self.eventually_a_next_b_next_c,
-                          'next_a': self.next_a,
-                          'responded_existence': self.responded_existence,
-                          'response': self.response,
-                          'alternate_response': self.alternate_response,
-                          'chain_response': self.chain_response,
-                          'precedence': self.precedence,
-                          'alternate_precedence': self.alternate_precedence,
-                          'chain_precedence': self.chain_precedence,
-                          'not_responded_existence': self.not_responded_existence,
-                          'not_response': self.not_response,
-                          'not_precedence': self.not_precedence,
-                          'not_chain_response': self.not_chain_response,
-                          'not_chain_precedence': self.not_chain_precedence}
-
-        if template_str in self.templates:
-            self.template_str = template_str
-        else:
-            raise RuntimeError(f"{template_str} is a not a valid template. Check the tutorial here "
-                               f"https://declare4py.readthedocs.io/en/latest/tutorials/2.Conformance_checking_LTL.html "
-                               f"for a list of the valid templates")
-
     def fill_template(self, *activities: List[str]) -> LTLModel:
         """
         Function used to retrieve the selected template and returns an LTLModel object containing such template
@@ -341,16 +339,15 @@ class LTLTemplate:
         if self.template_str is None:
             raise RuntimeError("Please first load a valid template")
         func = self.templates.get(self.template_str)
-        m = None
+        filled_model = LTLModel()
         try:
             formula = func(*activities)
             for act in activities:
                 act = [item.lower() for item in act]
                 act = [Utils.parse_activity(item) for item in act]
                 self.parameters += act
-            m = LTLModel()
-            m.parse_from_string(formula)
-            m.parameters = self.parameters
+            filled_model.parse_from_string(formula)
+            filled_model.parameters = self.parameters
         except (TypeError, RuntimeError):
             raise TypeError("Mismatched number of parameters or type")
-        return m
+        return filled_model

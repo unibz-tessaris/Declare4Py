@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+#from multiprocessing.dummy import Pool, Lock
+from multiprocessing import Pool
 import multiprocessing
 import pdb
 from concurrent.futures import ThreadPoolExecutor
+from itertools import repeat
+import platform
 
 from numba import jit
 from numba.experimental import jitclass
@@ -27,10 +31,14 @@ class LTLAnalyzer(AbstractConformanceChecking):
     def __init__(self, log: D4PyEventLog, ltl_model: LTLModel):
         super().__init__(log, ltl_model)
 
+    def dummy(self, x):
+        return True
+
     @staticmethod
-    def run_single_trace(trace: Trace, dfa: SymbolicDFA, activity_key: str = 'concept:name'):
+    #def run_single_trace(trace: Trace, dfa: SymbolicDFA, activity_key: str = 'concept:name'):
+    def run_single_trace(arg, activity_key: str = 'concept:name'):
+        trace, dfa = arg
         current_states = {dfa.initial_state}
-        dfa.accepting_states
 
         for event in trace:
             #symbol = event[activity_key]
@@ -73,6 +81,42 @@ class LTLAnalyzer(AbstractConformanceChecking):
             results.append([trace.attributes['concept:name'], is_accepted])
 
         return pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
+
+    def run_par(self):
+        dfa = ltl2dfa(self.process_model.parsed_formula, backend="lydia")  # lydia
+        dfa = dfa.minimize()
+        g_log = self.event_log.get_log()
+        activity_key = self.event_log.activity_key
+
+        results = []
+        # TODO: mettere activity ID
+        #for trace in g_log:
+        #    is_accepted = self.run_single_trace(trace, dfa, activity_key)
+        #    results.append([trace.attributes['concept:name'], is_accepted])
+
+        #g_log._list
+        tra = g_log._list
+        aut = [dfa]*len(tra)
+        #pdb.set_trace()
+        #pool = Pool(processes=5)
+        #tmp_list_results = pool.map(self.run_single_trace, zip(tra, aut))
+        #pool.close()
+
+        if platform.platform().split('-')[0] == 'macOS' or platform.platform().split('-')[0] == 'Darwin':
+            with multiprocessing.get_context("spawn").Pool(processes=5) as pool:
+                tmp_list_results = pool.map(self.run_single_trace, zip(tra, aut))
+
+        #with Pool(5) as pool:
+            #ee = pool.imap_unordered(self.run_single_trace, zip(tra, aut))
+            #for response in pool.imap_unordered(self.run_single_trace, zip(tra, aut)):
+            #    pass
+            #ee = [response for response in pool.map(self.run_single_trace, zip(tra, aut), chunksize=10)]
+            #for result in pool.map(task, items, chunksize=10): imap_unordered
+        #pdb.set_trace()
+        #p = multiprocessing.Pool()
+        #p.map(LTLAnalyzer.dummy, g_log._list)
+        #print(list(p.map(LTLAnalyzer.dummy, zip(repeat(self), g_log._list))))
+
 
     def run_aggregate(self) -> pandas.DataFrame:
         """
