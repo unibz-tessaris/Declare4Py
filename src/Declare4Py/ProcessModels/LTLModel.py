@@ -1,5 +1,7 @@
 from abc import ABC
 
+from logaut import ltl2dfa
+
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from pylogics.parsers import parse_ltl
 from src.Declare4Py.Utils.utils import Utils
@@ -13,6 +15,59 @@ class LTLModel(ProcessModel, ABC):
         self.formula: str = ""
         self.parsed_formula = None
         self.parameters = []
+
+    def add_conjunction(self, new_formula: str) -> None:
+        new_formula = Utils.normalize_formula(new_formula)
+        self.formula = f"({self.formula}) && ({new_formula})"
+        self.parsed_formula = parse_ltl(self.formula)
+
+    def add_disjunction(self, new_formula: str) -> None:
+        new_formula = Utils.normalize_formula(new_formula)
+        self.formula = f"({self.formula}) || ({new_formula})"
+        self.parsed_formula = parse_ltl(self.formula)
+
+    def add_implication(self, new_formula: str) -> None:
+        new_formula = Utils.normalize_formula(new_formula)
+        self.formula = f"({self.formula}) -> ({new_formula})"
+        self.parsed_formula = parse_ltl(self.formula)
+
+    def add_equivalence(self, new_formula: str) -> None:
+        new_formula = Utils.normalize_formula(new_formula)
+        self.formula = f"({self.formula}) <-> ({new_formula})"
+        self.parsed_formula = parse_ltl(self.formula)
+
+    def add_negation(self) -> None:
+        self.formula = f"!({self.formula})"
+        self.parsed_formula = parse_ltl(self.formula)
+
+    def add_next(self) -> None:
+        self.formula = f"X({self.formula})"
+        self.parsed_formula = parse_ltl(self.formula)
+
+    def add_eventually(self) -> None:
+        self.formula = f"F({self.formula})"
+        self.parsed_formula = parse_ltl(self.formula)
+
+    def add_always(self) -> None:
+        self.formula = f"G({self.formula})"
+        self.parsed_formula = parse_ltl(self.formula)
+
+    def add_until(self, new_formula: str) -> None:
+        new_formula = Utils.normalize_formula(new_formula)
+        self.formula = f"({self.formula}) U ({new_formula})"
+        self.parsed_formula = parse_ltl(self.formula)
+
+    def check_satisfiability(self, backend: str = "lydia") -> bool:
+        if self.parsed_formula is None:
+            raise RuntimeError("You must load the LTL model before checking the model.")
+        if backend not in ["lydia", "ltlf2dfa"]:
+            raise RuntimeError("Only lydia and ltlf2dfa are supported backends.")
+        dfa = ltl2dfa(self.parsed_formula, backend=backend)
+        dfa = dfa.minimize()
+        if len(dfa.accepting_states) > 0:
+            return True
+        else:
+            return False
 
     def parse_from_string(self, formula: str, new_line_ctrl: str = "\n") -> None:
         """
@@ -35,20 +90,7 @@ class LTLModel(ProcessModel, ABC):
         if type(formula) is not str:
             raise RuntimeError("You must specify a string as input formula.")
 
-        unary_operators = {"g(": "G(", "x(": "X(", "f(": "F(", "x[!](": "X[!]("}
-
-        binary_operators = {" u ": " U ", "u(": "U(", " r ": " R ", "r(": "R(", " w ": " W ",
-                            "w(": "W(", " m ": " M ", "m(": "M(", " v ": " V ", "v(": "V("}
-
-        formula = Utils.parse_activity(formula)
-
-        formula = formula.lower()
-
-        for key, value in unary_operators.items():
-            formula = formula.replace(key, value)
-
-        for key, value in binary_operators.items():
-            formula = formula.replace(key, value)
+        formula = Utils.normalize_formula(formula)
 
         try:
             parsed = parse_ltl(formula)
@@ -107,10 +149,10 @@ class LTLTemplate:
         formula = "F(" + source[0]
         for i in range(1, len(source)):
             formula += " || " + source[i]
-        formula += " -> F(" + target[0]
+        formula += ") -> F(" + target[0]
         for i in range(1, len(target)):
             formula += " || " + target[i]
-        formula += "))"
+        formula += ")"
         return formula
 
     @staticmethod
@@ -248,10 +290,10 @@ class LTLTemplate:
     def not_chain_precedence(source: List[str], target: List[str]) -> str:
         formula = "G( X(" + target[0]
         for i in range(1, len(target)):
-            formula += "||" + target[i]
+            formula += " || " + target[i]
         formula += ") -> !(" + source[0] + ")"
         for i in range(1, len(source)):
-            formula += "|| !("+source[i]+")"
+            formula += " || !("+source[i]+")"
         formula += ")"
         return formula
 

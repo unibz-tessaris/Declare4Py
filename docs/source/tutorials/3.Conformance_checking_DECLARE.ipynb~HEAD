@@ -1,11 +1,12 @@
 {
  "cells": [
   {
+   "attachments": {},
    "cell_type": "markdown",
    "id": "5279e90c",
    "metadata": {},
    "source": [
-    "# Conformance Checking with a DECLARE model\n",
+    "# Conformance Checking with a LTL model\n",
     "\n",
     "This tutorial explains how to perform the checking of a DECLARE model and how to browse the results. We start by importing the classes for managing with DECLARE models: `DeclareModel` and `DeclareModelTemplate`:"
    ]
@@ -29,6 +30,7 @@
    ]
   },
   {
+   "attachments": {},
    "cell_type": "markdown",
    "id": "b22cdbd3",
    "metadata": {},
@@ -98,6 +100,7 @@
    ]
   },
   {
+   "attachments": {},
    "cell_type": "markdown",
    "id": "6f2f5b6f",
    "metadata": {},
@@ -140,6 +143,7 @@
    ]
   },
   {
+   "attachments": {},
    "cell_type": "markdown",
    "id": "32fea405",
    "metadata": {},
@@ -209,6 +213,7 @@
    ]
   },
   {
+   "attachments": {},
    "cell_type": "markdown",
    "id": "e2a96f45",
    "metadata": {},
@@ -232,6 +237,7 @@
    ]
   },
   {
+   "attachments": {},
    "cell_type": "markdown",
    "id": "d3592687",
    "metadata": {},
@@ -671,6 +677,7 @@
    ]
   },
   {
+   "attachments": {},
    "cell_type": "markdown",
    "id": "3bea5689",
    "metadata": {},
@@ -719,6 +726,7 @@
    ]
   },
   {
+   "attachments": {},
    "cell_type": "markdown",
    "id": "990d73ad",
    "metadata": {},
@@ -774,7 +782,11 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
+<<<<<<< HEAD:docs/source/tutorials/3.Conformance_checking_DECLARE.ipynb
    "version": "3.9.7"
+=======
+   "version": "3.9.13"
+>>>>>>> origin/v1.0.1/refactor-architecture:docs/source/tutorials/Declare_Conformance_Checking.ipynb
   }
  },
  "nbformat": 4,
