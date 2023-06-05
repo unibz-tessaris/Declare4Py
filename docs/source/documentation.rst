@@ -4,5 +4,5 @@ Documentation
    :maxdepth: 2
    :hidden:
    
-   Declare4Py.rst
+   src.rst
    

@@ -27,7 +27,6 @@ class ConstraintChecker:
         :param bool consider_vacuity: True means that vacuously satisfied traces are considered as satisfied, violated otherwise
         :param d4pyEventLog trace: log
         :param DeclareModel decl_model: Process mining model
-
         Args:
             concept_name:
             concept_name:
