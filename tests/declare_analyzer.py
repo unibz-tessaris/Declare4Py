@@ -18,9 +18,10 @@ from src.Declare4Py.ProcessModels.LTLModel import LTLTemplate
 iterations = 4
 
 list_logs = ["InternationalDeclarations"]#["Sepsis Cases"]
-list_logs = ["Sepsis Cases"]
-template_list = ["next_a",  "eventually_activity_a", "eventually_a_then_b", "eventually_a_or_b", "eventually_a_next_b",
+#list_logs = ["Sepsis Cases"]
+simple_template_list = ["next_a",  "eventually_activity_a", "eventually_a_then_b", "eventually_a_or_b", "eventually_a_next_b",
                  "eventually_a_next_b_next_c", "eventually_a_then_b_then_c"]
+tb_declare_template_list = []
 #template_list = ["eventually_activity_a"]
 ltl_model_params = {"Sepsis Cases": [["ER Triage"],
                                      ["ER Triage"],
@@ -48,20 +49,22 @@ if __name__ == "__main__":
             event_log.parse_xes_log(log_path)
             parameters = ltl_model_params[log_name]
 
-            for i in range(len(template_list)):
-                template = template_list[i]
+            for i, template in enumerate(template_list):
                 print(f"Running {log_name} with {template} ...")
                 param = parameters[i]
                 model_template = LTLTemplate(template)
                 initialized_ltl_model = model_template.fill_template(param)
                 #analyzer = LTLAnalyzer(event_log.to_dataframe(), initialized_ltl_model)
+                initialized_ltl_model.to_ltlf2dfa_backend()
+                initialized_ltl_model.to_lydia_backend()
                 analyzer = LTLAnalyzer(event_log, initialized_ltl_model)
                 times = []
                 for j in range(iterations):
                     start = time.time()
-                    analyzer.run_par()
+                    df = analyzer.run(jobs=0)
                     end = time.time()
                     exec_time = end - start
+                    #df.to_csv("lydia.csv") #ltlf2dfa lydia
                     times.append(exec_time)
                 writer = csv.writer(f)
                 writer.writerow([log_name, "no_group_by", "parallel", template] + times)

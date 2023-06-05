@@ -17,6 +17,15 @@ class LTLModel(ProcessModel, ABC):
         self.parameters = []
         self.backend = backend
 
+    def get_backend(self) -> str:
+        return self.backend
+
+    def to_lydia_backend(self) -> None:
+        self.backend = "lydia"
+
+    def to_ltlf2dfa_backend(self) -> None:
+        self.backend = "ltlf2dfa"
+
     def add_conjunction(self, new_formula: str) -> None:
         new_formula = Utils.normalize_formula(new_formula)
         self.formula = f"({self.formula}) && ({new_formula})"
@@ -108,27 +117,30 @@ class LTLTemplate:
     """
 
     def __init__(self, template_str: str):
-        self.template_str: str = None
+        self.template_str: str = template_str
         self.parameters: [str] = []
-        self.templates = {'eventually_activity_a': self.eventually_activity_a,
-                          'eventually_a_then_b': self.eventually_a_then_b,
-                          'eventually_a_or_b': self.eventually_a_or_b,
-                          'eventually_a_next_b': self.eventually_a_next_b,
-                          'eventually_a_then_b_then_c': self.eventually_a_then_b_then_c,
-                          'eventually_a_next_b_next_c': self.eventually_a_next_b_next_c,
-                          'next_a': self.next_a,
-                          'responded_existence': self.responded_existence,
-                          'response': self.response,
-                          'alternate_response': self.alternate_response,
-                          'chain_response': self.chain_response,
-                          'precedence': self.precedence,
-                          'alternate_precedence': self.alternate_precedence,
-                          'chain_precedence': self.chain_precedence,
-                          'not_responded_existence': self.not_responded_existence,
-                          'not_response': self.not_response,
-                          'not_precedence': self.not_precedence,
-                          'not_chain_response': self.not_chain_response,
-                          'not_chain_precedence': self.not_chain_precedence}
+        self.ltl_templates = {'eventually_activity_a': self.eventually_activity_a,
+                              'eventually_a_then_b': self.eventually_a_then_b,
+                              'eventually_a_or_b': self.eventually_a_or_b,
+                              'eventually_a_next_b': self.eventually_a_next_b,
+                              'eventually_a_then_b_then_c': self.eventually_a_then_b_then_c,
+                              'eventually_a_next_b_next_c': self.eventually_a_next_b_next_c,
+                              'next_a': self.next_a}
+
+        self.tb_declare_templates = {'responded_existence': self.responded_existence,
+                                     'response': self.response,
+                                     'alternate_response': self.alternate_response,
+                                     'chain_response': self.chain_response,
+                                     'precedence': self.precedence,
+                                     'alternate_precedence': self.alternate_precedence,
+                                     'chain_precedence': self.chain_precedence,
+                                     'not_responded_existence': self.not_responded_existence,
+                                     'not_response': self.not_response,
+                                     'not_precedence': self.not_precedence,
+                                     'not_chain_response': self.not_chain_response,
+                                     'not_chain_precedence': self.not_chain_precedence}
+
+        self.templates = {**self.ltl_templates, **self.tb_declare_templates}
 
         if template_str in self.templates:
             self.template_str = template_str
@@ -136,6 +148,12 @@ class LTLTemplate:
             raise RuntimeError(f"{template_str} is a not a valid template. Check the tutorial here "
                                f"https://declare4py.readthedocs.io/en/latest/tutorials/2.Conformance_checking_LTL.html "
                                f"for a list of the valid templates")
+
+    def get_ltl_templates(self) -> List[str]:
+        return [template for template in self.ltl_templates]
+
+    def get_tb_declare_templates(self) -> List[str]:
+        return [template for template in self.tb_declare_templates]
 
     @staticmethod
     def eventually_activity_a(activity: List[str]) -> str:

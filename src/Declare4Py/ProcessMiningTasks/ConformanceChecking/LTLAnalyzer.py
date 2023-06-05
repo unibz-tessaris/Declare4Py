@@ -25,13 +25,18 @@ class LTLAnalyzer(AbstractConformanceChecking):
         super().__init__(log, ltl_model)
 
     @staticmethod
-    def run_single_trace(trace: Trace, dfa: SymbolicDFA, activity_key: str = 'concept:name'):
+    def run_single_trace(trace: Trace, dfa: SymbolicDFA, backend, activity_key: str = 'concept:name'):
         current_states = {dfa.initial_state}
 
         for event in trace:
             event = event[activity_key]
             symbol = Utils.parse_activity(event)
-            symbol = symbol.lower()
+
+            if backend == 'lydia':
+                symbol = symbol.lower()
+            else:
+                symbol = symbol.upper()
+
             temp = dict()
             temp[symbol] = True
 
@@ -65,7 +70,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
         is_accepted = any(dfa.is_accepting(state) for state in current_states)
         return trace.attributes['concept:name'], is_accepted
 
-    def run(self) -> pandas.DataFrame:
+    def run_old(self, jobs: int=0) -> pandas.DataFrame:
         """
         Performs conformance checking for the provided event log and an input LTL model.
 
@@ -77,32 +82,53 @@ class LTLAnalyzer(AbstractConformanceChecking):
             raise RuntimeError("You must load the log before checking the model.")
         if self.process_model is None:
             raise RuntimeError("You must load the LTL model before checking the model.")
-        dfa = ltl2dfa(self.process_model.parsed_formula, backend=self.process_model.backend) #lydia
+        backend2dfa = self.process_model.backend
+        dfa = ltl2dfa(self.process_model.parsed_formula, backend=backend2dfa) #lydia
         dfa = dfa.minimize()
         g_log = self.event_log.get_log()
         activity_key = self.event_log.activity_key
-
         results = []
 
         for trace in g_log:
-            is_accepted = self.run_single_trace(trace, dfa, activity_key)
+            is_accepted = self.run_single_trace(trace, dfa, backend2dfa, activity_key)
             results.append([trace.attributes[self.event_log.activity_key], is_accepted])
 
         return pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
 
-    def run_par(self):
-        dfa = ltl2dfa(self.process_model.parsed_formula, backend=self.process_model.backend)  # lydia
+    def run(self, jobs: int = 0):
+        workers = jobs
+
+        if jobs == 1 or jobs == 0:
+            sequential = True
+        elif jobs == -1:
+            workers = multiprocessing.cpu_count()
+            sequential = False
+        elif jobs > 1:
+            workers = jobs
+            sequential = False
+        else:
+            raise RuntimeError(f"{jobs} not a valid number of jobs. Allowed values goes from -1.")
+
+        backend2dfa = self.process_model.backend
+        dfa = ltl2dfa(self.process_model.parsed_formula, backend=backend2dfa)  # lydia
         dfa = dfa.minimize()
-        pdb.set_trace()
+        #pdb.set_trace()
         g_log = self.event_log.get_log()
-        traces = g_log._list
-        act_key = self.event_log.activity_key
+        activity_key = self.event_log.activity_key
+        pdb.set_trace()
 
-        with multiprocessing.Pool(processes=4) as pool:
-            results = pool.map(self.run_single_trace_par, zip(traces, [dfa] * len(traces),
-                                                                           [act_key] * len(traces)))
+        if sequential:
+            results = []
+            for trace in g_log:
+                is_accepted = self.run_single_trace(trace, dfa, backend2dfa, activity_key)
+                results.append([trace.attributes[activity_key], is_accepted])
+        else:
+            traces = g_log._list
+            with multiprocessing.Pool(processes=workers) as pool:
+                results = pool.map(self.run_single_trace_par, zip(traces, [dfa] * len(traces),
+                                                                  [activity_key] * len(traces)))
 
-        pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
+        return pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
 
     def run_aggregate(self) -> pandas.DataFrame:
         """
