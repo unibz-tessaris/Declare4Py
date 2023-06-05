@@ -10,11 +10,12 @@ from typing import List
 
 class LTLModel(ProcessModel, ABC):
 
-    def __init__(self):
+    def __init__(self, backend: str = "lydia"):
         super().__init__()
         self.formula: str = ""
         self.parsed_formula = None
         self.parameters = []
+        self.backend = backend
 
     def add_conjunction(self, new_formula: str) -> None:
         new_formula = Utils.normalize_formula(new_formula)
@@ -57,12 +58,12 @@ class LTLModel(ProcessModel, ABC):
         self.formula = f"({self.formula}) U ({new_formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
-    def check_satisfiability(self, backend: str = "lydia") -> bool:
+    def check_satisfiability(self) -> bool:
         if self.parsed_formula is None:
             raise RuntimeError("You must load the LTL model before checking the model.")
-        if backend not in ["lydia", "ltlf2dfa"]:
+        if self.backend not in ["lydia", "ltlf2dfa"]:
             raise RuntimeError("Only lydia and ltlf2dfa are supported backends.")
-        dfa = ltl2dfa(self.parsed_formula, backend=backend)
+        dfa = ltl2dfa(self.parsed_formula, backend=self.backend)
         dfa = dfa.minimize()
         if len(dfa.accepting_states) > 0:
             return True

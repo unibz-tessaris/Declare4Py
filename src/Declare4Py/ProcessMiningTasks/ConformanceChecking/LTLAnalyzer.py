@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import multiprocessing
+import pdb
+
 from pm4py.objects.log.obj import Trace
 from pythomata.impl.symbolic import SymbolicDFA
 
@@ -75,7 +77,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
             raise RuntimeError("You must load the log before checking the model.")
         if self.process_model is None:
             raise RuntimeError("You must load the LTL model before checking the model.")
-        dfa = ltl2dfa(self.process_model.parsed_formula, backend="lydia") #lydia
+        dfa = ltl2dfa(self.process_model.parsed_formula, backend=self.process_model.backend) #lydia
         dfa = dfa.minimize()
         g_log = self.event_log.get_log()
         activity_key = self.event_log.activity_key
@@ -89,8 +91,9 @@ class LTLAnalyzer(AbstractConformanceChecking):
         return pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
 
     def run_par(self):
-        dfa = ltl2dfa(self.process_model.parsed_formula, backend="lydia")  # lydia
+        dfa = ltl2dfa(self.process_model.parsed_formula, backend=self.process_model.backend)  # lydia
         dfa = dfa.minimize()
+        pdb.set_trace()
         g_log = self.event_log.get_log()
         traces = g_log._list
         act_key = self.event_log.activity_key
@@ -113,7 +116,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
             raise RuntimeError("You must load the log before checking the model.")
         if self.process_model is None:
             raise RuntimeError("You must load the LTL model before checking the model.")
-        dfa = ltl2dfa(self.process_model.parsed_formula, backend="lydia")
+        dfa = ltl2dfa(self.process_model.parsed_formula, backend=self.process_model.backend)
         dfa = dfa.minimize()
         group = self.event_log.groupby(self.event_log.case_id_key, as_index=True)
         results = group[self.event_log.activity_key].aggregate(self.run_single_trace, dfa=dfa, engine='cython')
