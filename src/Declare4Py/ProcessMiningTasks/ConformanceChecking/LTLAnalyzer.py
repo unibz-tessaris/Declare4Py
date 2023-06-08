@@ -115,7 +115,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
         #pdb.set_trace()
         g_log = self.event_log.get_log()
         activity_key = self.event_log.activity_key
-        pdb.set_trace()
+        #pdb.set_trace()
 
         if sequential:
             results = []
