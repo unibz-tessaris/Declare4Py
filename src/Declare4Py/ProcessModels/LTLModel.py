@@ -204,10 +204,10 @@ class LTLTemplate:
 
     @staticmethod
     def response(source: [str], target: List[str]) -> str:
-        formula = "G(" + source[0]
+        formula = "G((" + source[0]
         for i in range(1, len(source)):
             formula += " || " + source[i]
-        formula += " -> F(" + target[0]
+        formula += ") -> F(" + target[0]
         for i in range(1, len(target)):
             formula += " || " + target[i]
         formula += "))"
@@ -215,24 +215,24 @@ class LTLTemplate:
 
     @staticmethod
     def alternate_response(source: List[str], target: List[str]) -> str:
-        formula = "G(" + source[0]
+        formula = "G((" + source[0]
         for i in range(1, len(source)):
             formula += " || " + source[i]
-        formula += " -> X((!(" + source[0] + ")"
+        formula += ") -> X((!(" + source[0]
         for i in range(1, len(source)):
-            formula += " || !(" + source[i] + ")"
+            formula += " || " + source[i]
         formula += ")U( " + target[0]
         for i in range(1, len(target)):
             formula += " || " + target[i]
-        formula += ")))"
+        formula += "))))"
         return formula
 
     @staticmethod
     def chain_response(source: List[str], target: List[str]) -> str:
-        formula = "G(" + source[0]
+        formula = "G((" + source[0]
         for i in range(1, len(source)):
             formula += "  || " + source[i]
-        formula += " -> X(" + target[0]
+        formula += ") -> X(" + target[0]
         for i in range(1, len(target)):
             formula += " || " + target[i]
         formula += "))"
@@ -240,42 +240,42 @@ class LTLTemplate:
 
     @staticmethod
     def precedence(source: List[str], target: List[str]) -> str:
-        formula = "((!(" + target[0] + ")"
+        formula = "((!(" + target[0]
         for i in range(1, len(target)):
-            formula += "|| !(" + target[i] + ")"
-        formula += ")U(" + source[0]
+            formula += " || " + target[i]
+        formula += "))U(" + source[0]
 
         for i in range(1, len(source)):
-            formula += "|| " + source[i]
+            formula += " || " + source[i]
 
-        formula += ")) || G((!(" + target[1] + ")"
+        formula += ")) || G(!(" + target[1]
         for i in range(1, len(target)):
-            formula += "||!(" + target[i] + ")"
+            formula += " || " + target[i]
 
         formula += "))"
         return formula
 
     @staticmethod
     def alternate_precedence(source: List[str], target: List[str]) -> str:
-        formula = "("
+        formula = "(!("
         for i in range(1, len(target)-1):
-            formula += "!(" + target[i] + ")||"
-        formula += "!(" + target[len(target)-1] + ")U(" + source[0]
+            formula += target[i] + " || "
+        formula += target[len(target)-1] + ")U(" + source[0]
         for i in range(1, len(source)):
-            formula += "|| " + source[i]
+            formula += " || " + source[i]
         formula += ")) && G(" + target[0]
         for i in range(1, len(target)):
-            formula += "||" + target[i]
-        formula += " -> X(("
+            formula += " || " + target[i]
+        formula += " -> X((!("
         for i in range(1, len(target)-1):
-            formula += "!(" + target[i] + ")||"
-        formula += "!(" + target[len(target)-1] + ")U(" + source[0]
+            formula += target[i] + " ||"
+        formula += target[len(target)-1] + ")U(" + source[0]
         for i in range(1, len(source)):
             formula += "|| " + source[i]
-        formula += ")) && G( !(" + target[0] + ")"
+        formula += ")) && G(!(" + target[0]
         for i in range(1, len(target)):
-            formula += "||!(" + target[i] + ")"
-        formula += ")))"
+            formula += " || " + target[i]
+        formula += "))))"
         return formula
 
     @staticmethod
@@ -302,21 +302,21 @@ class LTLTemplate:
 
     @staticmethod
     def not_response(source: List[str], target: List[str]) -> str:
-        formula = "G(" + source[0]
+        formula = "G((" + source[0]
         for i in range(1, len(source)):
-            formula += "|| " + source[i]
-        formula += " -> !(F(" + target[0] + "))"
+            formula += " || " + source[i]
+        formula += ") -> !(F(" + target[0] + ")"
         for i in range(1, len(target)):
-            formula += "||!(F(" + target[i] + "))"
-        formula += ")"
+            formula += " || F(" + target[i] + ")"
+        formula += "))"
         return formula
 
     @staticmethod
     def not_precedence(source: List[str], target: List[str]) -> str:
-        formula = "G(F(" + target[0] + ")"
+        formula = "G((F(" + target[0] + ")"
         for i in range(1, len(target)):
-            formula += "|| F(" + target[i] + ")"
-        formula += "->!(" + source[0]
+            formula += " || F(" + target[i] + ")"
+        formula += ") ->!(" + source[0]
         for i in range(1, len(source)):
             formula += "||" + source[i]
         formula += "))"
@@ -324,13 +324,13 @@ class LTLTemplate:
 
     @staticmethod
     def not_chain_response(source: List[str], target: List[str]) -> str:
-        formula = "G(" + source[0]
+        formula = "G((" + source[0]
         for i in range(1, len(source)):
-            formula += "|| " + source[i]
-        formula += " -> X(!(" + target[0] + ")"
+            formula += " || " + source[i]
+        formula += ") -> X(!(" + target[0]
         for i in range(1, len(target)):
-            formula += "||!(" + target[i] + ")"
-        formula += "))"
+            formula += " || " + target[i]
+        formula += ")))"
         return formula
 
     @staticmethod
@@ -338,10 +338,10 @@ class LTLTemplate:
         formula = "G( X(" + target[0]
         for i in range(1, len(target)):
             formula += " || " + target[i]
-        formula += ") -> !(" + source[0] + ")"
+        formula += ") -> !(" + source[0]
         for i in range(1, len(source)):
-            formula += " || !("+source[i]+")"
-        formula += ")"
+            formula += " || "+source[i]
+        formula += "))"
         return formula
 
     def fill_template(self, *activities: List[str]) -> LTLModel:
