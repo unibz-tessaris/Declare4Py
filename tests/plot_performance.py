@@ -56,24 +56,57 @@ fig.savefig(f"query_checking.pdf")
 
 #PLOT ltl analyzer performance
 
-data_ltl_checker = pd.read_csv("test_performance/ltl_analyzer.csv", names=["dataset", "type", "opt", "constraint",
-                                                                           "t1", "t2", "t3", "t4"])
+data_ltl_checker = pd.read_csv("test_performance/ltl_analyzer.csv", names=["dataset", "type", "jobs","template_family",
+                                                                           "length_or", "constraint", "t1", "t2", "t3",
+                                                                           "t4", "t5"])
 list_logs = ["InternationalDeclarations", "Sepsis Cases"]
 
 for log in list_logs:
-    parallel_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) & (data_ltl_checker["opt"] == 'parallel')]
-    sequential_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) & (data_ltl_checker["opt"] == 'sequential')]
-    results_parallel = parallel_df[["t1", "t2", "t3", "t4"]].mean(axis=1)
-    results_sequential = sequential_df[["t1", "t2", "t3", "t4"]].mean(axis=1)
+    for templates in ["TB-DECLARE", "Simple LTLf"]:
+        if templates == "TB-DECLARE":
+            for length_or in ["2", "3"]:
+                parallel_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
+                                               (data_ltl_checker["jobs"] == '4_job') &
+                                               (data_ltl_checker["length_or"] == length_or)]
 
-    plt.plot(range(len(results_parallel)), results_parallel, ls='-', c='mediumorchid', label="5 jobs", marker='D')
-    plt.plot(range(len(results_parallel)), results_sequential, ls=':', c='darkorchid', label="1 job", marker='^')
-    plt.legend(loc="upper left")
+                parallel_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
+                                               (data_ltl_checker["jobs"] == '4_job') &
+                                               (data_ltl_checker["length_or"] == length_or)]
+                sequential_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
+                                                 (data_ltl_checker["jobs"] == '1_job') &
+                                                 (data_ltl_checker["length_or"] == length_or)]
+                results_parallel = parallel_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
+                results_sequential = sequential_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
 
-    plt.title("LTL Conformance Checking")
-    plt.xlabel("LTL Template id")
-    plt.ylabel("Time [s]")
-    plt.tight_layout()
-    fig.savefig(f"{log}_ltl_conformance_checking.pdf")
-    fig.clear()
+                plt.plot(range(len(results_parallel)), results_parallel, ls='-', c='mediumorchid', label=f"4 jobs, {length_or} branches", marker='D')
+                plt.plot(range(len(results_parallel)), results_sequential, ls=':', c='darkorchid', label=f"1 job, {length_or} branches", marker='^')
+                plt.legend(loc="upper left")
+
+                plt.title(f"{templates} Conformance Checking")
+                plt.xlabel(f"{templates} Template id")
+                plt.ylabel("Time [s]")
+                plt.tight_layout()
+                fig.savefig(f"{log}_{templates}_conf_check_{length_or}.pdf")
+                fig.clear()
+        else:
+            parallel_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
+                                           (data_ltl_checker["jobs"] == '4_job') &
+                                           (data_ltl_checker["length_or"] == "-")]
+            sequential_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
+                                             (data_ltl_checker["jobs"] == '1_job') &
+                                             (data_ltl_checker["length_or"] == "-")]
+            results_parallel = parallel_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
+            results_sequential = sequential_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
+            plt.plot(range(len(results_parallel)), results_parallel, ls='-', c='mediumorchid',
+                     label="4 jobs", marker='D')
+            plt.plot(range(len(results_parallel)), results_sequential, ls=':', c='darkorchid',
+                     label="1 job", marker='^')
+            plt.legend(loc="upper left")
+
+            plt.title(f"{templates} Conformance Checking")
+            plt.xlabel(f"{templates} Template id")
+            plt.ylabel("Time [s]")
+            plt.tight_layout()
+            fig.savefig(f"{log}_{templates}_conf_check.pdf")
+            fig.clear()
 

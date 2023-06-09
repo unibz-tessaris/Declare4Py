@@ -1,3 +1,4 @@
+import pdb
 from abc import ABC
 
 from logaut import ltl2dfa
@@ -102,6 +103,7 @@ class LTLModel(ProcessModel, ABC):
         formula = Utils.normalize_formula(formula)
 
         try:
+            #pdb.set_trace()
             self.parsed_formula = parse_ltl(formula)
         except RuntimeError:
             raise RuntimeError(f"The inserted string: \"{formula}\" is not a valid LTL formula")
@@ -192,155 +194,175 @@ class LTLTemplate:
 
     # Branched Declare Models
     @staticmethod
-    def responded_existence(source: List[str], target: List[str]) -> str:
-        formula = "F(" + source[0]
-        for i in range(1, len(source)):
-            formula += " || " + source[i]
-        formula += ") -> F(" + target[0]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
+    def responded_existence(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "F(" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ") -> F(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
         formula += ")"
         return formula
 
     @staticmethod
-    def response(source: [str], target: List[str]) -> str:
-        formula = "G((" + source[0]
-        for i in range(1, len(source)):
-            formula += " || " + source[i]
-        formula += ") -> F(" + target[0]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
+    def response(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "G((" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ") -> F(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
         formula += "))"
         return formula
 
     @staticmethod
-    def alternate_response(source: List[str], target: List[str]) -> str:
-        formula = "G((" + source[0]
-        for i in range(1, len(source)):
-            formula += " || " + source[i]
-        formula += ") -> X((!(" + source[0]
-        for i in range(1, len(source)):
-            formula += " || " + source[i]
-        formula += ")U( " + target[0]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
+    def alternate_response(activities_a: List[str], activities_b: List[str]) -> str:
+        """
+        This function fills the alternate response template with the ORs of two sets of activities.
+
+        Args:
+            activities_a: the list of activation activities
+            activities_b: the list of target activities
+
+        Returns:
+            str: a string formula filled with the sets of activities
+
+        """
+        formula = "G((" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ") -> X((!(" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ")U( " + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
         formula += "))))"
         return formula
 
     @staticmethod
-    def chain_response(source: List[str], target: List[str]) -> str:
-        formula = "G((" + source[0]
-        for i in range(1, len(source)):
-            formula += "  || " + source[i]
-        formula += ") -> X(" + target[0]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
+    def chain_response(activities_a: List[str], activities_b: List[str]) -> str:
+        """
+        This function fills the chain response template with the ORs of two sets of activities.
+
+        Args:
+            activities_a: the list of activation activities
+            activities_b: the list of target activities
+
+        Returns:
+            str: a string formula filled with the sets of activities
+
+        """
+        formula = "G((" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += "  || " + activities_a[i]
+        formula += ") -> X(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
         formula += "))"
         return formula
 
     @staticmethod
-    def precedence(source: List[str], target: List[str]) -> str:
-        formula = "((!(" + target[0]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
-        formula += "))U(" + source[0]
-
-        for i in range(1, len(source)):
-            formula += " || " + source[i]
-
-        formula += ")) || G(!(" + target[1]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
+    def precedence(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "((!(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += "))U(" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ")) || G(!(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
 
         formula += "))"
         return formula
 
     @staticmethod
-    def alternate_precedence(source: List[str], target: List[str]) -> str:
-        formula = "(!("
-        for i in range(1, len(target)-1):
-            formula += target[i] + " || "
-        formula += target[len(target)-1] + ")U(" + source[0]
-        for i in range(1, len(source)):
-            formula += " || " + source[i]
-        formula += ")) && G(" + target[0]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
-        formula += " -> X((!("
-        for i in range(1, len(target)-1):
-            formula += target[i] + " ||"
-        formula += target[len(target)-1] + ")U(" + source[0]
-        for i in range(1, len(source)):
-            formula += "|| " + source[i]
-        formula += ")) && G(!(" + target[0]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
-        formula += "))))"
-        return formula
-
-    @staticmethod
-    def chain_precedence(source: List[str], target: List[str]) -> str:
-        formula = "G(X(" + target[0]
-        for i in range(1, len(target)):
-            formula += "||" + target[i]
-        formula += ") -> " + "(" + source[0]
-        for i in range(1, len(source)):
-            formula += "||" + source[i]
-        formula += "))"
-        return formula
-
-    @staticmethod
-    def not_responded_existence(source: List[str], target: List[str]) -> str:
-        formula = "F(" + source[0]
-        for i in range(1, len(source)):
-            formula += "||" + source[i]
-        formula += ") -> !(F(" + target[0] + ")"
-        for i in range(1, len(target)):
-            formula += "|| F(" + target[i] + ")"
-        formula += ")"
-        return formula
-
-    @staticmethod
-    def not_response(source: List[str], target: List[str]) -> str:
-        formula = "G((" + source[0]
-        for i in range(1, len(source)):
-            formula += " || " + source[i]
-        formula += ") -> !(F(" + target[0] + ")"
-        for i in range(1, len(target)):
-            formula += " || F(" + target[i] + ")"
-        formula += "))"
-        return formula
-
-    @staticmethod
-    def not_precedence(source: List[str], target: List[str]) -> str:
-        formula = "G((F(" + target[0] + ")"
-        for i in range(1, len(target)):
-            formula += " || F(" + target[i] + ")"
-        formula += ") ->!(" + source[0]
-        for i in range(1, len(source)):
-            formula += "||" + source[i]
-        formula += "))"
-        return formula
-
-    @staticmethod
-    def not_chain_response(source: List[str], target: List[str]) -> str:
-        formula = "G((" + source[0]
-        for i in range(1, len(source)):
-            formula += " || " + source[i]
-        formula += ") -> X(!(" + target[0]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
+    def alternate_precedence(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "((!(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += "))U(" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ")) && G((" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += ") -> X((!(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += "))U(" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ")) || G(!(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
         formula += ")))"
         return formula
 
     @staticmethod
-    def not_chain_precedence(source: List[str], target: List[str]) -> str:
-        formula = "G( X(" + target[0]
-        for i in range(1, len(target)):
-            formula += " || " + target[i]
-        formula += ") -> !(" + source[0]
-        for i in range(1, len(source)):
-            formula += " || "+source[i]
+    def chain_precedence(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "G(X(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += ") -> " + "(" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += "))"
+        return formula
+
+    @staticmethod
+    def not_responded_existence(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "F(" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ") -> !(F(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += "))"
+        return formula
+
+    @staticmethod
+    def not_response(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "G((" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ") -> !(F(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += ")))"
+        return formula
+
+    @staticmethod
+    def not_precedence(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "G(F(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += ") ->!(" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += "))"
+        return formula
+
+    @staticmethod
+    def not_chain_response(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "G((" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || " + activities_a[i]
+        formula += ") -> X(!(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += ")))"
+        return formula
+
+    @staticmethod
+    def not_chain_precedence(activities_a: List[str], activities_b: List[str]) -> str:
+        formula = "G( X(" + activities_b[0]
+        for i in range(1, len(activities_b)):
+            formula += " || " + activities_b[i]
+        formula += ") -> !(" + activities_a[0]
+        for i in range(1, len(activities_a)):
+            formula += " || "+activities_a[i]
         formula += "))"
         return formula
 

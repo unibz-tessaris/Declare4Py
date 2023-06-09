@@ -49,10 +49,10 @@ source_list_3 = {"Sepsis Cases": ["ER Triage", "LacticAcid", "CRP"],
 target_list_3 = {"Sepsis Cases": ["Leucocytes", "Release A", "ER Registration"],
                  "InternationalDeclarations": ["End trip", "Request Payment", "Payment Handled"]}
 template_family = "Simple LTLf templates" # 'TB-DECLARE templates'
-template_family = "TB-DECLARE templates"
+#template_family = "TB-DECLARE templates"
 template_list = simple_ltlf_templates if template_family == "Simple LTLf templates" else tb_declare_templates
-len_TB_disjunctions = 3
-jobs = 4
+len_TB_disjunctions = "-"
+jobs = 1
 
 if __name__ == "__main__":
     with open(os.path.join("test_performance", "ltl_analyzer.csv"), 'a') as f:
