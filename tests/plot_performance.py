@@ -1,5 +1,5 @@
 import pdb
-
+import os
 import matplotlib
 from matplotlib import pyplot as plt
 import pandas as pd
@@ -54,59 +54,61 @@ plt.tight_layout()
 fig.savefig(f"query_checking.pdf")
 """
 
-#PLOT ltl analyzer performance
-
-data_ltl_checker = pd.read_csv("test_performance/ltl_analyzer.csv", names=["dataset", "type", "jobs","template_family",
+"""
+# PLOT ltl analyzer performance
+"""
+data_ltl_checker = pd.read_csv("test_performance/ltl_analyzer.csv", names=["dataset", "type", "jobs", "template_family",
                                                                            "length_or", "constraint", "t1", "t2", "t3",
                                                                            "t4", "t5"])
-list_logs = ["InternationalDeclarations", "Sepsis Cases"]
+list_logs = ["InternationalDeclarations", "BPI_Challenge_2012"]
+log_name = {"InternationalDeclarations": "International Declarations", "BPI_Challenge_2012": "BPIC 2012"}
 
 for log in list_logs:
     for templates in ["TB-DECLARE", "Simple LTLf"]:
         if templates == "TB-DECLARE":
-            for length_or in ["2", "3"]:
-                parallel_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
-                                               (data_ltl_checker["jobs"] == '4_job') &
-                                               (data_ltl_checker["length_or"] == length_or)]
-
-                parallel_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
-                                               (data_ltl_checker["jobs"] == '4_job') &
-                                               (data_ltl_checker["length_or"] == length_or)]
+            template_indices = ["P", "chP", "rE", "chR", "nChP", "nChR", "R", "nP", "nR", "nRE", "aR", "aP"]
+            for length_or in ["2", "5"]:
+                parallel_4_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
+                                                 (data_ltl_checker["jobs"] == '4_job') &
+                                                 (data_ltl_checker["length_or"] == length_or)]
                 sequential_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
                                                  (data_ltl_checker["jobs"] == '1_job') &
                                                  (data_ltl_checker["length_or"] == length_or)]
-                results_parallel = parallel_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
+                results_4_parallel = parallel_4_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
                 results_sequential = sequential_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
 
-                plt.plot(range(len(results_parallel)), results_parallel, ls='-', c='mediumorchid', label=f"4 jobs, {length_or} branches", marker='D')
-                plt.plot(range(len(results_parallel)), results_sequential, ls=':', c='darkorchid', label=f"1 job, {length_or} branches", marker='^')
-                plt.legend(loc="upper left")
+                df = pd.DataFrame({'4 jobs': results_4_parallel.values, '1 job': results_sequential.values},
+                                  index=template_indices)
+                ax = df.plot.bar(rot=45, color={"4 jobs": "mediumorchid", "1 job": "mediumblue"}, edgecolor='black')
 
-                plt.title(f"{templates} Conformance Checking")
-                plt.xlabel(f"{templates} Template id")
+                plt.legend(loc="upper left")
+                plt.title(f"{log_name[log]}, {length_or}-{templates}")
+                plt.xlabel(f"{templates} Template ids")
                 plt.ylabel("Time [s]")
                 plt.tight_layout()
-                fig.savefig(f"{log}_{templates}_conf_check_{length_or}.pdf")
+                fig = ax.get_figure()
+                fig.savefig(os.path.join("test_performance", f"{log}_{templates}_conf_check_{length_or}.pdf"))
                 fig.clear()
         else:
-            parallel_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
-                                           (data_ltl_checker["jobs"] == '4_job') &
-                                           (data_ltl_checker["length_or"] == "-")]
+            template_indices = ["Xa", "Fa", "FaORFb", "F(aFb)", "F(aXb)", "F(aX(bXc))", "F(aF(bFc))"]
+            parallel_4_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
+                                             (data_ltl_checker["jobs"] == '4_job') &
+                                             (data_ltl_checker["length_or"] == "-")]
             sequential_df = data_ltl_checker[(data_ltl_checker["dataset"] == log) &
                                              (data_ltl_checker["jobs"] == '1_job') &
                                              (data_ltl_checker["length_or"] == "-")]
-            results_parallel = parallel_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
+            results_4_parallel = parallel_4_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
             results_sequential = sequential_df[["t1", "t2", "t3", "t4", "t5"]].mean(axis=1)
-            plt.plot(range(len(results_parallel)), results_parallel, ls='-', c='mediumorchid',
-                     label="4 jobs", marker='D')
-            plt.plot(range(len(results_parallel)), results_sequential, ls=':', c='darkorchid',
-                     label="1 job", marker='^')
-            plt.legend(loc="upper left")
 
-            plt.title(f"{templates} Conformance Checking")
-            plt.xlabel(f"{templates} Template id")
+            df = pd.DataFrame({'4 jobs': results_4_parallel.values, '1 job': results_sequential.values},
+                              index=template_indices)
+            ax = df.plot.bar(rot=45, color={"4 jobs": "mediumorchid", "1 job": "mediumblue"}, edgecolor='black')
+
+            plt.legend(loc="upper left")
+            plt.title(f"{log_name[log]}, {templates}")
+            plt.xlabel(f"{templates} Template ids")
             plt.ylabel("Time [s]")
             plt.tight_layout()
-            fig.savefig(f"{log}_{templates}_conf_check.pdf")
+            fig = ax.get_figure()
+            fig.savefig(os.path.join("test_performance", f"{log}_{templates}_conf_check.pdf"))
             fig.clear()
-

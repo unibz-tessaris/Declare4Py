@@ -70,32 +70,18 @@ class LTLAnalyzer(AbstractConformanceChecking):
         is_accepted = any(dfa.is_accepting(state) for state in current_states)
         return trace.attributes['concept:name'], is_accepted
 
-    def run_old(self, jobs: int=0) -> pandas.DataFrame:
+    def run(self, jobs: int = 1, minimize_automaton: bool = True) -> pandas.DataFrame:
         """
         Performs conformance checking for the provided event log and an input LTL model.
 
+        Args:
+            jobs:
+            minimize_automaton:
+
         Returns:
-            A pandas Dataframe containing the id of the traces and the result of the conformance check
+            DataFrame: A pandas Dataframe containing the id of the traces and the result of the conformance check
+
         """
-
-        if self.event_log is None:
-            raise RuntimeError("You must load the log before checking the model.")
-        if self.process_model is None:
-            raise RuntimeError("You must load the LTL model before checking the model.")
-        backend2dfa = self.process_model.backend
-        dfa = ltl2dfa(self.process_model.parsed_formula, backend=backend2dfa) #lydia
-        dfa = dfa.minimize()
-        g_log = self.event_log.get_log()
-        activity_key = self.event_log.activity_key
-        results = []
-
-        for trace in g_log:
-            is_accepted = self.run_single_trace(trace, dfa, backend2dfa, activity_key)
-            results.append([trace.attributes[self.event_log.activity_key], is_accepted])
-
-        return pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
-
-    def run(self, jobs: int = 0):
         workers = jobs
 
         if jobs == 1 or jobs == 0:
@@ -111,11 +97,11 @@ class LTLAnalyzer(AbstractConformanceChecking):
 
         backend2dfa = self.process_model.backend
         dfa = ltl2dfa(self.process_model.parsed_formula, backend=backend2dfa)  # lydia
-        dfa = dfa.minimize()
-        #pdb.set_trace()
+
+        if minimize_automaton:
+            dfa = dfa.minimize()
         g_log = self.event_log.get_log()
         activity_key = self.event_log.activity_key
-        #pdb.set_trace()
 
         if sequential:
             results = []

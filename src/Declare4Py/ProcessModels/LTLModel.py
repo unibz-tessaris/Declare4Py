@@ -19,68 +19,141 @@ class LTLModel(ProcessModel, ABC):
         self.backend = backend
 
     def get_backend(self) -> str:
+        """
+        Returns the current backend used to translate an LTLf formula into a DFA.
+
+        Returns:
+            str: the current backend
+
+        """
         return self.backend
 
     def to_lydia_backend(self) -> None:
+        """
+        Switch to lydia backend
+
+        """
         self.backend = "lydia"
 
     def to_ltlf2dfa_backend(self) -> None:
+        """
+        Switch to ltlf2dfa backend
+
+        """
         self.backend = "ltlf2dfa"
 
     def add_conjunction(self, new_formula: str) -> None:
+        """
+        This method puts in conjunction the LTLf formula of the class with the input LTLf formula
+
+        Args:
+            new_formula: the LTLf
+        """
         new_formula = Utils.normalize_formula(new_formula)
         self.formula = f"({self.formula}) && ({new_formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
     def add_disjunction(self, new_formula: str) -> None:
+        """
+        This method puts in disjunction the LTLf formula of the class with the input LTLf formula
+
+        Args:
+            new_formula: the LTLf
+        """
         new_formula = Utils.normalize_formula(new_formula)
         self.formula = f"({self.formula}) || ({new_formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
     def add_implication(self, new_formula: str) -> None:
+        """
+        This method add on implication between the LTLf formula of the class (left part) with the input LTLf formula
+        (left part)
+
+        Args:
+            new_formula: the LTLf
+        """
         new_formula = Utils.normalize_formula(new_formula)
         self.formula = f"({self.formula}) -> ({new_formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
     def add_equivalence(self, new_formula: str) -> None:
+        """
+        This method add o biimplication between the LTLf formula of the class (left part) with the input LTLf formula
+        (left part)
+
+        Args:
+            new_formula: the LTLf
+        """
         new_formula = Utils.normalize_formula(new_formula)
         self.formula = f"({self.formula}) <-> ({new_formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
     def add_negation(self) -> None:
+        """
+        This method negates the the LTLf formula of the class
+
+        """
         self.formula = f"!({self.formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
     def add_next(self) -> None:
+        """
+        This method adds the next operator in front of the LTLf formula of the class
+
+        """
         self.formula = f"X({self.formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
     def add_eventually(self) -> None:
+        """
+        This method adds the eventually operator in front of the LTLf formula of the class
+
+        """
         self.formula = f"F({self.formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
     def add_always(self) -> None:
+        """
+        This method adds the always operator in front of the LTLf formula of the class
+
+        """
         self.formula = f"G({self.formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
     def add_until(self, new_formula: str) -> None:
+        """
+
+        Args:
+            new_formula:
+
+        """
         new_formula = Utils.normalize_formula(new_formula)
         self.formula = f"({self.formula}) U ({new_formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
-    def check_satisfiability(self) -> bool:
+    def check_satisfiability(self, minimize_automaton: bool = True) -> bool:
+        """
+
+        Args:
+            minimize_automaton:
+
+        Returns:
+            bool:
+
+        """
         if self.parsed_formula is None:
             raise RuntimeError("You must load the LTL model before checking the model.")
         if self.backend not in ["lydia", "ltlf2dfa"]:
             raise RuntimeError("Only lydia and ltlf2dfa are supported backends.")
         dfa = ltl2dfa(self.parsed_formula, backend=self.backend)
-        dfa = dfa.minimize()
+        if minimize_automaton:
+            dfa = dfa.minimize()
         if len(dfa.accepting_states) > 0:
             return True
         else:
             return False
 
-    def parse_from_string(self, formula: str, new_line_ctrl: str = "\n") -> None:
+    def parse_from_string(self, content: str, new_line_ctrl: str = "\n") -> None:
         """
         This function expects an LTL formula as a string.
         The pylogics library is used, reference to it in case of doubt.
@@ -88,22 +161,18 @@ class LTLModel(ProcessModel, ABC):
         for allowed LTL symbols.
         We allow unary operators only if followed by parenthesis, e.g.: G(a), X(a), etc..
 
-
         Args:
-            formula: string containing the LTL formula to be passed
-            new_line_ctrl:
+            content: string containing the LTL formula to be passed
 
         Returns:
             Void
 
         """
-        if type(formula) is not str:
+        if type(content) is not str:
             raise RuntimeError("You must specify a string as input formula.")
 
-        formula = Utils.normalize_formula(formula)
-
+        formula = Utils.normalize_formula(content)
         try:
-            #pdb.set_trace()
             self.parsed_formula = parse_ltl(formula)
         except RuntimeError:
             raise RuntimeError(f"The inserted string: \"{formula}\" is not a valid LTL formula")
@@ -121,7 +190,7 @@ class LTLTemplate:
     def __init__(self, template_str: str):
         self.template_str: str = template_str
         self.parameters: [str] = []
-        self.ltl_templates = {'eventually_activity_a': self.eventually_activity_a,
+        self.ltl_templates = {'eventually_a': self.eventually_a,
                               'eventually_a_then_b': self.eventually_a_then_b,
                               'eventually_a_or_b': self.eventually_a_or_b,
                               'eventually_a_next_b': self.eventually_a_next_b,
@@ -158,7 +227,7 @@ class LTLTemplate:
         return [template for template in self.tb_declare_templates]
 
     @staticmethod
-    def eventually_activity_a(activity: List[str]) -> str:
+    def eventually_a(activity: List[str]) -> str:
         formula_str = "F(" + activity[0] + ")"
         return formula_str
 
@@ -368,13 +437,14 @@ class LTLTemplate:
 
     def fill_template(self, *activities: List[str]) -> LTLModel:
         """
-        Function used to retrieve the selected template and returns an LTLModel object containing such template
+        This function fills the template with the input lists of activities and returns an LTLModel object containing
+        the filled LTLf formula of the template
 
         Args:
-            *activities: List of parameters to pass to the selected template function
+            *activities: list of activities to pass to the template function
 
         Returns:
-            Model of the template formula
+            LTLModel: LTLf Model of the filled formula of the template
 
         """
         if self.template_str is None:
