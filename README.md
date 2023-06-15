@@ -17,24 +17,28 @@ All the Declare4Py data formats are compatible with the main Machine Learning Py
 
 
 ## Installation
-We suggest to use a virtual environment in order to avoid the clashes between python version and the required libraries.
+We recommend the use of a virtual environment to avoid possible clashes between your local Python version and the required 
+libraries. A virtual environment can be created with [Conda](https://conda.io/projects/conda/en/latest/index.html) 
+or with the [venv](https://docs.python.org/3/library/venv.html) Python utility. Once a virtual environment has been created,
+download the Declare4Py project on your local machine, activate the created virtual environment and use `pip` or `conda` 
+to install the required dependencies in the `requirements.txt` file.
 
-- From project root run `python -m venv venv`
-- activate the virtual environment `source venv/Scripts/activate`
-- install libraries
-- `python -m pip install .` to install the dependencies of the project, it will read the pyproject.toml
+In addition, the [Lydia](https://github.com/whitemech/lydia) backend for the LTLf conformance checking need to be installed with Docker:
+1. Install [Docker](https://www.docker.com/get-started/);
+2. Download the Lydia Docker image with `docker pull whitemech/lydia:latest`;
+3. More information can be found [here](https://github.com/whitemech/logaut).
 
 
 ## Tutorials
 The `docs/source/tutorials/` folder contains a walk-through of Declare4Py. In order, the tutorials cover the following topics:
 
-1. [Managing event logs](https://github.com/francxx96/declare4py/blob/main/tutorials/system_overview.ipynb): methods to manage event logs, importing them, extracting useful information, converting them in other formats;
-2. [Managing process models](https://github.com/ivanDonadello/declare4py-v2.0/blob/v1.0.1/refactor-architecture/tutorials/Log_information.ipynb): simple methods to parse and manage process models from strings and/or files and checking their satisfiability;
-3. [Conformance checking of LTLf templates/formulas](https://github.com/francxx96/declare4py/blob/main/tutorials/conformance_checking.ipynb): check what are the traces in an event log that satisfy a given LTLf model;
-4. [Conformance checking of MP-DECLARE templates](https://github.com/francxx96/declare4py/blob/main/tutorials/model_discovery.ipynb): check what are the traces in an event log (along with the fulfillments/violations) that satisfy a given MP_DECLARE model;
-5. [Query Checking with DECLARE models](https://github.com/francxx96/declare4py/blob/main/tutorials/query_checking.ipynb): discover what are the activities that make an input DECLARE constraint satisfied in an event log.
-6. [Discovery of DECLARE models](): discover what are the most satisfied DECLARE constraints in an event log;
-7. [Filtering an event log](): select a subset of an event log that satisfy some input properties.
+1. [Managing event logs](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/1.Managing_Event_Logs.ipynb): methods to manage event logs, importing them, extracting useful information, converting them in other formats;
+2. [Managing process models](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/2.Managing_Process_Models.ipynb): simple methods to parse and manage process models from strings and/or files and checking their satisfiability;
+3. [Conformance checking of LTLf templates/formulas](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/3.Conformance_checking_LTL.ipynb): check what are the traces in an event log that satisfy a given LTLf model;
+4. [Conformance checking of MP-DECLARE templates](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/4.Conformance_checking_DECLARE.ipynb): check what are the traces in an event log (along with the fulfillments/violations) that satisfy a given MP_DECLARE model;
+5. [Query Checking with DECLARE models](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/5.Declare_Query_Checking.ipynb): discover what are the activities that make an input DECLARE constraint satisfied in an event log.
+6. [Discovery of DECLARE models](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/6.Declare_Model_Discovery.ipynb): discover what are the most satisfied DECLARE constraints in an event log;
+7. [Filtering an event log](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/7.Log_filtering.ipynb): select a subset of an event log that satisfy some input properties.
 
 The tutorials are Jupyter notebooks and consider the [Sepsis cases log](https://data.4tu.nl/articles/dataset/Sepsis_Cases_-_Event_Log/12707639).
 
