@@ -1,64 +1,64 @@
 # Declare4Py
 
-Declare4Py is a novel and easy-to-use Python package that covers the main tasks of process mining based on the 
-declarative modeling language DECLARE. Some functions include also the MP-DECLARE standard, that is, the 
-multi-perspective extension of DECLARE that supports also data constraints. The declare4PY APIs implement simple log analysis, consistency 
-checking, model discovery and query checking from logs by considering (MP)-DECLARE models. Declare4Py can be easily 
-integrated into your process mining software project.
+Declare4Py is the first Python package for declarative Process Mining with core functionalities to 
+easily implement Machine Learning applications for Process Mining. Declarative process mining uses 
+declarative behavioural rules (based on Linear Temporal Logic on finite traces) for defining process models. This 
+results in a high flexibility of the business process model definition without neglecting hard 
+constraints that must be satisfied. Moreover, declarative languages can be used as a bridge between 
+Process Mining and Machine learning with the DECLARE encoding that encodes the traces in a log into a 
+numeric format suitable as input to Machine Learning algorithms. Declare4Py implements such a bridge 
+by including standard algorithms for:
 
-## Requirements
-We tested Declare4Py with the following software configuration. However, more recent versions of the libraries could also work:
-- MacOs Big Sur==11.1;
-- Python==3.9.7;
-- mlxtend==0.20.0;
-- Pm4Py==2.2.21;
-- Pandas==1.3.4;
+1. declarative Process Mining with LTLf or (MP)-DECLARE templates (e.g., conformance checking, model discovery, trace generation, query checking);
+2. log encodings (e.g., complex-index, aggregate, Declare);
+3. log labelling according to filtering or declarative rules.
+
+All the Declare4Py data formats are compatible with the main Machine Learning Python packages: scikit-learn, Tensorflow and PyTorch.
+
 
 ## Installation
-Declare4Py can be easily installed by following these steps:
-1. download the repository;
-2. enter into the `dist` folder;
-3. run `pip install declare4py-1.0.0.tar.gz`.
-
-## Tutorials
-The `tutorials/` folder contains a walk-through of Declare4Py. In order, the tutorials cover the following topics:
-
-- [System overview](https://github.com/francxx96/declare4py/blob/main/tutorials/system_overview.ipynb): an overview of the Python modules (and dependencies) composing Declare4Py;
-- [Log information](https://github.com/ivanDonadello/declare4py-v2.0/blob/v1.0.1/refactor-architecture/tutorials/Log_information.ipynb): simple functions to extract useful information from logs;
-- [Model checking](https://github.com/francxx96/declare4py/blob/main/tutorials/conformance_checking.ipynb): check what are the traces that satisfy a given DECLARE model;
-- [Model Discovery](https://github.com/francxx96/declare4py/blob/main/tutorials/model_discovery.ipynb): discover what are the most satisfied DECLARE constraints in a given log;
-- [Query Checking](https://github.com/francxx96/declare4py/blob/main/tutorials/query_checking.ipynb): discover what are the activities that make an input DECLARE constraint satisfied in a given log.
-
-The tutorials are Jupyter notebooks and consider the [Sepsis cases log](https://data.4tu.nl/articles/dataset/Sepsis_Cases_-_Event_Log/12707639).
-
-## Repository Structure
-- `src/declare4py/api_functions.py` -- core system containing the main Declare4Py functions.
-- `src/declare4py/declare4py.py` -- a wrapper to the main Declare4Py functions containing the main Declare4Py class.
-- `src/declare4py/constraint_checkers/` -- the implementation of the checkers of the DECLARE constraints.
-- `src/declare4py/models/` -- data models supporting the data structures for Declare4Py.
-- `docs/declare4py/index.html` -- documentation for Declare4Py in `html` format.
-- `dist` -- built package containing Declare4Py for easing the user with the installation.
-- `tests/` -- a collection of tests for computing the Declare4Py performance.
-- `tutorials/` -- tutorials to start with Declare4Py,
-
-
-## Contributions
-We would suggest to use the virtual environment in order to avoid the clashes between python version and libraries.
+We suggest to use a virtual environment in order to avoid the clashes between python version and the required libraries.
 
 - From project root run `python -m venv venv`
 - activate the virtual environment `source venv/Scripts/activate`
 - install libraries
-  - requirements
-    - graphviz must be installed https://graphviz.org/download/
-  - `python -m pip install .` to install the dependencies of the project, it will read the pyproject.toml
+- `python -m pip install .` to install the dependencies of the project, it will read the pyproject.toml
 
+
+## Tutorials
+The `docs/source/tutorials/` folder contains a walk-through of Declare4Py. In order, the tutorials cover the following topics:
+
+1. [Managing event logs](https://github.com/francxx96/declare4py/blob/main/tutorials/system_overview.ipynb): methods to manage event logs, importing them, extracting useful information, converting them in other formats;
+2. [Managing process models](https://github.com/ivanDonadello/declare4py-v2.0/blob/v1.0.1/refactor-architecture/tutorials/Log_information.ipynb): simple methods to parse and manage process models from strings and/or files and checking their satisfiability;
+3. [Conformance checking of LTLf templates/formulas](https://github.com/francxx96/declare4py/blob/main/tutorials/conformance_checking.ipynb): check what are the traces in an event log that satisfy a given LTLf model;
+4. [Conformance checking of MP-DECLARE templates](https://github.com/francxx96/declare4py/blob/main/tutorials/model_discovery.ipynb): check what are the traces in an event log (along with the fulfillments/violations) that satisfy a given MP_DECLARE model;
+5. [Query Checking with DECLARE models](https://github.com/francxx96/declare4py/blob/main/tutorials/query_checking.ipynb): discover what are the activities that make an input DECLARE constraint satisfied in an event log.
+6. [Discovery of DECLARE models](): discover what are the most satisfied DECLARE constraints in an event log;
+7. [Filtering an event log](): select a subset of an event log that satisfy some input properties.
+
+The tutorials are Jupyter notebooks and consider the [Sepsis cases log](https://data.4tu.nl/articles/dataset/Sepsis_Cases_-_Event_Log/12707639).
+
+## Repository Structure
+- `src/declare4py/ProcessModels` -- the implementation of the supported process models.
+- `src/declare4py/ProcessMiningTasks/` -- the implementation of the supported Process Mining tasks.
+- `tests/` -- a collection of tests for computing the Declare4Py performance.
+- `docs/source/tutorials/` -- tutorials to start with Declare4Py,
 
 ## Citing Declare4Py
 If you use Declare4Py in your research, please use the following BibTeX entry.
 
 ```
-Soon available
+@inproceedings{DonadelloRMS22,
+  author    = {Ivan Donadello and
+               Francesco Riva and
+               Fabrizio Maria Maggi and
+               Aladdin Shikhizada},
+  title     = {Declare4Py: {A} Python Library for Declarative Process Mining},
+  booktitle = {{BPM} (PhD/Demos)},
+  series    = {{CEUR} Workshop Proceedings},
+  volume    = {3216},
+  pages     = {117--121},
+  publisher = {CEUR-WS.org},
+  year      = {2022}
+}
 ```
-
-Tested with Python v3.11.2
-
