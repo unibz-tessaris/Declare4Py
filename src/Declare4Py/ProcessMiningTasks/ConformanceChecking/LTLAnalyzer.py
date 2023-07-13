@@ -25,47 +25,48 @@ class LTLAnalyzer(AbstractConformanceChecking):
         super().__init__(log, ltl_model)
 
     @staticmethod
-    def run_single_trace(trace: Trace, dfa: SymbolicDFA, backend, activity_key: str = 'concept:name'):
+    def run_single_trace(trace: Trace, dfa: SymbolicDFA, backend, attribute_type: [str] = ['concept:name']):
         current_states = {dfa.initial_state}
-
         for event in trace:
-            event = event[activity_key]
-            symbol = Utils.parse_activity(event)
-
-            if backend == 'lydia':
-                symbol = symbol.lower()
-            else:
-                symbol = symbol.upper()
-
             temp = dict()
-            temp[symbol] = True
+            for attribute in attribute_type:
+                symbol = event[attribute]
+                symbol = attribute + "_" + symbol
+                symbol = Utils.parse_activity(symbol)
+                if backend == 'lydia':
+                    symbol = symbol.lower()
+                else:
+                    symbol = symbol.upper()
+                temp[symbol] = True
 
-            current_states = reduce(
-                set.union,
-                map(lambda x: dfa.get_successors(x, temp), current_states),
-                set(),
-            )
+                current_states = reduce(
+                    set.union,
+                    map(lambda x: dfa.get_successors(x, temp), current_states),
+                    set(),
+                )
 
         is_accepted = any(dfa.is_accepting(state) for state in current_states)
         return is_accepted
 
     @staticmethod
     def run_single_trace_par(args):
-        trace, dfa, activity_key = args
+        trace, dfa, attributes = args
         current_states = {dfa.initial_state}
 
         for event in trace:
-            event = event[activity_key]
-            symbol = Utils.parse_activity(event)
-            symbol = symbol.lower()
             temp = dict()
-            temp[symbol] = True
+            for attribute in attributes:
+                symbol = event[attribute]
+                symbol = attribute + "_" + symbol
+                symbol = Utils.parse_activity(symbol)
+                symbol = symbol.lower()
+                temp[symbol] = True
 
-            current_states = reduce(
-                set.union,
-                map(lambda x: dfa.get_successors(x, temp), current_states),
-                set(),
-            )
+                current_states = reduce(
+                    set.union,
+                    map(lambda x: dfa.get_successors(x, temp), current_states),
+                    set(),
+                )
 
         is_accepted = any(dfa.is_accepting(state) for state in current_states)
         return trace.attributes['concept:name'], is_accepted
@@ -101,19 +102,17 @@ class LTLAnalyzer(AbstractConformanceChecking):
         if minimize_automaton:
             dfa = dfa.minimize()
         g_log = self.event_log.get_log()
-        activity_key = self.event_log.activity_key
-
+        attributes = self.process_model.attribute_type
         if sequential:
             results = []
             for trace in g_log:
-                is_accepted = self.run_single_trace(trace, dfa, backend2dfa, activity_key)
-                results.append([trace.attributes[activity_key], is_accepted])
+                is_accepted = self.run_single_trace(trace, dfa, backend2dfa, attributes)
+                results.append([trace.attributes[self.event_log.activity_key], is_accepted])
         else:
             traces = g_log._list
             with multiprocessing.Pool(processes=workers) as pool:
                 results = pool.map(self.run_single_trace_par, zip(traces, [dfa] * len(traces),
-                                                                  [activity_key] * len(traces)))
-
+                                                                  [attributes] * len(traces)))
         return pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
 
     def run_aggregate(self) -> pandas.DataFrame:

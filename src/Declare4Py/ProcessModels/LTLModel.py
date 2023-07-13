@@ -6,7 +6,7 @@ from logaut import ltl2dfa
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from pylogics.parsers import parse_ltl
 from src.Declare4Py.Utils.utils import Utils
-from typing import List
+from typing import List, Tuple
 
 
 class LTLModel(ProcessModel, ABC):
@@ -17,6 +17,7 @@ class LTLModel(ProcessModel, ABC):
         self.parsed_formula = None
         self.parameters = []
         self.backend = backend
+        self.attribute_type = []
 
     def get_backend(self) -> str:
         """
@@ -101,7 +102,7 @@ class LTLModel(ProcessModel, ABC):
         This method adds the next operator in front of the LTLf formula of the class
 
         """
-        self.formula = f"X({self.formula})"
+        self.formula = f"X[!]({self.formula})"
         self.parsed_formula = parse_ltl(self.formula)
 
     def add_eventually(self) -> None:
@@ -191,12 +192,21 @@ class LTLTemplate:
         self.template_str: str = template_str
         self.parameters: [str] = []
         self.ltl_templates = {'eventually_a': self.eventually_a,
+                              'eventually_a_and_eventually_b': self.eventually_a_and_eventually_b,
                               'eventually_a_then_b': self.eventually_a_then_b,
                               'eventually_a_or_b': self.eventually_a_or_b,
                               'eventually_a_next_b': self.eventually_a_next_b,
                               'eventually_a_then_b_then_c': self.eventually_a_then_b_then_c,
                               'eventually_a_next_b_next_c': self.eventually_a_next_b_next_c,
-                              'next_a': self.next_a}
+                              'next_a': self.next_a,
+                              'p_does_a': self.p_does_a,
+                              'a_is_done_by_p_and_q': self.a_is_done_by_p_and_q,
+                              'p_does_a_and_b': self.p_does_a_and_b,
+                              'p_does_a_and_then_b': self.p_does_a_and_then_b,
+                              'p_does_a_and_eventually_b': self.p_does_a_and_eventually_b,
+                              'p_does_a_a_not_b': self.p_does_a_a_not_b,
+                              'a_done_by_p_p_not_q': self.a_done_by_p_p_not_q,
+                              'person_P_does_activity_A': self.person_P_does_activity_A}
 
         self.tb_declare_templates = {'responded_existence': self.responded_existence,
                                      'response': self.response,
@@ -227,65 +237,122 @@ class LTLTemplate:
         return [template for template in self.tb_declare_templates]
 
     @staticmethod
-    def eventually_a(activity: List[str]) -> str:
-        formula_str = "F(" + activity[0] + ")"
+    def next_a(act: [str], attr_type: [str]) -> str:
+        formula_str = "X[!](" + attr_type[0] + "_" + act[0] + ")"
         return formula_str
 
     @staticmethod
-    def eventually_a_then_b(activity: List[str]) -> str:
-        formula_str = "F(" + activity[0] + " && F(" + activity[1] + "))"
+    def eventually_a(activity: List[str], attr_type: [str]) -> str:
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + ")"
+        return formula_str
+    @staticmethod
+    def eventually_a_and_eventually_b(activity: List[str], attr_type:[str]) -> str:
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + ") && " + "F(" + attr_type[0] + "_" + activity[1] + ")"
         return formula_str
 
     @staticmethod
-    def eventually_a_or_b(activity: List[str]) -> str:
-        formula_str = "F(" + activity[0] + ") || F(" + activity[1] + ")"
+    def eventually_a_then_b(activity: List[str], attr_type: [str]) -> str:
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && F(" + attr_type[0] + "_" + activity[1] + "))"
         return formula_str
 
     @staticmethod
-    def eventually_a_next_b(activity: List[str]) -> str:
-        formula_str = "F(" + activity[0] + " && X(" + activity[1] + "))"
+    def eventually_a_or_b(activity: List[str], attr_type: [str]) -> str:
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + ") || F(" + attr_type[0] + "_" + activity[1] + ")"
         return formula_str
 
     @staticmethod
-    def eventually_a_then_b_then_c(activity: List[str]) -> str:
-        formula_str = "F(" + activity[0] + " && F(" + activity[1] + " && F(" + activity[2] + ")))"
+    def eventually_a_next_b(activity: List[str], attr_type: [str]) -> str:
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && X[!](" + attr_type[0] + "_" + activity[1] + "))"
         return formula_str
 
     @staticmethod
-    def eventually_a_next_b_next_c(activity: List[str]) -> str:
-        formula_str = "F(" + activity[0] + " && X(" + activity[1] + " && X(" + activity[2] + ")))"
+    def eventually_a_then_b_then_c(activity: List[str], attr_type: [str]) -> str:
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && F(" + attr_type[0] + "_" + activity[1] + " && F(" + attr_type[0] + "_" + activity[2] + ")))"
         return formula_str
 
     @staticmethod
-    def next_a(act: [str]) -> str:
-        formula_str = "X(" + act[0] + ")"
+    def eventually_a_next_b_next_c(activity: List[str], attr_type: [str]) -> str:
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && X[!](" + attr_type[0] + "_" + activity[1] + " && X[!](" + attr_type[0] + "_" + activity[2] + ")))"
+        return formula_str
+
+    # Multiple attributes
+    @staticmethod
+    def p_does_a(activities: List[str], attr_type: List[str]) -> str:
+        """
+        First element in list must be an activity, and the attribute in attr_type must correspond to the type of the first element of the activities list.
+        This formula can also be read as activity A is done by Resource P
+        Args:
+            activities:
+            attr_type:
+
+        Returns:
+
+        """
+        formula_str = "F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[1] + ")"
+        return formula_str
+    @staticmethod
+    def a_is_done_by_p_and_q(activities: List[str], attr_type: [str]) -> str:
+        formula_str = "(F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[2] + ")) && F(F(" + attr_type[0] + "_" + activities[1] + " && " + attr_type[1] + "_" + activities[2] + ")))"
+        # (F(F(res_p && act_a)) && F(F(res_q && act_a)))
+        return formula_str
+    @staticmethod
+    def p_does_a_and_b(activities: List[str], attr_type: [str]) -> str:
+        formula_str = "(F(F(" + attr_type[0] + "_" + activities[0] + " &&  " + attr_type[1] + "_" + activities[1] + ")) && F(F(" + attr_type[0] + "_" + activities[0] + " &&  " + attr_type[1] + "_" + activities[2] + ")))"
+        # (F(F(res_p && act_a)) && F(F(res_p && act_b)))
+        return formula_str
+
+    @staticmethod
+    def p_does_a_and_then_b(activities: List[str], attr_type: [str]) -> str:
+        formula_str = "F((F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[1] + ") && X[!](F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[2] + "))))"
+        # F((F(res_p && act_a) && X[!](F(res_p && act_b))))
+        return formula_str
+    @staticmethod
+    def p_does_a_and_eventually_b(activities: List[str], attr_type: [str]) -> str:
+        formula_str = "F((F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[1] + ") && F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[2] +"))))"
+        # F((F(res_p && act_a) && F(F(res_p && act_b))))
+        return formula_str
+    @staticmethod
+    def p_does_a_a_not_b(activities: List[str], attr_type: [str]) -> str:
+        formula_str = "F((" + attr_type[1] + "_" + activities[1] + " && " + "(!" + attr_type[1] + "_" + activities[2] + " && " + attr_type[0] + "_" + activities[0] + ")))"
+        # F((act_a && (!act_B && res_p)))
+        return formula_str
+    @staticmethod
+    def a_done_by_p_p_not_q(activities: List[str], attr_type: [str]) -> str:
+        formula_str = "F((" + attr_type[0] + "_" + activities[0] + " && " + " (!" + attr_type[0] + "_" + activities[1] + " && " + attr_type[1] + "_" + activities[2] + ")))"
+        # F((res_p && (!res_q && act_a)))
+        return formula_str
+
+    @staticmethod
+    def person_P_does_activity_A(activities: List[str], attr_type: [str]) -> str:
+        formula_str = "F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[1] + "))"
+        # F(F(res_p && act_a))
         return formula_str
 
     # Branched Declare Models
     @staticmethod
-    def responded_existence(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "F(" + activities_a[0]
+    def responded_existence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "F(" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ") -> F(" + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ") -> F(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
         formula += ")"
         return formula
 
     @staticmethod
-    def response(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "G((" + activities_a[0]
+    def response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "G((" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ") -> F(" + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ") -> F(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
         formula += "))"
         return formula
 
     @staticmethod
-    def alternate_response(activities_a: List[str], activities_b: List[str]) -> str:
+    def alternate_response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
         """
         This function fills the alternate response template with the ORs of two sets of activities.
 
@@ -297,20 +364,20 @@ class LTLTemplate:
             str: a string formula filled with the sets of activities
 
         """
-        formula = "G((" + activities_a[0]
+        formula = "G((" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ") -> X((!(" + activities_a[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ") -> X[!]((!(" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ")U( " + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ")U( " + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
         formula += "))))"
         return formula
 
     @staticmethod
-    def chain_response(activities_a: List[str], activities_b: List[str]) -> str:
+    def chain_response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
         """
         This function fills the chain response template with the ORs of two sets of activities.
 
@@ -322,126 +389,128 @@ class LTLTemplate:
             str: a string formula filled with the sets of activities
 
         """
-        formula = "G((" + activities_a[0]
+        formula = "G((" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += "  || " + activities_a[i]
-        formula += ") -> X(" + activities_b[0]
+            formula += "  || " + attr_type[0] + "_" + activities_a[i]
+        formula += ") -> X[!](" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
         formula += "))"
         return formula
 
     @staticmethod
-    def precedence(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "((!(" + activities_b[0]
+    def precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "((!(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
-        formula += "))U(" + activities_a[0]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
+        formula += "))U(" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ")) || G(!(" + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ")) || G(!(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
 
         formula += "))"
         return formula
 
     @staticmethod
-    def alternate_precedence(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "((!(" + activities_b[0]
+    def alternate_precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "((!(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
-        formula += "))U(" + activities_a[0]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
+        formula += "))U(" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ")) && G((" + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ")) && G((" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
-        formula += ") -> X((!(" + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
+        formula += ") -> X[!]((!(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
-        formula += "))U(" + activities_a[0]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
+        formula += "))U(" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ")) || G(!(" + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ")) || G(!(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
         formula += ")))"
         return formula
 
     @staticmethod
-    def chain_precedence(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "G(X(" + activities_b[0]
+    def chain_precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "G(X[!](" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
-        formula += ") -> " + "(" + activities_a[0]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
+        formula += ") -> " + "(" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
         formula += "))"
         return formula
 
     @staticmethod
-    def not_responded_existence(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "F(" + activities_a[0]
+    def not_responded_existence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "F(" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ") -> !(F(" + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ") -> !(F(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
         formula += "))"
         return formula
 
     @staticmethod
-    def not_response(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "G((" + activities_a[0]
+    def not_response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "G((" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ") -> !(F(" + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ") -> !(F(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
         formula += ")))"
         return formula
 
     @staticmethod
-    def not_precedence(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "G(F(" + activities_b[0]
+    def not_precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "G(F(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
-        formula += ") ->!(" + activities_a[0]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
+        formula += ") ->!(" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
         formula += "))"
         return formula
 
     @staticmethod
-    def not_chain_response(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "G((" + activities_a[0]
+    def not_chain_response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "G((" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || " + activities_a[i]
-        formula += ") -> X(!(" + activities_b[0]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
+        formula += ") -> X[!](!(" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
         formula += ")))"
         return formula
 
     @staticmethod
-    def not_chain_precedence(activities_a: List[str], activities_b: List[str]) -> str:
-        formula = "G( X(" + activities_b[0]
+    def not_chain_precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        formula = "G( X[!](" + attr_type[0] + "_" + activities_b[0]
         for i in range(1, len(activities_b)):
-            formula += " || " + activities_b[i]
-        formula += ") -> !(" + activities_a[0]
+            formula += " || " + attr_type[0] + "_" + activities_b[i]
+        formula += ") -> !(" + attr_type[0] + "_" + activities_a[0]
         for i in range(1, len(activities_a)):
-            formula += " || "+activities_a[i]
+            formula += " || " + attr_type[0] + "_" + activities_a[i]
         formula += "))"
         return formula
 
-    def fill_template(self, *activities: List[str]) -> LTLModel:
+
+    def fill_template(self, *attributes: List[str], attr_type: [str] = ["concept:name"]) -> LTLModel:
         """
         This function fills the template with the input lists of activities and returns an LTLModel object containing
         the filled LTLf formula of the template
 
         Args:
-            *activities: list of activities to pass to the template function
+            attr_type: list of the attribute types to pass to the template functions, default contains only concept:name
+            *attributes: list of attributes to pass to the template function
 
         Returns:
             LTLModel: LTLf Model of the filled formula of the template
@@ -452,13 +521,14 @@ class LTLTemplate:
         func = self.templates.get(self.template_str)
         filled_model = LTLModel()
         try:
-            formula = func(*activities)
-            for act in activities:
+            formula = func(*attributes, attr_type)
+            for act in attributes:
                 act = [item.lower() for item in act]
                 act = [Utils.parse_activity(item) for item in act]
                 self.parameters += act
             filled_model.parse_from_string(formula)
             filled_model.parameters = self.parameters
+            filled_model.attribute_type = attr_type
         except (TypeError, RuntimeError):
             raise TypeError("Mismatched number of parameters or type")
         return filled_model
