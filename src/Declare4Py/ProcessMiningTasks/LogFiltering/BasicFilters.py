@@ -12,7 +12,7 @@ class BasicFilters:
     def __init__(self, event_log: D4PyEventLog):
         self.event_log: D4PyEventLog = event_log
 
-    def filter_time_range_contained(self, start_date: str, end_date: str, mode: str = "events",) -> EventLog:
+    def filter_time_range_contained(self, start_date: str, end_date: str, mode: str = "events", ) -> EventLog:
         """
         This function uses the get_log() of the Declare4Py package.
 
@@ -26,7 +26,7 @@ class BasicFilters:
 
         """
         if packaging.version.parse(pm4py.__version__) > packaging.version.Version("2.3.1"):
-            return pm4py.filter_time_range(self.event_log.log, start_date, end_date, mode, 
+            return pm4py.filter_time_range(self.event_log.log, start_date, end_date, mode,
                                            self.event_log.timestamp_key, self.event_log.case_id_key)
         else:
             filtered_time_range = pm4py.filter_time_range(self.event_log.log, start_date, end_date, mode)
@@ -155,3 +155,9 @@ class BasicFilters:
             filtered_event_attribute_val = pm4py.filter_event_attribute_values(self.event_log.log, attribute_key,
                                                                                values, level, retain)
             return filtered_event_attribute_val
+
+    def is_activity_of_i_state_A(self, activity: str, index: int):
+        log = self.event_log.get_log()
+        log_act = self.event_log.activity_key
+        traces = list(filter(lambda trace: (trace[index][log_act] == activity), log))
+        return traces
