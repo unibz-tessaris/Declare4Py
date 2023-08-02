@@ -237,6 +237,12 @@ class LTLTemplate:
         return [template for template in self.tb_declare_templates]
 
     @staticmethod
+    def add_conjunction(model: LTLModel, templates: List[str]) -> str:
+        for templ in templates:
+            model.add_conjunction(templ)
+        return model.formula
+
+    @staticmethod
     def next_a(act: [str], attr_type: [str]) -> str:
         formula_str = "X[!](" + attr_type[0] + "_" + act[0] + ")"
         return formula_str
@@ -245,8 +251,9 @@ class LTLTemplate:
     def eventually_a(activity: List[str], attr_type: [str]) -> str:
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + ")"
         return formula_str
+
     @staticmethod
-    def eventually_a_and_eventually_b(activity: List[str], attr_type:[str]) -> str:
+    def eventually_a_and_eventually_b(activity: List[str], attr_type: [str]) -> str:
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + ") && " + "F(" + attr_type[0] + "_" + activity[1] + ")"
         return formula_str
 
@@ -267,12 +274,14 @@ class LTLTemplate:
 
     @staticmethod
     def eventually_a_then_b_then_c(activity: List[str], attr_type: [str]) -> str:
-        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && F(" + attr_type[0] + "_" + activity[1] + " && F(" + attr_type[0] + "_" + activity[2] + ")))"
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && F(" + attr_type[0] + "_" + activity[1] + " && F(" + \
+                      attr_type[0] + "_" + activity[2] + ")))"
         return formula_str
 
     @staticmethod
     def eventually_a_next_b_next_c(activity: List[str], attr_type: [str]) -> str:
-        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && X[!](" + attr_type[0] + "_" + activity[1] + " && X[!](" + attr_type[0] + "_" + activity[2] + ")))"
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && X[!](" + attr_type[0] + "_" + activity[
+            1] + " && X[!](" + attr_type[0] + "_" + activity[2] + ")))"
         return formula_str
 
     # Multiple attributes
@@ -290,35 +299,48 @@ class LTLTemplate:
         """
         formula_str = "F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[1] + ")"
         return formula_str
+
     @staticmethod
     def a_is_done_by_p_and_q(activities: List[str], attr_type: [str]) -> str:
-        formula_str = "(F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[2] + ")) && F(F(" + attr_type[0] + "_" + activities[1] + " && " + attr_type[1] + "_" + activities[2] + ")))"
+        formula_str = "(F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[
+            2] + ")) && F(F(" + attr_type[0] + "_" + activities[1] + " && " + attr_type[1] + "_" + activities[2] + ")))"
         # (F(F(res_p && act_a)) && F(F(res_q && act_a)))
         return formula_str
+
     @staticmethod
     def p_does_a_and_b(activities: List[str], attr_type: [str]) -> str:
-        formula_str = "(F(F(" + attr_type[0] + "_" + activities[0] + " &&  " + attr_type[1] + "_" + activities[1] + ")) && F(F(" + attr_type[0] + "_" + activities[0] + " &&  " + attr_type[1] + "_" + activities[2] + ")))"
+        formula_str = "(F(F(" + attr_type[0] + "_" + activities[0] + " &&  " + attr_type[1] + "_" + activities[
+            1] + ")) && F(F(" + attr_type[0] + "_" + activities[0] + " &&  " + attr_type[1] + "_" + activities[
+                          2] + ")))"
         # (F(F(res_p && act_a)) && F(F(res_p && act_b)))
         return formula_str
 
     @staticmethod
     def p_does_a_and_then_b(activities: List[str], attr_type: [str]) -> str:
-        formula_str = "F((F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[1] + ") && X[!](F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[2] + "))))"
+        formula_str = "F((F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[
+            1] + ") && X[!](F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[
+                          2] + "))))"
         # F((F(res_p && act_a) && X[!](F(res_p && act_b))))
         return formula_str
+
     @staticmethod
     def p_does_a_and_eventually_b(activities: List[str], attr_type: [str]) -> str:
-        formula_str = "F((F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[1] + ") && F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[2] +"))))"
+        formula_str = "F((F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[
+            1] + ") && F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[2] + "))))"
         # F((F(res_p && act_a) && F(F(res_p && act_b))))
         return formula_str
+
     @staticmethod
     def p_does_a_a_not_b(activities: List[str], attr_type: [str]) -> str:
-        formula_str = "F((" + attr_type[1] + "_" + activities[1] + " && " + "(!" + attr_type[1] + "_" + activities[2] + " && " + attr_type[0] + "_" + activities[0] + ")))"
+        formula_str = "F((" + attr_type[1] + "_" + activities[1] + " && " + "(!" + attr_type[1] + "_" + activities[
+            2] + " && " + attr_type[0] + "_" + activities[0] + ")))"
         # F((act_a && (!act_B && res_p)))
         return formula_str
+
     @staticmethod
     def a_done_by_p_p_not_q(activities: List[str], attr_type: [str]) -> str:
-        formula_str = "F((" + attr_type[0] + "_" + activities[0] + " && " + " (!" + attr_type[0] + "_" + activities[1] + " && " + attr_type[1] + "_" + activities[2] + ")))"
+        formula_str = "F((" + attr_type[0] + "_" + activities[0] + " && " + " (!" + attr_type[0] + "_" + activities[
+            1] + " && " + attr_type[1] + "_" + activities[2] + ")))"
         # F((res_p && (!res_q && act_a)))
         return formula_str
 
@@ -501,7 +523,6 @@ class LTLTemplate:
             formula += " || " + attr_type[0] + "_" + activities_a[i]
         formula += "))"
         return formula
-
 
     def fill_template(self, *attributes: List[str], attr_type: [str] = ["concept:name"]) -> LTLModel:
         """
