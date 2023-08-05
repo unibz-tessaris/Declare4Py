@@ -11,8 +11,8 @@ from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessMiningTasks.ConformanceChecking.LTLAnalyzer import LTLAnalyzer
 from src.Declare4Py.ProcessModels.LTLModel import LTLTemplate, LTLModel
 
-list_logs = ["repair_example(500 traces)", "Sepsis(1000 traces)", "teleclaims(2500traces)", "Road_Traffic_Fine_Management_Process"]
-list_filters = ["five_filters", "ten_filters", "twenty_filters", "fifty_filters"]
+list_logs = ["repair_example(500 traces)"] #, "Sepsis(1000 traces)", "teleclaims(2500traces)", "Road_Traffic_Fine_Management_Process"]
+list_filters = ["five_filters"] #, "ten_filters", "twenty_filters", "fifty_filters"]
 folder_logs = "test_logs"
 folder_jsons = "filters_jsons"
 iterations = 5
@@ -63,8 +63,11 @@ if __name__ == "__main__":
                         model_template = LTLTemplate(exp["filteringMode"])
                         source = exp["parameterValue"][0]
                         target = exp["parameterValue"][1]
-                        func = model_template.templates.get(exp["filteringMode"])
-                        templates.append(func(source, target, attr_type=exp["attributeType"]))
+                        if i == 0:
+                            inst_model = model_template.fill_template(source, target, attr_type=exp["attributeType"])
+                        else:
+                            func = model_template.templates.get(exp["filteringMode"])
+                            templates.append(func(source, target, attr_type=exp["attributeType"]))
 
                 LTLTemplate.add_conjunction(inst_model, templates)
                 inst_model.to_lydia_backend()

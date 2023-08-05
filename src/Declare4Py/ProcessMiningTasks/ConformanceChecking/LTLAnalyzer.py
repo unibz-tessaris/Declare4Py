@@ -31,6 +31,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
             temp = dict()
             for attribute in attribute_type:
                 symbol = event[attribute]
+                symbol = Utils.parse_parenthesis(symbol)
                 symbol = attribute + "_" + symbol
                 symbol = Utils.parse_activity(symbol)
                 if backend == 'lydia':
@@ -57,6 +58,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
             temp = dict()
             for attribute in attributes:
                 symbol = event[attribute]
+                symbol = Utils.parse_parenthesis(symbol)
                 symbol = attribute + "_" + symbol
                 symbol = Utils.parse_activity(symbol)
                 symbol = symbol.lower()

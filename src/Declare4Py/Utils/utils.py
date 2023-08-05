@@ -24,6 +24,24 @@ class Utils:
         return act
 
     @staticmethod
+    def parse_parenthesis(act: str) -> str:
+        """
+        This function takes a string, containing numbers, as parameter and returns a copy of it.
+        The copy contains characters instead of numbers and whitespaces between words in the string are removed.
+
+        Args:
+            act: string containing decimals numbers
+
+        Returns:
+            modified string with numbers changed to lower case characters
+        """
+        int_char_map = {"(": "_", ")": "_"}
+        for int_key in int_char_map.keys():
+            act = act.replace(str(int_key), int_char_map[int_key])
+        act = re.sub(r"\s\b", "", act)
+        return act
+
+    @staticmethod
     def normalize_formula(input_formula: str) -> str:
 
         unary_operators = {"g(": "G(", "x(": "X(", "f(": "F(", "x[!](": "X[!]("}
