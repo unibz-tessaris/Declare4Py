@@ -35,7 +35,7 @@ class Utils:
         Returns:
             modified string with numbers changed to lower case characters
         """
-        int_char_map = {"(": "_", ")": "_"}
+        int_char_map = {"(": "_", ")": "_", "[": "_", "]": "_", "{": "_", "}": "_"}
         for int_key in int_char_map.keys():
             act = act.replace(str(int_key), int_char_map[int_key])
         act = re.sub(r"\s\b", "", act)
