@@ -206,7 +206,6 @@ class LTLTemplate:
                               'p_does_a_and_eventually_b': self.p_does_a_and_eventually_b,
                               'p_does_a_a_not_b': self.p_does_a_a_not_b,
                               'a_done_by_p_p_not_q': self.a_done_by_p_p_not_q,
-                              'person_P_does_activity_A': self.person_P_does_activity_A,
                               'is_first_state_a': self.is_first_state_a,
                               'is_second_state_a': self.is_second_state_a,
                               'is_third_state_a': self.is_third_state_a,
@@ -423,12 +422,6 @@ class LTLTemplate:
         # F((res_p && (!res_q && act_a)))
         return formula_str
 
-    @staticmethod
-    def person_P_does_activity_A(activities: List[str], attr_type: [str]) -> str:
-        activities = [Utils.parse_parenthesis(item) for item in activities]
-        formula_str = "F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[1] + "))"
-        # F(F(res_p && act_a))
-        return formula_str
 
     # Branched Declare Models
     @staticmethod
