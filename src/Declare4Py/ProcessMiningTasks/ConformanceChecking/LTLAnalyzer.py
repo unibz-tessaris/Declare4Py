@@ -21,8 +21,18 @@ Provides basic conformance checking functionalities
 
 class LTLAnalyzer(AbstractConformanceChecking):
 
-    def __init__(self, log: D4PyEventLog, ltl_model: LTLModel):
-        super().__init__(log, ltl_model)
+    def __init__(self, log: D4PyEventLog, *args):
+        """
+
+        Args:
+            log: D4PYEventLog
+            *args: A LTLModel or a list of LTLModels
+        """
+        if isinstance(args[0], LTLModel):
+            super().__init__(log, args[0])
+        else:
+            self.log = log
+            self.list_LTLModels = args[0]
 
     @staticmethod
     def run_single_trace(trace: Trace, dfa: SymbolicDFA, backend, attribute_type: [str] = ['concept:name']):
@@ -116,6 +126,52 @@ class LTLAnalyzer(AbstractConformanceChecking):
                 results = pool.map(self.run_single_trace_par, zip(traces, [dfa] * len(traces),
                                                                   [attributes] * len(traces)))
         return pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
+
+    def run_multiple_models(self, jobs: int = 1, minimize_automaton: bool = True) -> pandas.DataFrame:
+        """
+        Performs conformance checking for the provided event log and an input LTL models.
+
+        Args:
+            jobs:
+            minimize_automaton:
+
+        Returns:
+            DataFrame: A pandas Dataframe containing the id of the traces and the result of the conformance check
+
+        """
+        workers = jobs
+
+        if jobs == 1 or jobs == 0:
+            sequential = True
+        elif jobs == -1:
+            workers = multiprocessing.cpu_count()
+            sequential = False
+        elif jobs > 1:
+            workers = jobs
+            sequential = False
+        else:
+            raise RuntimeError(f"{jobs} not a valid number of jobs. Allowed values goes from -1.")
+
+        g_log = self.log.get_log()
+
+        if sequential:
+            results = []
+            for trace in g_log:
+                is_accepted = False
+                for model in self.list_LTLModels:
+                    backend2dfa = model.backend
+                    dfa = ltl2dfa(model.parsed_formula, backend=backend2dfa)  # lydia
+
+                    if minimize_automaton:
+                        dfa = dfa.minimize()
+
+                    attributes = model.attribute_type
+                    is_accepted = self.run_single_trace(trace, dfa, backend2dfa, attributes)
+                    if not is_accepted:
+                        break
+                    results.append([trace.attributes[self.log.activity_key], is_accepted])
+
+        return pandas.DataFrame(results, columns=[self.log.case_id_key, "accepted"])
 
     def run_aggregate(self) -> pandas.DataFrame:
         """

@@ -206,7 +206,16 @@ class LTLTemplate:
                               'p_does_a_and_eventually_b': self.p_does_a_and_eventually_b,
                               'p_does_a_a_not_b': self.p_does_a_a_not_b,
                               'a_done_by_p_p_not_q': self.a_done_by_p_p_not_q,
-                              'person_P_does_activity_A': self.person_P_does_activity_A}
+                              'person_P_does_activity_A': self.person_P_does_activity_A,
+                              'is_first_state_a': self.is_first_state_a,
+                              'is_second_state_a': self.is_second_state_a,
+                              'is_third_state_a': self.is_third_state_a,
+                              'is_last_state_a': self.is_last_state_a,
+                              'is_second_last_state_a': self.is_second_last_state_a,
+                              'is_third_last_state_a': self.is_third_last_state_a,
+                              'last': self.last,
+                              'second_last': self.second_last,
+                              'third_last': self.third_last}
 
         self.tb_declare_templates = {'responded_existence': self.responded_existence,
                                      'response': self.response,
@@ -291,6 +300,61 @@ class LTLTemplate:
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && X[!](" + attr_type[0] + "_" + activity[
             1] + " && X[!](" + attr_type[0] + "_" + activity[2] + ")))"
         return formula_str
+
+    @staticmethod
+    def is_first_state_a(activity: List[str], attr_type: [str]) -> str:
+        activity = [Utils.parse_parenthesis(item) for item in activity]
+        formula_str = attr_type[0] + "_" + activity[0]
+        return formula_str
+
+
+    @staticmethod
+    def is_second_state_a(activity: List[str], attr_type: [str]) -> str:
+        activity = [Utils.parse_parenthesis(item) for item in activity]
+        formula_str = "X[!](" + attr_type[0] + "_" + activity[0] + ")"
+        return formula_str
+
+
+    @staticmethod
+    def is_third_state_a(activity: List[str], attr_type: [str]) -> str:
+        activity = [Utils.parse_parenthesis(item) for item in activity]
+        formula_str = "X[!](X[!](" + attr_type[0] + "_" + activity[0] + "))"
+        return formula_str
+
+    @staticmethod
+    def last(activity: List[str], attr_type: [str]) -> str:
+        formula_str = "!(X[!](true))"
+        return formula_str
+
+    @staticmethod
+    def second_last(activity: List[str], attr_type: [str]) -> str:
+        formula_str = "X[!](!(X[!](true)))"
+        return formula_str
+
+    @staticmethod
+    def third_last(activity: List[str], attr_type: [str]) -> str:
+        formula_str = "X[!](X[!](!(X[!](true))))"
+        return formula_str
+
+    @staticmethod
+    def is_last_state_a(activity: List[str], attr_type: [str]) -> str:
+        activity = [Utils.parse_parenthesis(item) for item in activity]
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && " + LTLTemplate.last(activity, attr_type) + ")"
+        return formula_str
+
+    @staticmethod
+    def is_second_last_state_a(activity: List[str], attr_type: [str]) -> str:
+        activity = [Utils.parse_parenthesis(item) for item in activity]
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && " + LTLTemplate.second_last(activity, attr_type) + ")"
+        return formula_str
+
+
+    @staticmethod
+    def is_third_last_state_a(activity: List[str], attr_type: [str]) -> str:
+        activity = [Utils.parse_parenthesis(item) for item in activity]
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && " + LTLTemplate.third_last(activity, attr_type) + ")"
+        return formula_str
+
 
     # Multiple attributes
     @staticmethod
