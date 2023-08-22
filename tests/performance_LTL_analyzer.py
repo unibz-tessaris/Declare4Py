@@ -12,7 +12,7 @@ from src.Declare4Py.ProcessMiningTasks.ConformanceChecking.LTLAnalyzer import LT
 from src.Declare4Py.ProcessModels.LTLModel import LTLTemplate, LTLModel
 
 list_logs = ["repair_example(500 traces)", "Sepsis(1000 traces)", "teleclaims(2500traces)", "Road_Traffic_Fine_Management_Process"]
-list_filters = ["five_filters", "ten_filters", "twenty_filters", "fifty_filters"]
+list_filters = ["five_filters", "five_filters" "ten_filters", "twenty_filters", "fifty_filters"]
 folder_logs = "test_logs"
 folder_jsons = "filters_jsons"
 iterations = 5
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                 for i, exp in enumerate(data):
                     print(exp)
                     jobs = exp["jobs"]
-                    if exp["category"] == "LTLf":
+                    if exp["category"] == "LTL":
                         model_template = LTLTemplate(exp["filteringMode"])
                         param = exp["parameterValue"]
                         if i == 0:
@@ -73,6 +73,7 @@ if __name__ == "__main__":
                 inst_model.to_lydia_backend()
                 analyzer = LTLAnalyzer(event_log, inst_model)
                 times = []
+
                 for j in range(iterations):
                     start = time.time()
                     df = analyzer.run(jobs=jobs)
