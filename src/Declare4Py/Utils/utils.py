@@ -59,3 +59,10 @@ class Utils:
             formula = formula.replace(key, value)
 
         return formula
+
+    @staticmethod
+    def encode_attribute_type(attr_type: str) -> str:
+        encoding = ""
+        for i in range(3):
+            encoding += attr_type[i]
+        return encoding

@@ -639,7 +639,8 @@ class LTLTemplate:
         func = self.templates.get(self.template_str)
         filled_model = LTLModel()
         try:
-            formula = func(*attributes, attr_type)
+            encoded_attribute_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
+            formula = func(*attributes, encoded_attribute_type)
             for act in attributes:
                 act = [item.lower() for item in act]
                 act = [Utils.parse_parenthesis(item) for item in act]

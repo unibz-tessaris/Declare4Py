@@ -42,7 +42,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
             for attribute in attribute_type:
                 symbol = event[attribute]
                 symbol = Utils.parse_parenthesis(symbol)
-                symbol = attribute + "_" + symbol
+                symbol = Utils.encode_attribute_type(attribute) + "_" + symbol
                 symbol = Utils.parse_activity(symbol)
                 if backend == 'lydia':
                     symbol = symbol.lower()
@@ -69,7 +69,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
             for attribute in attributes:
                 symbol = event[attribute]
                 symbol = Utils.parse_parenthesis(symbol)
-                symbol = attribute + "_" + symbol
+                symbol = Utils.encode_attribute_type(attribute) + "_" + symbol
                 symbol = Utils.parse_activity(symbol)
                 symbol = symbol.lower()
                 temp[symbol] = True
