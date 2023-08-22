@@ -1,36 +1,38 @@
 [ {
   "category" : "BDeclare",
-  "jobs": 1,
-  "filteringMode" : "response",
-  "parameterName" : [ "A" ],
-  "parameterValue" : [ ["Repair (Complex)", "Test Repair"], ["Register", "Inform User"] ],
-  "attributeType" : [ "concept:name" ]
-}, {
-  "category" : "BDeclare",
-  "jobs": 1,
   "filteringMode" : "alternate_response",
-  "parameterName" : [ "A" ],
-  "parameterValue" : [ ["Repair (Complex)", "Test Repair"], ["Register", "Inform User"] ],
-  "attributeType" : [ "concept:name" ]
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ ["IV Antibiotics", "Leucocytes"], ["CRP", "IV Liquid"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
 }, {
   "category" : "BDeclare",
-  "jobs": 1,
-  "filteringMode" : "precedence",
+  "filteringMode" : "alternate_response",
   "parameterName" : [ "A", "B" ],
-  "parameterValue" : [ ["Analyze Defect"], ["Analyze Defect", "Test Repair"] ],
-  "attributeType" : [ "concept:name" ]
+  "parameterValue" : [ ["IV Antibiotics", "IV Liquid"], ["Leucocytes", "Admission IC"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
 }, {
   "category" : "BDeclare",
-  "jobs": 1,
-  "filteringMode" : "responded_existence",
+  "filteringMode" : "alternate_response",
   "parameterName" : [ "A", "B" ],
-  "parameterValue" : [ ["Repair (Complex)", "Test Repair"], ["Register", "Inform User"] ],
-  "attributeType" : [ "concept:name" ]
+  "parameterValue" : [ ["IV Liquid", "Release A"] , ["CRP", "Release C"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
 }, {
   "category" : "BDeclare",
-  "jobs": 1,
-  "filteringMode" : "chain_precedence",
+  "filteringMode" : "alternate_response",
   "parameterName" : [ "A", "B" ],
-  "parameterValue" : [ ["Analyze Defect"], ["Analyze Defect", "Test Repair"] ],
-  "attributeType" : [ "concept:name" ]
-}]
+  "parameterValue" : [ ["LacticAcid", "Leucocytes"], ["CRP", "IV Liquid"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
+},
+{
+  "category" : "BDeclare",
+  "filteringMode" : "alternate_precedence",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ ["Leucocytes", "CRP"], ["Admission NC", "Leucocytes"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
+}
+]

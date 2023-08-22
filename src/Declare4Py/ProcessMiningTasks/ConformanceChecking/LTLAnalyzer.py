@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import multiprocessing
 import pdb
+import time
 
 from pm4py.objects.log.obj import Trace
 from pythomata.impl.symbolic import SymbolicDFA
@@ -170,6 +171,56 @@ class LTLAnalyzer(AbstractConformanceChecking):
                     if not is_accepted:
                         break
                     results.append([trace.attributes[self.log.activity_key], is_accepted])
+
+        return pandas.DataFrame(results, columns=[self.log.case_id_key, "accepted"])
+
+    def run_multiple_models_smart(self, jobs: int = 1, minimize_automaton: bool = True) -> pandas.DataFrame:
+        """
+        Performs conformance checking for the provided event log and an input LTL models.
+
+        Args:
+            jobs:
+            minimize_automaton:
+
+        Returns:
+            DataFrame: A pandas Dataframe containing the id of the traces and the result of the conformance check
+
+        """
+        workers = jobs
+
+        if jobs == 1 or jobs == 0:
+            sequential = True
+        elif jobs == -1:
+            workers = multiprocessing.cpu_count()
+            sequential = False
+        elif jobs > 1:
+            workers = jobs
+            sequential = False
+        else:
+            raise RuntimeError(f"{jobs} not a valid number of jobs. Allowed values goes from -1.")
+
+        g_log = self.log.get_log()
+        results = []
+        if sequential:
+            for id_model, model in enumerate(self.list_LTLModels):
+                n = len(g_log)
+                if n > 0:
+                    temp_list = []
+                    backend2dfa = model.backend
+                    dfa = ltl2dfa(model.parsed_formula, backend=model.backend)
+                    if minimize_automaton:
+                        dfa = dfa.minimize()
+
+                    attributes = model.attribute_type
+                    for trace in g_log:
+                        is_accepted = self.run_single_trace(trace, dfa, backend2dfa, attributes)
+                        if is_accepted:
+                            temp_list.append(trace)
+                        results.append([trace.attributes[self.log.activity_key], is_accepted])
+                    n = len(temp_list)
+                    g_log = temp_list
+                if n == 0:
+                    break
 
         return pandas.DataFrame(results, columns=[self.log.case_id_key, "accepted"])
 

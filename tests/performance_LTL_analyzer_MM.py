@@ -31,44 +31,37 @@ if __name__ == "__main__":
                 filter_path = os.path.join(folder_jsons, f"{filter_name}.json")
                 json_file = open(filter_path)
                 data = json.load(json_file)
-                inst_model: LTLModel = None
                 # For MP change "jobs" field in the jsons
                 jobs = None
-                templates: [str] = []
-                for i, exp in enumerate(data):
+                models: [LTLModel] = []
+                for exp in data:
                     print(exp)
                     jobs = exp["jobs"]
-                    if exp["category"] == "LTL":
+                    if exp["category"] == "LTLf":
                         model_template = LTLTemplate(exp["filteringMode"])
                         param = exp["parameterValue"]
-                        if i == 0:
-                            inst_model = model_template.fill_template(param, attr_type=exp["attributeType"])
-                        else:
-                            func = model_template.templates.get(exp["filteringMode"])
-                            templates.append(func(param, exp["attributeType"]))
+                        inst_model = model_template.fill_template(param, attr_type=exp["attributeType"])
+                        inst_model.to_lydia_backend()
+                        models.append(inst_model)
                     else:
                         model_template = LTLTemplate(exp["filteringMode"])
                         source = exp["parameterValue"][0]
                         target = exp["parameterValue"][1]
-                        if i == 0:
-                            inst_model = model_template.fill_template(source, target, attr_type=exp["attributeType"])
-                        else:
-                            func = model_template.templates.get(exp["filteringMode"])
-                            templates.append(func(source, target, attr_type=exp["attributeType"]))
+                        inst_model = model_template.fill_template(source, target, attr_type=exp["attributeType"])
+                        inst_model.to_lydia_backend()
+                        models.append(inst_model)
 
-                LTLTemplate.add_conjunction(inst_model, templates)
-                inst_model.to_lydia_backend()
-                analyzer = LTLAnalyzer(event_log, inst_model)
+                analyzer = LTLAnalyzer(event_log, models)
                 times = []
                 for j in range(iterations):
                     start = time.time()
-                    df = analyzer.run(jobs=jobs, minimize_automaton=False)
+                    df = analyzer.run_multiple_models_smart(jobs=jobs, minimize_automaton=False)
                     end = time.time()
                     exec_time = end - start
                     print(exec_time)
                     times.append(exec_time)
 
-                row = [log_name, "big_AND", f"{jobs}_job"] + times + [inst_model.formula]
+                row = [log_name, "multiple_models", f"{jobs}_job"] + times + [inst_model.formula]
                 #pdb.set_trace()
                 writer = csv.writer(f)
                 writer.writerow(row)
