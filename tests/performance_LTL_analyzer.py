@@ -11,13 +11,11 @@ from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessMiningTasks.ConformanceChecking.LTLAnalyzer import LTLAnalyzer
 from src.Declare4Py.ProcessModels.LTLModel import LTLTemplate, LTLModel
 
-list_logs = ["repair_example(500 traces)", "Sepsis(1000 traces)", "teleclaims(2500traces)", "Road_Traffic_Fine_Management_Process"]
-list_logs = ["Sepsis(1000 traces)"]
-list_filters = ["five_filters", "ten_filters", "twenty_filters", "fifty_filters"]
-list_filters = ["twenty_filters"]
+list_logs = ["teleclaims(2500traces)"] #"repair_example(500 traces)", "Sepsis(1000 traces)", "teleclaims(2500traces)", "Road_Traffic_Fine_Management_Process"]
+list_filters = ["five_filters", "ten_filters", "twenty_filters", "fifteen_filters"]
 folder_logs = "test_logs"
 folder_jsons = "filters_jsons"
-iterations = 5
+iterations = 2
 
 if __name__ == "__main__":
     with open(os.path.join("test_performance", "performance_ltl_analyzer.csv"), 'a') as f:
@@ -68,7 +66,7 @@ if __name__ == "__main__":
                     print(exec_time)
                     times.append(exec_time)
 
-                row = [log_name, "big_AND", f"{jobs}_job"] + times + [inst_model.formula]
+                row = [log_name, filter_name, "big_AND", f"{jobs}_job"] + times + [inst_model.formula]
                 #pdb.set_trace()
                 writer = csv.writer(f)
                 writer.writerow(row)
