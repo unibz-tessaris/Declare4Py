@@ -53,7 +53,7 @@ if __name__ == "__main__":
                 times = []
                 for j in range(iterations):
                     start = time.time()
-                    df = analyzer.run_multiple_models_smart(jobs=jobs, minimize_automaton=False)
+                    df = analyzer.run_multiple_models(jobs=jobs, minimize_automaton=False)
                     end = time.time()
                     exec_time = end - start
                     print(exec_time)

@@ -6,7 +6,7 @@ import time
 
 from pm4py.objects.log.obj import Trace
 from pythomata.impl.symbolic import SymbolicDFA
-
+from pylogics.parsers import parse_ltl
 from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
 from src.Declare4Py.ProcessModels.LTLModel import LTLModel
@@ -84,6 +84,42 @@ class LTLAnalyzer(AbstractConformanceChecking):
         is_accepted = any(dfa.is_accepting(state) for state in current_states)
         return trace.attributes['concept:name'], is_accepted
 
+    @staticmethod
+    def run_single_trace_par_MM(args):
+        trace, list_LTLModels = args
+        is_accepted = True
+        for unpacked_model in list_LTLModels:
+            backend2dfa = unpacked_model[0]
+            dfa = unpacked_model[1]
+            attributes = unpacked_model[2]
+
+            # Run single trace
+            current_states = {dfa.initial_state}
+            for event in trace:
+                temp = dict()
+                for attribute in attributes:
+                    symbol = event[attribute]
+                    symbol = Utils.parse_parenthesis(symbol)
+                    symbol = Utils.encode_attribute_type(attribute) + "_" + symbol
+                    symbol = Utils.parse_activity(symbol)
+                    if backend2dfa == 'lydia':
+                        symbol = symbol.lower()
+                    else:
+                        symbol = symbol.upper()
+                    temp[symbol] = True
+
+                    current_states = reduce(
+                        set.union,
+                        map(lambda x: dfa.get_successors(x, temp), current_states),
+                        set(),
+                    )
+
+            is_accepted = any(dfa.is_accepting(state) for state in current_states)
+
+            if not is_accepted:
+                return trace.attributes['concept:name'], is_accepted
+        return trace.attributes['concept:name'], is_accepted
+
     def run(self, jobs: int = 1, minimize_automaton: bool = True) -> pandas.DataFrame:
         """
         Performs conformance checking for the provided event log and an input LTL model.
@@ -154,53 +190,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
             raise RuntimeError(f"{jobs} not a valid number of jobs. Allowed values goes from -1.")
 
         g_log = self.log.get_log()
-
-        if sequential:
-            results = []
-            for trace in g_log:
-                is_accepted = False
-                for model in self.list_LTLModels:
-                    backend2dfa = model.backend
-                    dfa = ltl2dfa(model.parsed_formula, backend=backend2dfa)  # lydia
-
-                    if minimize_automaton:
-                        dfa = dfa.minimize()
-
-                    attributes = model.attribute_type
-                    is_accepted = self.run_single_trace(trace, dfa, backend2dfa, attributes)
-                    if not is_accepted:
-                        break
-                    results.append([trace.attributes[self.log.activity_key], is_accepted])
-
-        return pandas.DataFrame(results, columns=[self.log.case_id_key, "accepted"])
-
-    def run_multiple_models_smart(self, jobs: int = 1, minimize_automaton: bool = True) -> pandas.DataFrame:
-        """
-        Performs conformance checking for the provided event log and an input LTL models.
-
-        Args:
-            jobs:
-            minimize_automaton:
-
-        Returns:
-            DataFrame: A pandas Dataframe containing the id of the traces and the result of the conformance check
-
-        """
-        workers = jobs
-
-        if jobs == 1 or jobs == 0:
-            sequential = True
-        elif jobs == -1:
-            workers = multiprocessing.cpu_count()
-            sequential = False
-        elif jobs > 1:
-            workers = jobs
-            sequential = False
-        else:
-            raise RuntimeError(f"{jobs} not a valid number of jobs. Allowed values goes from -1.")
-
-        g_log = self.log.get_log()
-        results = []
+        results = {}
         if sequential:
             for id_model, model in enumerate(self.list_LTLModels):
                 n = len(g_log)
@@ -216,11 +206,23 @@ class LTLAnalyzer(AbstractConformanceChecking):
                         is_accepted = self.run_single_trace(trace, dfa, backend2dfa, attributes)
                         if is_accepted:
                             temp_list.append(trace)
-                        results.append([trace.attributes[self.log.activity_key], is_accepted])
+                        results[trace.attributes[self.log.activity_key]] = is_accepted
                     n = len(temp_list)
                     g_log = temp_list
                 if n == 0:
                     break
+            results = results.items()
+        else:
+            traces = g_log._list
+            with multiprocessing.Pool(processes=workers) as pool:
+                tmp_model_list = []
+                for model in self.list_LTLModels:
+                    dfa = ltl2dfa(model.parsed_formula, backend=model.backend)
+                    if minimize_automaton:
+                        dfa = dfa.minimize()
+                    tmp_model_list.append((model.backend, dfa, model.attribute_type))
+
+                results = pool.map(self.run_single_trace_par_MM, zip(traces, [tmp_model_list]*len(traces)))
 
         return pandas.DataFrame(results, columns=[self.log.case_id_key, "accepted"])
 
