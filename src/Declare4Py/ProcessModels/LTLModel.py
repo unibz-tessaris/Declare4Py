@@ -1,4 +1,3 @@
-import pdb
 from abc import ABC
 
 from logaut import ltl2dfa
@@ -6,7 +5,7 @@ from logaut import ltl2dfa
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from pylogics.parsers import parse_ltl
 from src.Declare4Py.Utils.utils import Utils
-from typing import List, Tuple
+from typing import List
 
 
 class LTLModel(ProcessModel, ABC):
@@ -123,9 +122,10 @@ class LTLModel(ProcessModel, ABC):
 
     def add_until(self, new_formula: str) -> None:
         """
-
+        This method adds the until operator
         Args:
             new_formula:
+                New formula to be added to the old formula through the until operator
 
         """
         new_formula = Utils.normalize_formula(new_formula)
@@ -134,12 +134,12 @@ class LTLModel(ProcessModel, ABC):
 
     def check_satisfiability(self, minimize_automaton: bool = True) -> bool:
         """
-
+        Checks satisfiability of the automata built on the parsed formula of the LTLModel object.
         Args:
             minimize_automaton:
 
         Returns:
-            bool:
+            bool: If the automata is satisfied or not
 
         """
         if self.parsed_formula is None:
@@ -183,9 +183,7 @@ class LTLModel(ProcessModel, ABC):
 
 class LTLTemplate:
     """
-    Class that allows the user to create a template. User can choose between various standard formulae.
-    Makes use of the class LTLModel.
-    Insert a string representing one of the seven available template functions
+    Class that allows the user to create a LTLModel object containing one of the template formulae provided by this class.
     """
 
     def __init__(self, template_str: str):
@@ -239,19 +237,51 @@ class LTLTemplate:
                                f"for a list of the valid templates")
 
     def get_ltl_templates(self) -> List[str]:
+        """
+        Retrieves the LTL template list
+
+        Returns:
+            A list containing all LTL templates.
+        """
         return [template for template in self.ltl_templates]
 
     def get_tb_declare_templates(self) -> List[str]:
+        """
+        Retrieves the TBDeclare templates
+
+        Returns:
+            A list containing all TBDeclare templates.
+        """
         return [template for template in self.tb_declare_templates]
 
     @staticmethod
     def add_conjunction(model: LTLModel, templates: List[str]) -> str:
+        """
+        Adds a list of selected template formulas to the formula of an already existing LTLModel object through means
+        of conjunction.
+
+        Args:
+            model: Already existing LTLModel object
+            templates: A list of templates to be added to the formula of the model
+
+        Returns:
+            The new formula
+        """
         for templ in templates:
             model.add_conjunction(templ)
         return model.formula
 
     @staticmethod
     def next_a(activity: [str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: X[!](A). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "X[!](" + attr_type[0] + "_" + activity[0] + ")"
@@ -259,6 +289,15 @@ class LTLTemplate:
 
     @staticmethod
     def eventually_a(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + ")"
@@ -266,6 +305,15 @@ class LTLTemplate:
 
     @staticmethod
     def eventually_a_and_eventually_b(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A) && F(B). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + ") && " + "F(" + attr_type[0] + "_" + activity[1] + ")"
@@ -273,6 +321,15 @@ class LTLTemplate:
 
     @staticmethod
     def eventually_a_then_b(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A && F(B)). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && F(" + attr_type[0] + "_" + activity[1] + "))"
@@ -280,6 +337,15 @@ class LTLTemplate:
 
     @staticmethod
     def eventually_a_or_b(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A) || F(B). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + ") || F(" + attr_type[0] + "_" + activity[1] + ")"
@@ -287,6 +353,15 @@ class LTLTemplate:
 
     @staticmethod
     def eventually_a_next_b(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A && X[!](B)). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && X[!](" + attr_type[0] + "_" + activity[1] + "))"
@@ -294,6 +369,15 @@ class LTLTemplate:
 
     @staticmethod
     def eventually_a_then_b_then_c(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A && F(B && F(C))). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && F(" + attr_type[0] + "_" + activity[1] + " && F(" + \
@@ -302,6 +386,15 @@ class LTLTemplate:
 
     @staticmethod
     def eventually_a_next_b_next_c(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A && X[!](B && X[!](C))). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && X[!](" + attr_type[0] + "_" + activity[
@@ -310,22 +403,47 @@ class LTLTemplate:
 
     @staticmethod
     def is_first_state_a(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: A. This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = attr_type[0] + "_" + activity[0]
         return formula_str
 
-
     @staticmethod
     def is_second_state_a(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: X[!](A). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "X[!](" + attr_type[0] + "_" + activity[0] + ")"
         return formula_str
 
-
     @staticmethod
     def is_third_state_a(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: X[!](X[!](A)). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "X[!](X[!](" + attr_type[0] + "_" + activity[0] + "))"
@@ -333,21 +451,57 @@ class LTLTemplate:
 
     @staticmethod
     def last(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: !(X[!](true)). It requires no attribute nor attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         formula_str = "!(X[!](true))"
         return formula_str
 
     @staticmethod
     def second_last(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: X[!](!(X[!](true))). It requires no attribute nor attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         formula_str = "X[!](!(X[!](true)))"
         return formula_str
 
     @staticmethod
     def third_last(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: X[!](X[!](!(X[!](true)))). It requires no attribute nor attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         formula_str = "X[!](X[!](!(X[!](true))))"
         return formula_str
 
     @staticmethod
     def is_last_state_a(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A && !(X[!](true))). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
         formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && " + LTLTemplate.last(activity, attr_type) + ")"
@@ -355,31 +509,50 @@ class LTLTemplate:
 
     @staticmethod
     def is_second_last_state_a(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A && X[!](!(X[!](true)))). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
-        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && " + LTLTemplate.second_last(activity, attr_type) + ")"
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && " + LTLTemplate.second_last(activity,
+                                                                                                 attr_type) + ")"
         return formula_str
-
 
     @staticmethod
     def is_third_last_state_a(activity: List[str], attr_type: [str]) -> str:
+        """
+        Template of the LTL formula: F(A && X[!](X[!](!(X[!](true))))). This formula accepts only one attribute and one attribute type
+        Args:
+            activity: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activity = [Utils.parse_parenthesis(item) for item in activity]
-        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && " + LTLTemplate.third_last(activity, attr_type) + ")"
+        formula_str = "F(" + attr_type[0] + "_" + activity[0] + " && " + LTLTemplate.third_last(activity,
+                                                                                                attr_type) + ")"
         return formula_str
-
 
     # Multiple attributes
     @staticmethod
     def p_does_a(activities: List[str], attr_type: List[str]) -> str:
         """
-        First element in list must be an activity, and the attribute in attr_type must correspond to the type of the first element of the activities list.
-        This formula can also be read as activity A is done by Resource P
+        The first attribute type (in attr_type) must be the type of the first attribute in the list activities.
+
         Args:
-            activities:
-            attr_type:
+            activities: List of activities
+            attr_type: List of attribute types
 
         Returns:
+            The formula as a string
 
         """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
@@ -389,64 +562,134 @@ class LTLTemplate:
 
     @staticmethod
     def a_is_done_by_p_and_q(activities: List[str], attr_type: [str]) -> str:
+        """
+        The first attribute type (in attr_type) must be the type of the first attribute in the list activities.
+
+        Args:
+            activities: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities = [Utils.parse_parenthesis(item) for item in activities]
         formula_str = "(F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[
             2] + ")) && F(F(" + attr_type[0] + "_" + activities[1] + " && " + attr_type[1] + "_" + activities[2] + ")))"
-        # (F(F(res_p && act_a)) && F(F(res_q && act_a)))
         return formula_str
 
     @staticmethod
     def p_does_a_and_b(activities: List[str], attr_type: [str]) -> str:
+        """
+        The first attribute type (in attr_type) must be the type of the first attribute in the list activities.
+
+        Args:
+            activities: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities = [Utils.parse_parenthesis(item) for item in activities]
         formula_str = "(F(F(" + attr_type[0] + "_" + activities[0] + " &&  " + attr_type[1] + "_" + activities[
             1] + ")) && F(F(" + attr_type[0] + "_" + activities[0] + " &&  " + attr_type[1] + "_" + activities[
                           2] + ")))"
-        # (F(F(res_p && act_a)) && F(F(res_p && act_b)))
         return formula_str
 
     @staticmethod
     def p_does_a_and_then_b(activities: List[str], attr_type: [str]) -> str:
+        """
+        The first attribute type (in attr_type) must be the type of the first attribute in the list activities.
+
+        Args:
+            activities: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities = [Utils.parse_parenthesis(item) for item in activities]
         formula_str = "F((F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[
             1] + ") && X[!](F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[
                           2] + "))))"
-        # F((F(res_p && act_a) && X[!](F(res_p && act_b))))
         return formula_str
 
     @staticmethod
     def p_does_a_and_eventually_b(activities: List[str], attr_type: [str]) -> str:
+        """
+        The first attribute type (in attr_type) must be the type of the first attribute in the list activities.
+
+        Args:
+            activities: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities = [Utils.parse_parenthesis(item) for item in activities]
         formula_str = "F((F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[
             1] + ") && F(F(" + attr_type[0] + "_" + activities[0] + " && " + attr_type[1] + "_" + activities[2] + "))))"
-        # F((F(res_p && act_a) && F(F(res_p && act_b))))
         return formula_str
 
     @staticmethod
     def p_does_a_a_not_b(activities: List[str], attr_type: [str]) -> str:
+        """
+        The first attribute type (in attr_type) must be the type of the first attribute in the list activities.
+
+        Args:
+            activities: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities = [Utils.parse_parenthesis(item) for item in activities]
         formula_str = "F((" + attr_type[1] + "_" + activities[1] + " && " + "(!" + attr_type[1] + "_" + activities[
             2] + " && " + attr_type[0] + "_" + activities[0] + ")))"
-        # F((act_a && (!act_B && res_p)))
         return formula_str
 
     @staticmethod
     def a_done_by_p_p_not_q(activities: List[str], attr_type: [str]) -> str:
+        """
+        The first attribute type (in attr_type) must be the type of the first attribute in the list activities.
+
+        Args:
+            activities: List of activities
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities = [Utils.parse_parenthesis(item) for item in activities]
         formula_str = "F((" + attr_type[0] + "_" + activities[0] + " && " + " (!" + attr_type[0] + "_" + activities[
             1] + " && " + attr_type[1] + "_" + activities[2] + ")))"
-        # F((res_p && (!res_q && act_a)))
         return formula_str
-
 
     # Branched Declare Models
     @staticmethod
     def responded_existence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type for both lists.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
@@ -461,6 +704,17 @@ class LTLTemplate:
 
     @staticmethod
     def response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
@@ -476,15 +730,15 @@ class LTLTemplate:
     @staticmethod
     def alternate_response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
         """
-        This function fills the alternate response template with the ORs of two sets of activities.
-
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
         Args:
-            activities_a: the list of activation activities
-            activities_b: the list of target activities
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
 
         Returns:
-            str: a string formula filled with the sets of activities
-
+            The formula as a string
         """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
@@ -504,15 +758,15 @@ class LTLTemplate:
     @staticmethod
     def chain_response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
         """
-        This function fills the chain response template with the ORs of two sets of activities.
-
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
         Args:
-            activities_a: the list of activation activities
-            activities_b: the list of target activities
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
 
         Returns:
-            str: a string formula filled with the sets of activities
-
+            The formula as a string
         """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
@@ -528,6 +782,17 @@ class LTLTemplate:
 
     @staticmethod
     def precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
@@ -546,6 +811,17 @@ class LTLTemplate:
 
     @staticmethod
     def alternate_precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
@@ -572,6 +848,17 @@ class LTLTemplate:
 
     @staticmethod
     def chain_precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
@@ -586,6 +873,17 @@ class LTLTemplate:
 
     @staticmethod
     def not_responded_existence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
@@ -600,6 +898,17 @@ class LTLTemplate:
 
     @staticmethod
     def not_response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
@@ -614,6 +923,17 @@ class LTLTemplate:
 
     @staticmethod
     def not_precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
@@ -628,6 +948,17 @@ class LTLTemplate:
 
     @staticmethod
     def not_chain_response(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
@@ -642,6 +973,17 @@ class LTLTemplate:
 
     @staticmethod
     def not_chain_precedence(activities_a: List[str], activities_b: List[str], attr_type: [str]) -> str:
+        """
+        BDeclare template function. Takes two lists 'activation' and 'target' and a third list for the type of the attributes.
+        This function accepts one attribute type.
+        Args:
+            activities_a: List of attributes, the 'source' list
+            activities_b: List of attributes, the 'target' list
+            attr_type: List of attribute types
+
+        Returns:
+            The formula as a string
+        """
         attr_type = [Utils.encode_attribute_type(tipo) for tipo in attr_type]
         activities_a = [Utils.parse_parenthesis(item) for item in activities_a]
         activities_b = [Utils.parse_parenthesis(item) for item in activities_b]
