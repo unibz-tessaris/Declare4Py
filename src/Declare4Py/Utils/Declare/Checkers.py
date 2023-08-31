@@ -91,13 +91,13 @@ class ConstraintChecker:
             if event_log.get_length() - (i + 1) < ceil(event_log.get_length() * min_support) - sat_ctr:
                 return False # None
         return False # None
-spec = [
-    ('traces', typeddict.DictType()), # Creates the dictionary and its types. Controllare con Ivan
-    ('completed', numba.boolean),
-    ('activities', typedlist.ListType(numba.types.string)), # Creates the List and its type
-    ('rules', typeddict.DictType()),# Creates the dictionary and its types
-    ('concept_name', numba.string)
-]
+#spec = [
+#    ('traces', typeddict.DictType()), # Creates the dictionary and its types. Controllare con Ivan
+#    ('completed', numba.boolean),
+#    ('activities', typedlist.ListType(numba.types.string)), # Creates the List and its type
+#    ('rules', typeddict.DictType()),# Creates the dictionary and its types
+#    ('concept_name', numba.string)
+#]
 #@jitclass(spec)
 class TemplateConstraintChecker(ABC):
 
