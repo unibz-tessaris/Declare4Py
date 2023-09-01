@@ -14,7 +14,7 @@ setup(
     name="declare4py",
     version='{{VERSION_PLACEHOLDER}}',
     author="Ivan Donadello",
-    author_email="example@mail.com",
+    author_email="donadelloivan@gmail.com",
     description="A Python package for declarative Process Mining with Machine Learning applications",
     url="https://github.com/ivanDonadello/Declare4Py",
     long_description_content_type="text/markdown",
