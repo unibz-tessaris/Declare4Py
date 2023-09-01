@@ -13,7 +13,7 @@ with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
 setup(
     name="declare4py",
     version='{{VERSION_PLACEHOLDER}}',
-    author="Ivan Donadello",
+    author="Ivan Donadello, Fabrizio Maria Maggi",
     author_email="donadelloivan@gmail.com",
     description="A Python package for declarative Process Mining with Machine Learning applications",
     url="https://github.com/ivanDonadello/Declare4Py",
