@@ -701,6 +701,8 @@ class AspGenerator(LogGenerator):
         if total_traces is None:
             total_traces = self.log_length
         traces_len = {}
+        if total_traces == 0:
+            return collections.Counter()
         if self.distributor_type == "gaussian":
             self.py_logger.info(f"Computing gaussian distribution with mu={self.loc} and sigma={self.scale}")
             assert self.loc > 1  # Mu atleast should be 2

@@ -24,7 +24,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
 
     def __init__(self, log: D4PyEventLog, *args):
         """
-
+        Init of the class LTLAnalyzer
         Args:
             log: D4PYEventLog
             *args: A LTLModel or a list of LTLModels
@@ -36,7 +36,18 @@ class LTLAnalyzer(AbstractConformanceChecking):
             self.list_LTLModels = args[0]
 
     @staticmethod
-    def run_single_trace(trace: Trace, dfa: SymbolicDFA, backend, attribute_type: [str] = ['concept:name']):
+    def run_single_trace(trace: Trace, dfa: SymbolicDFA, backend, attribute_type: [str] = ['concept:name']) -> bool:
+        """
+        Function that is run when then 'jobs' count is set to 1. It checks if the automata can reach the accepting state or not.
+        Args:
+            trace: A trace of the log
+            dfa: the automata
+            backend: backend used in the creation of the automata
+            attribute_type: the type of the attributes used in the formula.
+
+        Returns:
+            bool: If the automata reached its final state
+        """
         current_states = {dfa.initial_state}
         for event in trace:
             temp = dict()
@@ -62,6 +73,14 @@ class LTLAnalyzer(AbstractConformanceChecking):
 
     @staticmethod
     def run_single_trace_par(args):
+        """
+        Function that is run when then 'jobs' count is greater than 1. It checks if the automata can reach the accepting state or not.
+        Args:
+            args: same arguments as above
+
+        Returns:
+
+        """
         trace, dfa, attributes = args
         current_states = {dfa.initial_state}
 
@@ -86,6 +105,14 @@ class LTLAnalyzer(AbstractConformanceChecking):
 
     @staticmethod
     def run_single_trace_par_MM(args):
+        """
+        Same as the other run_trace functions, with the exception that this function is called when using multiple models.
+        Args:
+            args:
+
+        Returns:
+
+        """
         trace, list_LTLModels = args
         is_accepted = True
         for unpacked_model in list_LTLModels:
@@ -122,11 +149,11 @@ class LTLAnalyzer(AbstractConformanceChecking):
 
     def run(self, jobs: int = 1, minimize_automaton: bool = True) -> pandas.DataFrame:
         """
-        Performs conformance checking for the provided event log and an input LTL model.
-
+        Performs conformance checking for the provided event log and a single LTL model.
+        Based on the number of jobs performs standard computation or parallel.
         Args:
-            jobs:
-            minimize_automaton:
+            jobs: Number of jobs, indicates how many
+            minimize_automaton: If the automata should be minimized, may add extra burden on the computation
 
         Returns:
             DataFrame: A pandas Dataframe containing the id of the traces and the result of the conformance check
@@ -166,11 +193,11 @@ class LTLAnalyzer(AbstractConformanceChecking):
 
     def run_multiple_models(self, jobs: int = 1, minimize_automaton: bool = True) -> pandas.DataFrame:
         """
-        Performs conformance checking for the provided event log and an input LTL models.
-
+        Performs conformance checking for the provided event log and multiple LTL models.
+        Based on the number of jobs performs standard computation or parallel.
         Args:
-            jobs:
-            minimize_automaton:
+            jobs: Number of jobs, indicates how many
+            minimize_automaton: If the automata should be minimized, may add extra burden on the computation
 
         Returns:
             DataFrame: A pandas Dataframe containing the id of the traces and the result of the conformance check
@@ -228,7 +255,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
 
     def run_aggregate(self) -> pandas.DataFrame:
         """
-        Performs conformance checking for the provided event log and an input LTL model.
+        Performs a groupby from Pandas on the event log.
 
         Returns:
             A pandas Dataframe containing the id of the traces and the result of the conformance check
