@@ -69,6 +69,7 @@ class ASPResultTraceModel:
         """
         traces = {}
         resources = []
+        obj = {}
         # We collect traces( which are events) and resources (attributes) along with positions
         # later, we merge both according position.
         for item in result:
@@ -84,9 +85,10 @@ class ASPResultTraceModel:
                 resources.append({"res_name": var_name, "res_val": var_value, "pos": position.number})
             else:
                 warnings.warn(f"What is happening here {str(item)}")
-        return self.map_traces_and_resources(traces, resources)
+        result, obj = self.map_traces_and_resources(traces, resources)
+        return obj
 
-    def map_traces_and_resources(self, traces: list, resources: list):
+    def map_traces_and_resources(self, traces: dict, resources: list):
         """
         Maps the traces and resources based on their positions.
 
@@ -98,19 +100,22 @@ class ASPResultTraceModel:
             list: A list containing the combined traces and resources.
         """
         result = []
+        nResult = {}
         for trace_pos in traces:
             event = {}
             event["name"] = traces[trace_pos]
             event["ev_position"] = trace_pos
             event["resources"] = {}
+            nResult[trace_pos] = {"name": event["name"], "resources": []}
             for resource in resources:
                 if resource["pos"] == trace_pos:
                     event["resources"][resource["res_name"]] = resource["res_val"]
+                    nResult[trace_pos]["resources"].append({resource["res_name"]: resource["res_val"]})
                     event["resources"]["__position"] = resource["pos"]
                     event["__position"] = resource["pos"]
             result.append(event)
         result = sorted(result, key=lambda x: x['ev_position'])
-        return result
+        return result, nResult
 
     def __str__(self):
         st = f"""{{ "name": "{self.name}", "events": {self.events} }}"""

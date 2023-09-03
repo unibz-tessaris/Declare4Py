@@ -13,6 +13,7 @@ from src.Declare4Py.ProcessModels.LTLModel import LTLTemplate, LTLModel
 
 list_logs = ["teleclaims(2500traces)"] #"repair_example(500 traces)", "Sepsis(1000 traces)", "teleclaims(2500traces)", "Road_Traffic_Fine_Management_Process"]
 list_filters = ["five_filters", "ten_filters", "twenty_filters", "fifteen_filters"]
+list_filters = ["twenty_filters"]
 folder_logs = "test_logs"
 folder_jsons = "filters_jsons"
 iterations = 2
@@ -59,7 +60,6 @@ if __name__ == "__main__":
                     print(exec_time)
                     times.append(exec_time)
 
-                row = [log_name, filter_name, "multiple_models", f"{jobs}_job"] + times + [inst_model.formula]
-                #pdb.set_trace()
+                row = [log_name, filter_name, exp["category"], "multiple_models", f"{jobs}_job"] + times + [inst_model.formula]
                 writer = csv.writer(f)
                 writer.writerow(row)
