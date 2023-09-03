@@ -170,7 +170,7 @@ if __name__ == '__main__':
             model, num_of_traces, num_min_events, num_max_events,
             # encode_decl_model=False
         )
-    asp.run_parallel = True
+    asp.run_parallel = False
     # asp.set_custom_trace_lengths({
     #     40: 10,
     #     42: 7,
