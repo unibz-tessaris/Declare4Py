@@ -24,7 +24,9 @@ setup(
     keywords=['python', 'bpm', 'declare', 'process-mining', 'rule-mining', 'business-process-management', 'declarative-process-models'],
     classifiers=[
         "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers, Information Technology, Science/Research",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3",
         "Natural Language :: English, Italian"
         "Operating System :: Unix",
