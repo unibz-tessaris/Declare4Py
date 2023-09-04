@@ -47,7 +47,7 @@ The `docs/source/tutorials/` folder contains a walk-through of Declare4Py. In or
 5. [Query Checking with DECLARE models](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/5.Declare_Query_Checking.ipynb): discover what are the activities that make an input DECLARE constraint satisfied in an event log;
 6. [Discovery of DECLARE models](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/6.Declare_Model_Discovery.ipynb): discover what are the most satisfied DECLARE constraints in an event log;
 7. [Filtering an event log](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/7.Log_filtering.ipynb): select a subset of an event log that satisfy some input properties;
-9. [Log generation with a MP-DECLARE model](https://github.com/ivanDonadello/Declare4Py/blob/v1.0.1/main/docs/source/tutorials/9.Log_Generation.ipynb): generate synthetic cases that satisfy an MP-DECLARE model.
+9. [Log generation with a MP-DECLARE model](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/9.Log_Generation.ipynb): generate synthetic cases that satisfy an MP-DECLARE model.
 
 The tutorials are Jupyter notebooks and consider the [Sepsis cases log](https://data.4tu.nl/articles/dataset/Sepsis_Cases_-_Event_Log/12707639).
 
