@@ -17,6 +17,7 @@ lib/
 lib64/
 parts/
 sdist/
+output/
 var/
 wheels/
 pip-wheel-metadata/
@@ -109,6 +110,9 @@ ENV/
 env.bak/
 venv.bak/
 
+tests/multiprocessing_tut
+tests/multiprocessing_tut/*
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -129,3 +133,8 @@ dmypy.json
 
 .idea
 .DS_Store
+
+*.xes
+*.lp
+*.asp
+

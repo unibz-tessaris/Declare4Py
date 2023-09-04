@@ -1,0 +1,36 @@
+[ {
+  "category" : "LTLf",
+  "jobs": 1,
+  "filteringMode" : "next_a",
+  "parameterName" : [ "A" ],
+  "parameterValue" : [ " " ],
+  "attributeType" : [ "concept:name" ]
+}, {
+  "category" : "LTLf",
+  "jobs": 1,
+  "filteringMode" : "eventually_a",
+  "parameterName" : [ "A" ],
+  "parameterValue" : [ " " ],
+  "attributeType" : [ "concept:name" ]
+}, {
+  "category" : "LTLf",
+  "jobs": 1,
+  "filteringMode" : "eventually_a_or_b",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ " " ],
+  "attributeType" : [ "concept:name" ]
+}, {
+  "category" : "TB-Declare",
+  "jobs": 1,
+  "filteringMode" : "responded_existence",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ "asd", "asdaa" ],
+  "attributeType" : [ "concept:name" ]
+}, {
+  "category" : "TB-Declare",
+  "jobs": 1,
+  "filteringMode" : "not_responded_existence",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ "asd", "asdaa" ],
+  "attributeType" : [ "concept:name" ]
+} ]

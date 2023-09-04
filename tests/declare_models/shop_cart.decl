@@ -1,0 +1,50 @@
+activity login
+activity add_to_basket
+activity remove_from_basket
+activity confirmation
+activity pay
+activity get_discount
+activity payment_success
+activity order
+activity shipping
+
+bind login: user_id, password, confirm, user_type
+bind add_to_basket: product, quantity, price
+bind remove_from_basket: product, quantity
+bind confirmation: confirm
+bind pay: price, success, quantity, product
+bind payment_success: confirm
+bind order: status
+bind shipping: shipped
+bind get_discount: discount
+
+user_id: integer between 1 and 100
+password: float between 1000000 and 9000000
+discount: integer between 5 and 15
+quantity: integer between 1 and 50
+product: cloths, radio, computer, notebook, food, chocolate
+shipped: true, false
+success: true, false
+confirm: true, false
+price: float between 0.99 and 5000.0
+status: approved, cancelled, pending
+user_type: admin, customer, delivery_boy
+
+
+existence[login] | A.confirm is true |
+Precedence[pay, confirmation] | | |
+
+Response[pay, get_discount] |A.success is true and (A.price > 1000 or (A.product in (computer, notebook))) | T.discount = 10|
+Response[pay, get_discount] |A.success is true and (A.price > 50 or (A.product in (chocolate, food))) | T.discount = 2|
+Response[pay, get_discount] |A.price > 100 and (A.price < 1000) and A.success is true | T.discount = 5|
+Response[pay, get_discount] | (A.success is false or A.quantity <= 0) and A.product not in (computer, notebook) or ((A.product is not food) and (A.product is not cloths)) | T.discount = 0|
+Response[pay, get_discount] |A.price > 1500 and A.success is true | T.discount = 5|
+Response[pay, order] |A.success is true | T.status is approved|
+Response[pay, order] |A.success is false | T.status is cancelled|
+Response[order, shipping] |A.status is approved | T.shipped is true|
+Response[payment_success, get_discount] | | T.discount > 1|
+Response[add_to_basket, pay] |  | |
+Precedence[pay, logic] | |T.user_type is customer|
+Precedence[payment_success, pay] | |T.price >= 0.99|
+Precedence[remove_from_basket, add_to_basket] | | |
+

@@ -1,49 +1,77 @@
 # Declare4Py
 
-Declare4Py is a novel and easy-to-use Python package that covers the main tasks of process mining based on the 
-declarative modeling language DECLARE. Some functions include also the MP-DECLARE standard, that is, the 
-multi-perspective extension of DECLARE that supports also data constraints. The declare4PY APIs implement simple log analysis, consistency 
-checking, model discovery and query checking from logs by considering (MP)-DECLARE models. Declare4Py can be easily 
-integrated into your process mining software project.
+Declare4Py is the first Python package for declarative Process Mining with core functionalities to 
+easily implement Machine Learning applications for Process Mining. Declarative process mining uses 
+declarative behavioural rules (based on Linear Temporal Logic on finite traces) for defining process models. This 
+results in a high flexibility of the business process model definition without neglecting hard 
+constraints that must be satisfied. Moreover, declarative languages can be used as a bridge between 
+Process Mining and Machine learning with the DECLARE encoding that encodes the traces in a log into a 
+numeric format suitable as input to Machine Learning algorithms. Declare4Py implements such a bridge 
+by including standard algorithms for:
 
-## Requirements
-We tested Declare4Py with the following software configuration. However, more recent versions of the libraries could also work:
-- MacOs Big Sur==11.1;
-- Python==3.9.7;
-- mlxtend==0.20.0;
-- Pm4Py==2.2.21;
-- Pandas==1.3.4;
+1. declarative Process Mining with LTLf or (MP)-DECLARE templates (e.g., conformance checking, model discovery, trace generation, query checking);
+2. log encodings (e.g., complex-index, aggregate, Declare);
+3. log labelling according to filtering or declarative rules.
+
+All the Declare4Py data formats are compatible with the main Machine Learning Python packages: scikit-learn, Tensorflow and PyTorch.
+
 
 ## Installation
-Declare4Py can be easily installed by following these steps:
-1. download the repository;
-2. enter into the `dist` folder;
-3. run `pip install declare4py-1.0.0.tar.gz`.
+We recommend the use of a virtual environment to avoid possible clashes between your local Python version and the required 
+libraries. A virtual environment can be created with [Conda](https://conda.io/projects/conda/en/latest/index.html) 
+or with the [venv](https://docs.python.org/3/library/venv.html) Python utility. Once a virtual environment has been created,
+download the Declare4Py project on your local machine, activate the created virtual environment and use `pip` or `conda` 
+to install the required dependencies in the `requirements.txt` file.
+
+In addition, the [Lydia](https://github.com/whitemech/lydia) backend for the LTLf conformance checking need to be installed with Docker:
+1. Install [Docker](https://www.docker.com/get-started/);
+2. Download the Lydia Docker image with `docker pull whitemech/lydia:latest`;
+3. Make the Docker image executable under the name `lydia`. On Linux and MacOS machines, the following commands should work:
+```
+echo '#!/usr/bin/env sh' > lydia
+echo 'docker run -v$(pwd):/home/default whitemech/lydia lydia "$@"' >> lydia
+sudo chmod u+x lydia
+sudo mv lydia /usr/local/bin/
+```
+4. More information can be found [here](https://github.com/whitemech/logaut).
+
 
 ## Tutorials
-The `tutorials/` folder contains a walk-through of Declare4Py. In order, the tutorials cover the following topics:
+The `docs/source/tutorials/` folder contains a walk-through of Declare4Py. In order, the tutorials cover the following topics:
 
-- [System overview](https://github.com/francxx96/declare4py/blob/main/tutorials/system_overview.ipynb): an overview of the Python modules (and dependencies) composing Declare4Py;
-- [Log analysis](https://github.com/francxx96/declare4py/blob/main/tutorials/log_analysis.ipynb): simple functions to extract useful information from logs;
-- [Model checking](https://github.com/francxx96/declare4py/blob/main/tutorials/conformance_checking.ipynb): check what are the traces that satisfy a given DECLARE model;
-- [Model Discovery](https://github.com/francxx96/declare4py/blob/main/tutorials/model_discovery.ipynb): discover what are the most satisfied DECLARE constraints in a given log;
-- [Query Checking](https://github.com/francxx96/declare4py/blob/main/tutorials/query_checking.ipynb): discover what are the activities that make an input DECLARE constraint satisfied in a given log.
+1. [Managing event logs](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/1.Managing_Event_Logs.ipynb): methods to manage event logs, importing them, extracting useful information, converting them in other formats;
+2. [Managing process models](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/2.Managing_Process_Models.ipynb): simple methods to parse and manage process models from strings and/or files and checking their satisfiability;
+3. [Conformance checking of LTLf templates/formulas](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/3.Conformance_checking_LTLf.ipynb): check what are the traces in an event log that satisfy a given LTLf model; 
+    1. [Log filtering with LTLf properties](https://github.com/ivanDonadello/Declare4Py/blob/v1.0.1/main/docs/source/tutorials/3.1.Log_Filtering_LTLf.ipynb): filter a log according to an LTLf model;
+4. [Conformance checking of MP-DECLARE templates](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/4.Conformance_checking_DECLARE.ipynb): check what are the traces in an event log (along with the fulfillments/violations) that satisfy a given MP_DECLARE model;
+5. [Query Checking with DECLARE models](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/5.Declare_Query_Checking.ipynb): discover what are the activities that make an input DECLARE constraint satisfied in an event log;
+6. [Discovery of DECLARE models](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/6.Declare_Model_Discovery.ipynb): discover what are the most satisfied DECLARE constraints in an event log;
+7. [Filtering an event log](https://github.com/ivanDonadello/Declare4Py/blob/main/docs/source/tutorials/7.Log_filtering.ipynb): select a subset of an event log that satisfy some input properties;
+9. [Log generation with a MP-DECLARE model](https://github.com/ivanDonadello/Declare4Py/blob/v1.0.1/main/docs/source/tutorials/9.Log_Generation.ipynb): generate synthetic cases that satisfy an MP-DECLARE model.
 
 The tutorials are Jupyter notebooks and consider the [Sepsis cases log](https://data.4tu.nl/articles/dataset/Sepsis_Cases_-_Event_Log/12707639).
 
 ## Repository Structure
-- `src/declare4py/api_functions.py` -- core system containing the main Declare4Py functions.
-- `src/declare4py/declare4py.py` -- a wrapper to the main Declare4Py functions containing the main Declare4Py class.
-- `src/declare4py/constraint_checkers/` -- the implementation of the checkers of the DECLARE constraints.
-- `src/declare4py/models/` -- data models supporting the data structures for Declare4Py.
-- `docs/declare4py/index.html` -- documentation for Declare4Py in `html` format.
-- `dist` -- built package containing Declare4Py for easing the user with the installation.
+- `src/declare4py/ProcessModels` -- the implementation of the supported process models.
+- `src/declare4py/ProcessMiningTasks/` -- the implementation of the supported Process Mining tasks.
 - `tests/` -- a collection of tests for computing the Declare4Py performance.
-- `tutorials/` -- tutorials to start with Declare4Py,
+- `docs/source/tutorials/` -- tutorials to start with Declare4Py,
 
 ## Citing Declare4Py
 If you use Declare4Py in your research, please use the following BibTeX entry.
 
 ```
-Soon available
+@inproceedings{DonadelloRMS22,
+  author    = {Ivan Donadello and
+               Francesco Riva and
+               Fabrizio Maria Maggi and
+               Aladdin Shikhizada},
+  title     = {Declare4Py: {A} Python Library for Declarative Process Mining},
+  booktitle = {{BPM} (PhD/Demos)},
+  series    = {{CEUR} Workshop Proceedings},
+  volume    = {3216},
+  pages     = {117--121},
+  publisher = {CEUR-WS.org},
+  year      = {2022}
+}
 ```

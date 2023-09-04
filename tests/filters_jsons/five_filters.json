@@ -1,0 +1,38 @@
+[ {
+  "category" : "BDeclare",
+  "filteringMode" : "alternate_response",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ ["IV Antibiotics", "Leucocytes"], ["CRP", "IV Liquid"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
+}, {
+  "category" : "BDeclare",
+  "filteringMode" : "alternate_response",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ ["IV Antibiotics", "IV Liquid"], ["Leucocytes", "Admission IC"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
+}, {
+  "category" : "BDeclare",
+  "filteringMode" : "alternate_response",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ ["IV Liquid", "Release A"] , ["CRP", "Release C"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
+}, {
+  "category" : "BDeclare",
+  "filteringMode" : "alternate_response",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ ["LacticAcid", "Leucocytes"], ["CRP", "IV Liquid"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
+},
+{
+  "category" : "BDeclare",
+  "filteringMode" : "alternate_precedence",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ ["Leucocytes", "CRP"], ["Admission NC", "Leucocytes"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
+}
+]

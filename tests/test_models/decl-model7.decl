@@ -1,0 +1,14 @@
+activity ER Registration
+bind ER Registration: InfectionSuspected, org:group, DiagnosticBlood, Infusion
+activity ER Triage
+bind ER Triage: org:group, Diagnose, Age
+InfectionSuspected: true, false
+org:group: A, B, C, D, E, I, K, L, M
+DiagnosticBlood: true, false
+Infusion: false, true
+Age: integer between 20 and 79
+Diagnose: QA, QB, QD, LB, YA, YB, IB, YC, YD
+Response[ER Triage, ER Registration] |(A.Diagnose is YC) OR (A.Age > 23) OR ((A.org:group is K) AND (A.org:group is E)) | |
+
+
+

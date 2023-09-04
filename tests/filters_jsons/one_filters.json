@@ -1,0 +1,8 @@
+[ {
+  "category" : "BDeclare",
+  "filteringMode" : "chain_response",
+  "parameterName" : [ "A", "B" ],
+  "parameterValue" : [ ["Register", "Register"], ["Analyze Defect", "Register"] ],
+  "attributeType" : [ "concept:name" ],
+  "jobs": 1
+}]
