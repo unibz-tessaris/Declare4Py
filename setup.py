@@ -28,7 +28,7 @@ setup(
         "Intended Audience :: Information Technology",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3",
-        "Natural Language :: English, Italian"
+        "Natural Language :: English",
         "Operating System :: Unix",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows"
