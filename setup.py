@@ -13,7 +13,7 @@ with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
 setup(
     name="declare4py",
     version='{{VERSION_PLACEHOLDER}}',
-    author="Ivan Donadello",
+    author="Ivan Donadello, Fabrizio Maria Maggi, Francesco Riva",
     author_email="donadelloivan@gmail.com",
     description="Python library to perform discovery, conformance checking and query checking of DECLARE constraints.",
     url = "https://github.com/ivanDonadello/Declare4Py",
@@ -23,9 +23,10 @@ setup(
     install_requires=['numpy', 'pandas', 'pm4py', 'matplotlib', 'boolean.py', 'clingo'],
     keywords=['python', 'bpm', 'declare', 'process-mining', 'rule-mining', 'business-process-management', 'declarative-process-models'],
     classifiers=[
-        "Development Status :: 1 - Planning",
-        "Intended Audience :: Developers",
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers, Information Technology, Science/Research",
         "Programming Language :: Python :: 3",
+        "Natural Language :: English, Italian"
         "Operating System :: Unix",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows"
