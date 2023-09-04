@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import collections
-import json
 import logging
 import math
 import re
@@ -13,9 +12,7 @@ from random import randrange
 import clingo
 import pm4py
 from clingo import Symbol
-from pm4py.objects.log import obj as lg
 
-from src.Declare4Py.D4PyEventLog import D4PyEventLog
 from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPTranslator.asp_translator import ASPModel
 from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_encoding import ASPEncoding
 from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_result_parser import ASPResultTraceModel
@@ -429,7 +426,7 @@ class AspGenerator(LogGenerator):
         for result in results:  # result value can be 'negative' or 'positive'
             asp_model = []
             for clingo_trace in results[result]:
-                trace_model = ASPResultTraceModel(f"trace_{i}", clingo_trace)
+                trace_model = ASPResultTraceModel(f"case_{i}", clingo_trace)
                 asp_model.append(trace_model)
                 i = i + 1
             self.asp_generated_traces[result] = asp_model
@@ -443,7 +440,7 @@ class AspGenerator(LogGenerator):
             for traces_key_id in variations_result[result]:
                 i = 0
                 for clingo_trace in variations_result[result][traces_key_id]:
-                    trace_model = ASPResultTraceModel(f"trace_{traces_key_id}_variation_{i}", clingo_trace)
+                    trace_model = ASPResultTraceModel(f"case_{traces_key_id}_variation_{i}", clingo_trace)
                     asp_model.append(trace_model)
                     i = i + 1
             self.asp_generated_traces[result] = self.asp_generated_traces[result] + asp_model
@@ -462,9 +459,6 @@ class AspGenerator(LogGenerator):
 
         """
         self.py_logger.debug(f"Generating Pm4py log")
-        if self.event_log is None:
-            self.event_log = D4PyEventLog()
-        self.event_log.log = lg.EventLog()
         decl_model: DeclareParsedDataModel = self.process_model.parsed_model
         attr_list: dict[str, DeclareModelAttr] = decl_model.attributes_list
         tot_traces_generated = 0
@@ -476,46 +470,25 @@ class AspGenerator(LogGenerator):
             traces_generated = sorted(traces_generated, key=custom_sort_trace_key)
             instance = []
             for trace in traces_generated:  # Positive, Negative...
-                trace_gen = lg.Trace()
-                trace_gen.attributes["concept:name"] = trace.name
-                trace_gen.attributes["label"] = result
                 _instance = {"trace_name": trace.name, "posNeg": result, "events": []}
-                for asp_event in trace.parsed_result:
-                    event = lg.Event()
+                for trace_position in trace.parsed_result:
+                    asp_event = trace.parsed_result[trace_position]
                     _event = {}
-                    event["lifecycle:transition"] = "complete"  # NOTE: I don't know why we need it
-                    event["concept:name"] = decl_model.decode_value(asp_event['name'], self.encode_decl_model)
-                    _event = {"ev": event["concept:name"], "lifecycle:transition": "complete", "resources": []}
+                    _event = {
+                        "ev": decl_model.decode_value(asp_event['name'], self.encode_decl_model),
+                        "lifecycle:transition": "complete",
+                        "resources": [],
+                        "time:timestamp": datetime.now()
+                    }
                     _instance["events"].append(_event)
-                    for res_name, res_value in asp_event['resources'].items():
-                        if res_name == '__position':  # private property
-                            continue
-                        res_name_decoded = decl_model.decode_value(res_name, self.encode_decl_model)
-                        res_value_decoded = decl_model.decode_value(res_value, self.encode_decl_model)
-                        res_value_decoded = str(res_value_decoded)
-                        is_number = re.match(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", res_value_decoded)
-                        if is_number:
-                            if res_name_decoded in attr_list:
-                                attr = attr_list[res_name_decoded]
-                                if attr.value_type != DeclareModelAttributeType.ENUMERATION:
-                                    num = res_value_decoded
-                                    if attr.value_type == DeclareModelAttributeType.FLOAT_RANGE:
-                                        num = int(res_value_decoded) / attr.attr_value.precision
-                                    elif attr.value_type == DeclareModelAttributeType.INTEGER_RANGE:
-                                        num = int(res_value_decoded)
-                                    res_value_decoded = num
-                        if isinstance(res_value_decoded, str):
-                            event[res_name_decoded] = res_value_decoded.strip()
-                            _event["resources"].append({res_name_decoded: res_value_decoded.strip()})
-                        else:
-                            event[res_name_decoded] = res_value_decoded
-                            _event["resources"].append({res_name_decoded: res_value_decoded})
-                        event["time:timestamp"] = datetime.now()
-                    trace_gen.append(event)
-                self.event_log.log.append(trace_gen)
+                    for res in asp_event['resources']:
+                        res_name, res_value = list(res.items())[0]
+                        #res_name_decoded = decl_model.decode_value(res_name, self.encode_decl_model)
+                        #res_value_decoded = decl_model.decode_value(res_value, self.encode_decl_model)
+                        res_name_decoded, res_value_decoded = self.__decode_and_scale_value(decl_model, attr_list, res_name, res_value)
+                        _event["resources"].append({res_name_decoded: res_value_decoded})
                 instance.append(_instance)
             flattened[result] = instance
-
         self.traces_generated_events = flattened
         if tot_traces_generated != self.log_length:
             num = self.num_repetition_per_trace
@@ -524,40 +497,46 @@ class AspGenerator(LogGenerator):
             self.py_logger.warning(f'PM4PY log generated: {tot_traces_generated}/{self.log_length * num} only.')
         self.py_logger.debug(f"Pm4py generated but not saved yet")
 
+    def __decode_and_scale_value(self, decl_model, attr_list, res_name, res_value):
+        res_name_decoded = decl_model.decode_value(res_name, self.encode_decl_model)
+        res_value_decoded = decl_model.decode_value(res_value, self.encode_decl_model)
+        res_value_decoded = str(res_value_decoded)
+        is_number = re.match(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", res_value_decoded)
+        if is_number:
+            if res_name_decoded in attr_list:
+                attr = attr_list[res_name_decoded]
+                if attr.value_type != DeclareModelAttributeType.ENUMERATION:
+                    num = res_value_decoded
+                    if attr.value_type == DeclareModelAttributeType.FLOAT_RANGE:
+                        num = int(res_value_decoded) / attr.attr_value.precision
+                    elif attr.value_type == DeclareModelAttributeType.INTEGER_RANGE:
+                        num = int(res_value_decoded)
+                    res_value_decoded = num
+        if isinstance(res_value_decoded, str):
+            return res_name_decoded, res_value_decoded.strip()
+        else:
+            return res_name_decoded, res_value_decoded
+
     def toPD(self, data) -> pd.DataFrame:
         activities = []
         for trace_type in data:
             for trace in data[trace_type]:
                 trace_id = trace["trace_name"]
                 for event in trace["events"]:
+                    traceEvent = {
+                        "case:concept:name": f'{trace_id}',
+                        "time:timestamp": datetime.now(), #.isoformat(),
+                        # "date": datetime.now(),
+                        "lifecycle:transition": event["lifecycle:transition"],
+                        "concept:name": event["ev"],
+                        "case:label": trace_type,  # "complete",
+                    }
                     for res in event["resources"]:
                         for k, v in res.items():
-                            activities.append({
-                                "caseId": f'{trace_id}',
-                                "timeStamp": datetime.now().isoformat(),
-                                "lifecycle:transition": event["lifecycle:transition"],
-                                "activity": event["ev"],
-                                "resourceName": k,
-                                "resourceValue": v,
-                                "trace_type": "complete",
-                                k: v
-                            })
-        data = {
-            # 'case:concept:name': [traceName['case:concept:name'] for traceName in activities],
-            # 'case:attribute': [traceName['case:attribute'] for traceName in activities],
-            # 'org:group': [traceName['org:group'] for traceName in activities],
-            # 'concept:name': [traceName['concept:name'] for traceName in activities],
-            # 'time:timestamp': [traceName['time:timestamp'] for traceName in activities],
-            'case:concept:name': [traceName['caseId'] for traceName in activities],
-            'case:label': [traceName['trace_type'] for traceName in activities],
-            'res:name': [traceName['resourceName'] for traceName in activities],  # resource value
-            'res:value': [traceName['resourceValue'] for traceName in activities],  # resource value
-            'concept:name': [traceName['activity'] for traceName in activities],
-            'lifecycle:transition': [traceName['lifecycle:transition'] for traceName in activities],
-            'time:timestamp': [traceName['timeStamp'] for traceName in activities],
-        }
-        log = pd.DataFrame(data)
-        return log
+                            traceEvent[k] = v
+                    activities.append(traceEvent)
+        df = pd.DataFrame(activities)
+        return df
 
     def to_xes(self, output_fn: str):
         """
@@ -570,11 +549,19 @@ class AspGenerator(LogGenerator):
         -------
 
         """
-        if self.event_log.log is None:
+        if self.traces_generated_events is None or len(self.traces_generated_events) == 0:
             self.__pm4py_log()
         pd_dataframe = self.toPD(self.traces_generated_events)
-        # pm4py.write_xes(self.event_log.log, output_fn)
+
         pm4py.write_xes(pd_dataframe, output_fn)
+        # ## Following code is to clean the NaN values not yet tested if it removes all event or just an attribute ##
+        # xes = pm4py.read_xes(output_fn)
+        # float_or_int_cols = pd_dataframe.select_dtypes(include=['float64', 'int64']).columns.tolist()
+        # cols_with_nan = pd_dataframe[float_or_int_cols].columns[pd_dataframe[float_or_int_cols].isna().any()].tolist()
+        # rows_to_remove = xes[cols_with_nan].isna().any(axis=1)
+        # cleaned_xes = xes[~rows_to_remove]
+        # pm4py.write_xes(cleaned_xes, output_fn)
+
 
     def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
         """
@@ -714,6 +701,8 @@ class AspGenerator(LogGenerator):
         if total_traces is None:
             total_traces = self.log_length
         traces_len = {}
+        if total_traces == 0:
+            return collections.Counter()
         if self.distributor_type == "gaussian":
             self.py_logger.info(f"Computing gaussian distribution with mu={self.loc} and sigma={self.scale}")
             assert self.loc > 1  # Mu atleast should be 2
