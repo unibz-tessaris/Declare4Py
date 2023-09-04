@@ -21,7 +21,7 @@ We recommend the use of a virtual environment to avoid possible clashes between 
 libraries. A virtual environment can be created with [Conda](https://conda.io/projects/conda/en/latest/index.html) 
 or with the [venv](https://docs.python.org/3/library/venv.html) Python utility. Once a virtual environment has been created,
 download the Declare4Py project on your local machine, activate the created virtual environment and use `pip` or `conda` 
-to install the required dependencies in the `requirements.txt` file.
+to install the required dependencies in the `requirements.txt` file. As an alternative you can install Declare4py from [PyPi](https://pypi.org/project/declare4py/).
 
 In addition, the [Lydia](https://github.com/whitemech/lydia) backend for the LTLf conformance checking need to be installed with Docker:
 1. Install [Docker](https://www.docker.com/get-started/);
