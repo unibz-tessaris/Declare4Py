@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import cProfile
 import logging
+import math
 
 from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.asp_generator import AspGenerator
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
@@ -148,11 +149,14 @@ def r_time():
 if __name__ == '__main__':
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/BusinessTrip.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/xRay.decl")
-    model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test.decl")
+    model: DeclareModel = DeclareModel().parse_from_file("../../tests/declare_models/drive_test_encode_free.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model1.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model2.decl")
     # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/model4.decl")
+    # model: DeclareModel = DeclareModel().parse_from_file("../../tests/test_models/sepsis.decl")
     print("Total Activities/Events: ", model.parsed_model.get_total_events())
     print("Total Attributes: ", len(model.parsed_model.attributes_list))
     print("Total Constraints: ", len(model.parsed_model.templates))
@@ -164,15 +168,18 @@ if __name__ == '__main__':
     num_of_traces = 5
     num_min_events = 5
     num_max_events = 10
-
     start_time = r_time()
-    asp = AspGenerator(
-            model, num_of_traces, num_min_events, num_max_events,
-            # encode_decl_model=False
-        )
-
-    asp.set_distribution(distributor_type="gaussian", loc=5, scale=2)
+    # asp = AspGenerator(
+    #         model, num_of_traces, num_min_events, num_max_events,
+    #         # encode_decl_model=False
+    #     )
+    asp = AspGenerator(model, 10, 10, 20)
+    # asp.set_distribution(distributor_type="gaussian", loc=5, scale=2)
     asp.run_parallel = False
+    # asp.set_activation_conditions({'Response[CRP, Release B] |A.org:group is J |T.org:group is A |': [2, 3]})
+    asp.set_activation_conditions_by_template_index({1: [2, 50]})
+    # asp.set_activation_conditions_by_template_index({1: [2, math.inf]})
+
     # asp.set_custom_trace_lengths({
     #     40: 10,
     #     42: 7,

@@ -166,15 +166,21 @@ class AspGenerator(LogGenerator):
                             f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
                 else:
                     # ie cond_num_list = [2, 4]
+                    # self.lp_model.add_asp_line(
+                    #     f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    # self.lp_model.add_asp_line(
+                    #     f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                    # if decl_template_parsed.template.both_activation_condition:
+                    #     self.lp_model.add_asp_line(
+                    #         f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    #     self.lp_model.add_asp_line(
+                    #         f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
                     self.lp_model.add_asp_line(
-                        f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
-                    self.lp_model.add_asp_line(
-                        f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                        f":- N = #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}}, N < {cond_num_list[0]}; N > {cond_num_list[1]}.")
                     if decl_template_parsed.template.both_activation_condition:
                         self.lp_model.add_asp_line(
-                            f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
-                        self.lp_model.add_asp_line(
-                            f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                            f":- N = #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}}, N < {cond_num_list[0]}; N > {cond_num_list[1]}.")
+
             else:
                 raise ValueError(
                     "Interval values are wrong. It must have only 2 values, represents, left and right interval")
@@ -222,7 +228,7 @@ class AspGenerator(LogGenerator):
 
         self.py_logger.debug("Generating traces")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
-        # print(lp)
+        # print(lp) 
         self.__generate_traces(lp, pos_traces_dist, "positive")
         if self.run_parallel:
             concurrent.futures.wait(self.parallel_futures)
@@ -551,6 +557,9 @@ class AspGenerator(LogGenerator):
         """
         if self.traces_generated_events is None or len(self.traces_generated_events) == 0:
             self.__pm4py_log()
+        if len(self.traces_generated_events['positive']) == 0 and len(self.traces_generated_events['negative']) == 0:
+            warnings.warn("Unable to produce the logs with given model and parameters set for it.")
+            return
         pd_dataframe = self.toPD(self.traces_generated_events)
 
         pm4py.write_xes(pd_dataframe, output_fn)
