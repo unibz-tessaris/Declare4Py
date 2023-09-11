@@ -6,7 +6,8 @@ import math
 import re
 import typing
 import warnings
-from datetime import datetime
+from datetime import datetime, timedelta
+import random
 from random import randrange
 
 import clingo
@@ -21,7 +22,7 @@ from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.distribution im
 from src.Declare4Py.ProcessMiningTasks.log_generator import LogGenerator
 from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
-    DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr
+    DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr, DeclareModelTemplate
 import concurrent.futures
 import pandas as pd
 
@@ -148,22 +149,31 @@ class AspGenerator(LogGenerator):
             if decl_template_parsed is None:
                 warnings.warn("Unexpected found. Same constraint templates are defined multiple times.")
             if len(cond_num_list) == 2:
+                decoder = {v: k for k, v in decl_template_parsed.events_activities[0].event_name.encoder.encoded_values.items()}
+
+                if (decl_template_parsed.template == DeclareModelTemplate.ALTERNATE_PRECEDENCE) or (decl_template_parsed.template == DeclareModelTemplate.PRECEDENCE) or (decl_template_parsed.template == DeclareModelTemplate.CHAIN_PRECEDENCE):
+                    B = decoder[decl_template_parsed.events_activities[0].event_name.value]
+                    A = decoder[decl_template_parsed.events_activities[1].event_name.value]
+                else:
+                    A = decoder[decl_template_parsed.events_activities[0].event_name.value]
+                    B = decoder[decl_template_parsed.events_activities[1].event_name.value]
+
                 if cond_num_list[0] <= 0:
                     # left side tends to -inf or 0 starting from cond_num_list[1]. cond_num_list = [0, 2]
                     # means it can have only at most 2 activations
                     self.lp_model.add_asp_line(
-                        f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
                     if decl_template_parsed.template.both_activation_condition:  # some templates's both conditions are activation conditions
                         self.lp_model.add_asp_line(
-                            f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
                 elif cond_num_list[1] == math.inf:
                     # right side tends to inf from cond_num_list[0] to +inf. cond_num_list = [2, math.inf]
                     # means it can have it should at least 2 activations and can go to infinite
                     self.lp_model.add_asp_line(
-                        f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
                     if decl_template_parsed.template.both_activation_condition:
                         self.lp_model.add_asp_line(
-                            f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
                 else:
                     # ie cond_num_list = [2, 4]
                     # self.lp_model.add_asp_line(
@@ -176,10 +186,15 @@ class AspGenerator(LogGenerator):
                     #     self.lp_model.add_asp_line(
                     #         f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
                     self.lp_model.add_asp_line(
-                        f":- N = #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}}, N < {cond_num_list[0]}; N > {cond_num_list[1]}.")
+                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} > {cond_num_list[1]}."
+                    )
                     if decl_template_parsed.template.both_activation_condition:
                         self.lp_model.add_asp_line(
-                            f":- N = #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}}, N < {cond_num_list[0]}; N > {cond_num_list[1]}.")
+                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
+                        self.lp_model.add_asp_line(
+                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[1]}.")
 
             else:
                 raise ValueError(
@@ -271,6 +286,8 @@ class AspGenerator(LogGenerator):
                 self.__generate_asp_trace(lp_model, events, traces, trace_type)
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
+        #import pdb
+        #pdb.set_trace()
         """
         Generate ASP trace using Clingo based on the given parameters and then generate also the variation
         Parameters
@@ -484,7 +501,7 @@ class AspGenerator(LogGenerator):
                         "ev": decl_model.decode_value(asp_event['name'], self.encode_decl_model),
                         "lifecycle:transition": "complete",
                         "resources": [],
-                        "time:timestamp": datetime.now()
+                        "time:timestamp": datetime.now() + timedelta(hours=trace_position, seconds=random.randint(0, 3599))
                     }
                     _instance["events"].append(_event)
                     for res in asp_event['resources']:
@@ -528,10 +545,10 @@ class AspGenerator(LogGenerator):
         for trace_type in data:
             for trace in data[trace_type]:
                 trace_id = trace["trace_name"]
-                for event in trace["events"]:
+                for id_ev, event in enumerate(trace["events"]):
                     traceEvent = {
                         "case:concept:name": f'{trace_id}',
-                        "time:timestamp": datetime.now(), #.isoformat(),
+                        "time:timestamp": datetime.now() + timedelta(hours=id_ev, seconds=random.randint(0, 3599)), #.isoformat(),
                         # "date": datetime.now(),
                         "lifecycle:transition": event["lifecycle:transition"],
                         "concept:name": event["ev"],
@@ -561,7 +578,7 @@ class AspGenerator(LogGenerator):
             warnings.warn("Unable to produce the logs with given model and parameters set for it.")
             return
         pd_dataframe = self.toPD(self.traces_generated_events)
-
+        pd_dataframe.dropna(axis='columns', how='all')
         pm4py.write_xes(pd_dataframe, output_fn)
         # ## Following code is to clean the NaN values not yet tested if it removes all event or just an attribute ##
         # xes = pm4py.read_xes(output_fn)
