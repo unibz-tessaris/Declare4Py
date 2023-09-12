@@ -53,7 +53,6 @@ Hypoxie: false, true
 DiagnosticUrinarySediment: true, false
 DiagnosticECG: true, false
 Init[ER Registration] | |
-Response[Admission NC, Release B] | | |
+Chain Response[ER Registration, ER Triage]
 Precedence[IV Liquid, Admission NC] | | |
-Chain Response[ER Registration, ER Triage] |A.org:group is J |T.org:group is A |
-Chain Response[LacticAcid, Leucocytes] |A.LacticAcid <= 0.8 |T.Leucocytes >= 13.8 |
+Response[CRP, Release B] |A.org:group is J |T.org:group is A |
