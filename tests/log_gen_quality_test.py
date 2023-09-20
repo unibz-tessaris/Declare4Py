@@ -10,7 +10,7 @@ ascii_offset = 161
 attribute_name = 'concept:name'
 attribute_name = 'org:group'
 
-log = xes_importer.apply(os.path.join("test_logs", 'sepsis.xes'))
+log = xes_importer.apply(os.path.join("test_logs", 'RTFM_exp.xes'))
 simplified_log = []
 act_loc_set = set()
 for trace in log:
