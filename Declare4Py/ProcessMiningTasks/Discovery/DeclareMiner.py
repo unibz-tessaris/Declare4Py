@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from abc import ABC
 
-from src.Declare4Py.D4PyEventLog import D4PyEventLog
-from src.Declare4Py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
-from src.Declare4Py.Utils.Declare.Checkers import ConstraintChecker
+from Declare4Py.D4PyEventLog import D4PyEventLog
+from Declare4Py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
+from Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
+from Declare4Py.Utils.Declare.Checkers import ConstraintChecker
 
 
 

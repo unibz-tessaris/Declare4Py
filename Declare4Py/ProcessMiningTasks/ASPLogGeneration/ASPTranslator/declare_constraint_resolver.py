@@ -5,7 +5,7 @@ import typing
 
 import boolean
 
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelConstraintTemplate, \
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelConstraintTemplate, \
     DeclareModelAttr, DeclareModelEvent, DeclareModelAttrValue, DeclareModelToken
 
 

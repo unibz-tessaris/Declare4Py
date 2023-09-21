@@ -6,10 +6,10 @@ from datetime import timedelta
 from math import ceil
 from typing import List, Optional
 
-from src.Declare4Py.D4PyEventLog import D4PyEventLog
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelConditionParserUtility, DeclareModelTemplate
-from src.Declare4Py.Utils.Declare.TraceStates import TraceState
+from Declare4Py.D4PyEventLog import D4PyEventLog
+from Declare4Py.ProcessModels.DeclareModel import DeclareModel
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelConditionParserUtility, DeclareModelTemplate
+from Declare4Py.Utils.Declare.TraceStates import TraceState
 from numba import jit
 from numba.experimental import jitclass
 import numba

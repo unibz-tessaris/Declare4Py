@@ -14,14 +14,14 @@ import clingo
 import pm4py
 from clingo import Symbol
 
-from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPTranslator.asp_translator import ASPModel
-from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_encoding import ASPEncoding
-from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_result_parser import ASPResultTraceModel
-from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_template import ASPTemplate
-from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.distribution import Distributor
-from src.Declare4Py.ProcessMiningTasks.log_generator import LogGenerator
-from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
+from Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPTranslator.asp_translator import ASPModel
+from Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_encoding import ASPEncoding
+from Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_result_parser import ASPResultTraceModel
+from Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_template import ASPTemplate
+from Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.distribution import Distributor
+from Declare4Py.ProcessMiningTasks.log_generator import LogGenerator
+from Declare4Py.ProcessModels.AbstractModel import ProcessModel
+from Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
     DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr, DeclareModelTemplate
 import concurrent.futures
 import pandas as pd

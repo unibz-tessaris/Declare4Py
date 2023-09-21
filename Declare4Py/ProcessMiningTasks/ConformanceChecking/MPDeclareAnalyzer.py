@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from src.Declare4Py.D4PyEventLog import D4PyEventLog
-from src.Declare4Py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
-from src.Declare4Py.ProcessMiningTasks.ConformanceChecking.MPDeclareResultsBrowser import MPDeclareResultsBrowser
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
-from src.Declare4Py.Utils.Declare.Checkers import ConstraintChecker
+from Declare4Py.D4PyEventLog import D4PyEventLog
+from Declare4Py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
+from Declare4Py.ProcessMiningTasks.ConformanceChecking.MPDeclareResultsBrowser import MPDeclareResultsBrowser
+from Declare4Py.ProcessModels.DeclareModel import DeclareModel
+from Declare4Py.Utils.Declare.Checkers import ConstraintChecker
 
 """
 Provides basic conformance checking functionalities

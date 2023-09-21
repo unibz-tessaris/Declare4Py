@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC
-from src.Declare4Py.D4PyEventLog import D4PyEventLog
-from src.Declare4Py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
-from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
+from Declare4Py.D4PyEventLog import D4PyEventLog
+from Declare4Py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
+from Declare4Py.ProcessModels.AbstractModel import ProcessModel
 
 """
 Initializes class QueryChecking, inheriting from class PMTask

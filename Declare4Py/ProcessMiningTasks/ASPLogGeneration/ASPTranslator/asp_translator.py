@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import typing
 
-from src.Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPTranslator.declare_constraint_resolver import \
+from Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPTranslator.declare_constraint_resolver import \
     DeclareModelConditionResolver2ASP
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelEvent, DeclareModelAttr
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelEvent, DeclareModelAttr
+from Declare4Py.ProcessModels.DeclareModel import DeclareModel
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
 
 
 class ASPModel:

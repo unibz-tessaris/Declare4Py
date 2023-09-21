@@ -5,7 +5,7 @@ import typing
 from abc import ABC
 from enum import Enum
 
-from src.Declare4Py.ProcessModels.LTLModel import LTLModel
+from Declare4Py.ProcessModels.LTLModel import LTLModel
 
 
 class DeclareModelTemplate(str, Enum):

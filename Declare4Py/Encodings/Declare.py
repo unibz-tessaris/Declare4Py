@@ -1,16 +1,16 @@
 import pdb
 
-from src.Declare4Py.D4PyEventLog import D4PyEventLog
+from Declare4Py.D4PyEventLog import D4PyEventLog
 from sklearn.base import TransformerMixin, BaseEstimator
 import pandas as pd
 import numpy as np
 from time import time
 from typing import Union, List
 from pandas import DataFrame, Index
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModel
-from src.Declare4Py.ProcessModels.DeclareModel import DeclareModelTemplate
-from src.Declare4Py.ProcessMiningTasks.ConformanceChecking.MPDeclareAnalyzer import MPDeclareAnalyzer
-from src.Declare4Py.ProcessMiningTasks.ConformanceChecking.MPDeclareResultsBrowser import MPDeclareResultsBrowser
+from Declare4Py.ProcessModels.DeclareModel import DeclareModel
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelTemplate
+from Declare4Py.ProcessMiningTasks.ConformanceChecking.MPDeclareAnalyzer import MPDeclareAnalyzer
+from Declare4Py.ProcessMiningTasks.ConformanceChecking.MPDeclareResultsBrowser import MPDeclareResultsBrowser
 
 
 class Declare(BaseEstimator, TransformerMixin):

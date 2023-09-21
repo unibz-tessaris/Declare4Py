@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import List, Union, Optional
-from src.Declare4Py.Utils.Declare.Checkers import CheckerResult
+from Declare4Py.Utils.Declare.Checkers import CheckerResult
 import pandas as pd
 
 """

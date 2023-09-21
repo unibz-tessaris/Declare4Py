@@ -7,10 +7,10 @@ import time
 from pm4py.objects.log.obj import Trace
 from pythomata.impl.symbolic import SymbolicDFA
 from pylogics.parsers import parse_ltl
-from src.Declare4Py.D4PyEventLog import D4PyEventLog
-from src.Declare4Py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
-from src.Declare4Py.ProcessModels.LTLModel import LTLModel
-from src.Declare4Py.Utils.utils import Utils
+from Declare4Py.D4PyEventLog import D4PyEventLog
+from Declare4Py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
+from Declare4Py.ProcessModels.LTLModel import LTLModel
+from Declare4Py.Utils.utils import Utils
 from logaut import ltl2dfa
 from functools import reduce
 import pandas

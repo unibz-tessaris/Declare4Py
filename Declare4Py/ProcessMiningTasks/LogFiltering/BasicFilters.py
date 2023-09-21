@@ -1,4 +1,4 @@
-from src.Declare4Py.D4PyEventLog import D4PyEventLog
+from Declare4Py.D4PyEventLog import D4PyEventLog
 
 import pm4py
 from pm4py.objects.log.obj import EventLog, Trace

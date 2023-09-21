@@ -13,7 +13,7 @@ from pm4py.objects.log.obj import EventLog, Trace
 from typing import List, Optional, Tuple, Dict
 
 from pandas import DataFrame
-from src.Declare4Py.Encodings.Aggregate import Aggregate
+from Declare4Py.Encodings.Aggregate import Aggregate
 
 
 class D4PyEventLog:

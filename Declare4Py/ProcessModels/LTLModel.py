@@ -2,9 +2,9 @@ from abc import ABC
 
 from logaut import ltl2dfa
 
-from src.Declare4Py.ProcessModels.AbstractModel import ProcessModel
+from Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from pylogics.parsers import parse_ltl
-from src.Declare4Py.Utils.utils import Utils
+from Declare4Py.Utils.utils import Utils
 from typing import List
 
 
