@@ -11,7 +11,7 @@ setup(
     name="declare4py",
     version='{{VERSION_PLACEHOLDER}}',
     author="Ivan Donadello, Fabrizio Maria Maggi, Francesco Riva",
-    author_email="donadelloivan@gmail.com",
+    author_email="donadelloivan@gmail.com, maggi@inf.unibz.it, Francesco.Riva@unibz.it",
     description="Python library to perform discovery, conformance checking and query checking of DECLARE constraints.",
     url = "https://github.com/ivanDonadello/Declare4Py",
     long_description_content_type="text/markdown",
