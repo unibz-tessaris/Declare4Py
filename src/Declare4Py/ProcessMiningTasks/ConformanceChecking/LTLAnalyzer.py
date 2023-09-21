@@ -20,6 +20,95 @@ Provides basic conformance checking functionalities
 """
 
 
+def is_sink(dfa: SymbolicDFA, current_state: int):
+    sink = True
+    for output_state in dfa._transition_function[current_state].keys():
+        if output_state != current_state:
+            sink = False
+    return sink
+
+
+def run_single_trace(trace: Trace, dfa: SymbolicDFA, backend, attribute_type: [str] = ['concept:name']) -> bool:
+    """
+    Function that is run when then 'jobs' count is set to 1. It checks if the automata can reach the accepting state or not.
+    Args:
+        trace: A trace of the log
+        dfa: the automata
+        backend: backend used in the creation of the automata
+        attribute_type: the type of the attributes used in the formula.
+
+    Returns:
+        bool: If the automata reached its final state
+    """
+    current_states = {dfa.initial_state}
+    for event in trace:
+        temp = dict()
+        for attribute in attribute_type:
+            symbol = event[attribute]
+            symbol = Utils.parse_parenthesis(symbol)
+            symbol = Utils.encode_attribute_type(attribute) + "_" + symbol
+            symbol = Utils.parse_activity(symbol)
+            if backend == 'lydia':
+                symbol = symbol.lower()
+            else:
+                symbol = symbol.upper()
+            temp[symbol] = True
+
+        current_states = reduce(
+            set.union,
+            map(lambda x: dfa.get_successors(x, temp), current_states),
+            set(),
+        )
+
+        sink_state = all(is_sink(dfa, state) for state in current_states)
+        if sink_state:
+            break
+
+    is_accepted = any(dfa.is_accepting(state) for state in current_states)
+    return is_accepted
+
+
+def run_single_trace_par(args):
+    """
+    Function that is run when then 'jobs' count is greater than 1. It checks if the automata can reach the accepting
+    state or not.
+    Args:
+        args: same arguments as above
+
+    Returns:
+
+    """
+    trace, dfa, backend, attributes = args
+
+    # Run single trace
+    is_accepted = run_single_trace(trace, dfa, backend, attributes)
+    return trace.attributes['concept:name'], is_accepted
+
+
+def run_single_trace_par_MM(args):
+    """
+    Same as the other run_trace functions, with the exception that this function is called when using multiple
+    models.
+    Args:
+        args:
+
+    Returns:
+
+    """
+    trace, list_LTLModels = args
+    is_accepted = True
+    for unpacked_model in list_LTLModels:
+        backend2dfa = unpacked_model[0]
+        dfa = unpacked_model[1]
+        attributes = unpacked_model[2]
+
+        # Run single trace
+        is_accepted = run_single_trace(trace, dfa, backend2dfa, attributes)
+        if not is_accepted:
+            return trace.attributes['concept:name'], is_accepted
+    return trace.attributes['concept:name'], is_accepted
+
+
 class LTLAnalyzer(AbstractConformanceChecking):
 
     def __init__(self, log: D4PyEventLog, *args):
@@ -34,118 +123,6 @@ class LTLAnalyzer(AbstractConformanceChecking):
         else:
             self.log = log
             self.list_LTLModels = args[0]
-
-    @staticmethod
-    def run_single_trace(trace: Trace, dfa: SymbolicDFA, backend, attribute_type: [str] = ['concept:name']) -> bool:
-        """
-        Function that is run when then 'jobs' count is set to 1. It checks if the automata can reach the accepting state or not.
-        Args:
-            trace: A trace of the log
-            dfa: the automata
-            backend: backend used in the creation of the automata
-            attribute_type: the type of the attributes used in the formula.
-
-        Returns:
-            bool: If the automata reached its final state
-        """
-        current_states = {dfa.initial_state}
-        for event in trace:
-            temp = dict()
-            for attribute in attribute_type:
-                symbol = event[attribute]
-                symbol = Utils.parse_parenthesis(symbol)
-                symbol = Utils.encode_attribute_type(attribute) + "_" + symbol
-                symbol = Utils.parse_activity(symbol)
-                if backend == 'lydia':
-                    symbol = symbol.lower()
-                else:
-                    symbol = symbol.upper()
-                temp[symbol] = True
-
-                current_states = reduce(
-                    set.union,
-                    map(lambda x: dfa.get_successors(x, temp), current_states),
-                    set(),
-                )
-
-        is_accepted = any(dfa.is_accepting(state) for state in current_states)
-        return is_accepted
-
-    @staticmethod
-    def run_single_trace_par(args):
-        """
-        Function that is run when then 'jobs' count is greater than 1. It checks if the automata can reach the accepting state or not.
-        Args:
-            args: same arguments as above
-
-        Returns:
-
-        """
-        trace, dfa, attributes = args
-        current_states = {dfa.initial_state}
-
-        for event in trace:
-            temp = dict()
-            for attribute in attributes:
-                symbol = event[attribute]
-                symbol = Utils.parse_parenthesis(symbol)
-                symbol = Utils.encode_attribute_type(attribute) + "_" + symbol
-                symbol = Utils.parse_activity(symbol)
-                symbol = symbol.lower()
-                temp[symbol] = True
-
-                current_states = reduce(
-                    set.union,
-                    map(lambda x: dfa.get_successors(x, temp), current_states),
-                    set(),
-                )
-
-        is_accepted = any(dfa.is_accepting(state) for state in current_states)
-        return trace.attributes['concept:name'], is_accepted
-
-    @staticmethod
-    def run_single_trace_par_MM(args):
-        """
-        Same as the other run_trace functions, with the exception that this function is called when using multiple models.
-        Args:
-            args:
-
-        Returns:
-
-        """
-        trace, list_LTLModels = args
-        is_accepted = True
-        for unpacked_model in list_LTLModels:
-            backend2dfa = unpacked_model[0]
-            dfa = unpacked_model[1]
-            attributes = unpacked_model[2]
-
-            # Run single trace
-            current_states = {dfa.initial_state}
-            for event in trace:
-                temp = dict()
-                for attribute in attributes:
-                    symbol = event[attribute]
-                    symbol = Utils.parse_parenthesis(symbol)
-                    symbol = Utils.encode_attribute_type(attribute) + "_" + symbol
-                    symbol = Utils.parse_activity(symbol)
-                    if backend2dfa == 'lydia':
-                        symbol = symbol.lower()
-                    else:
-                        symbol = symbol.upper()
-                    temp[symbol] = True
-
-                    current_states = reduce(
-                        set.union,
-                        map(lambda x: dfa.get_successors(x, temp), current_states),
-                        set(),
-                    )
-
-            is_accepted = any(dfa.is_accepting(state) for state in current_states)
-
-            if not is_accepted:
-                return trace.attributes['concept:name'], is_accepted
-        return trace.attributes['concept:name'], is_accepted
 
     def run(self, jobs: int = 1, minimize_automaton: bool = True) -> pandas.DataFrame:
         """
@@ -182,12 +159,13 @@ class LTLAnalyzer(AbstractConformanceChecking):
         if sequential:
             results = []
             for trace in g_log:
-                is_accepted = self.run_single_trace(trace, dfa, backend2dfa, attributes)
+                is_accepted = run_single_trace(trace, dfa, backend2dfa, attributes)
                 results.append([trace.attributes[self.event_log.activity_key], is_accepted])
         else:
             traces = g_log._list
             with multiprocessing.Pool(processes=workers) as pool:
-                results = pool.map(self.run_single_trace_par, zip(traces, [dfa] * len(traces),
+                results = pool.map(run_single_trace_par, zip(traces, [dfa] * len(traces),
+                                                                  [backend2dfa] * len(traces)
                                                                   [attributes] * len(traces)))
         return pandas.DataFrame(results, columns=[self.event_log.case_id_key, "accepted"])
 
@@ -225,12 +203,13 @@ class LTLAnalyzer(AbstractConformanceChecking):
                     temp_list = []
                     backend2dfa = model.backend
                     dfa = ltl2dfa(model.parsed_formula, backend=model.backend)
+
                     if minimize_automaton:
                         dfa = dfa.minimize()
 
                     attributes = model.attribute_type
                     for trace in g_log:
-                        is_accepted = self.run_single_trace(trace, dfa, backend2dfa, attributes)
+                        is_accepted = run_single_trace(trace, dfa, backend2dfa, attributes)
                         if is_accepted:
                             temp_list.append(trace)
                         results[trace.attributes[self.log.activity_key]] = is_accepted
@@ -249,7 +228,7 @@ class LTLAnalyzer(AbstractConformanceChecking):
                         dfa = dfa.minimize()
                     tmp_model_list.append((model.backend, dfa, model.attribute_type))
 
-                results = pool.map(self.run_single_trace_par_MM, zip(traces, [tmp_model_list]*len(traces)))
+                results = pool.map(run_single_trace_par_MM, zip(traces, [tmp_model_list]*len(traces)))
 
         return pandas.DataFrame(results, columns=[self.log.case_id_key, "accepted"])
 

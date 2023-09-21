@@ -7,14 +7,16 @@ import pdb
 num_traces = 100
 res_list = []
 ascii_offset = 161
+attribute_name = 'concept:name'
+attribute_name = 'org:group'
 
-log = xes_importer.apply(os.path.join("test_logs", 'tele.xes'))
+log = xes_importer.apply(os.path.join("test_logs", 'RTFM_exp.xes'))
 simplified_log = []
 act_loc_set = set()
 for trace in log:
     tmp_trace = ""
     for event in trace:
-        activity_name = event['concept:name']
+        activity_name = event[attribute_name]
         act_loc_set.add(activity_name)
         tmp_trace += f"{activity_name}@"
     simplified_log.append(tmp_trace[:-1])
