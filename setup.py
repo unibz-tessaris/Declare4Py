@@ -1,6 +1,3 @@
-"""
-Sample setup.py file
-"""
 from setuptools import setup, find_packages
 import codecs
 import os
@@ -19,7 +16,8 @@ setup(
     url = "https://github.com/ivanDonadello/Declare4Py",
     long_description_content_type="text/markdown",
     long_description=long_description,
-    packages=find_packages(),
+    packages=find_packages(include=['Declare4Py*']),
+    include_package_data=True,
     install_requires=['numpy', 'pandas', 'pm4py', 'matplotlib', 'boolean.py', 'clingo'],
     keywords=['python', 'bpm', 'declare', 'process-mining', 'rule-mining', 'business-process-management', 'declarative-process-models'],
     classifiers=[
