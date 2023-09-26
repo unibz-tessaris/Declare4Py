@@ -10,10 +10,6 @@ from Declare4Py.D4PyEventLog import D4PyEventLog
 from Declare4Py.ProcessModels.DeclareModel import DeclareModel
 from Declare4Py.ProcessModels.DeclareModel import DeclareModelConditionParserUtility, DeclareModelTemplate
 from Declare4Py.Utils.Declare.TraceStates import TraceState
-from numba import jit
-from numba.experimental import jitclass
-import numba
-from numba.typed import typeddict, typedlist
 glob = {'__builtins__': None}
 
 
@@ -91,14 +87,7 @@ class ConstraintChecker:
             if event_log.get_length() - (i + 1) < ceil(event_log.get_length() * min_support) - sat_ctr:
                 return False # None
         return False # None
-#spec = [
-#    ('traces', typeddict.DictType()), # Creates the dictionary and its types. Controllare con Ivan
-#    ('completed', numba.boolean),
-#    ('activities', typedlist.ListType(numba.types.string)), # Creates the List and its type
-#    ('rules', typeddict.DictType()),# Creates the dictionary and its types
-#    ('concept_name', numba.string)
-#]
-#@jitclass(spec)
+
 class TemplateConstraintChecker(ABC):
 
     def __init__(self, traces: dict, completed: bool, activities: List[str], rules: dict,
