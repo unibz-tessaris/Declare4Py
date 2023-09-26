@@ -15,7 +15,7 @@ glob = {'__builtins__': None}
 
 class ConstraintChecker:
 
-    def check_trace_conformance(trace: dict, decl_model: DeclareModel, consider_vacuity: bool = False,
+    def check_trace_conformance(self, trace: dict, decl_model: DeclareModel, consider_vacuity: bool = False,
                                 concept_name: str = "concept:name") -> List[CheckerResult]:
         """
         Checks whether the constraints are fulfillment, violation, pendings, activations etc
