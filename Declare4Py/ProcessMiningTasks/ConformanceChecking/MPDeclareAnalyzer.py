@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pdb
+
 from Declare4Py.D4PyEventLog import D4PyEventLog
 from Declare4Py.ProcessMiningTasks.AbstractConformanceChecking import AbstractConformanceChecking
 from Declare4Py.ProcessMiningTasks.ConformanceChecking.MPDeclareResultsBrowser import MPDeclareResultsBrowser
@@ -41,6 +43,7 @@ class MPDeclareAnalyzer(AbstractConformanceChecking):
 
         log_checkers_results = []
         for trace in self.event_log.get_log():
+            pdb.set_trace()
             log_checkers_results.append(ConstraintChecker().check_trace_conformance(trace, self.process_model,
                                                                                     self.consider_vacuity,
                                                                                     self.event_log.activity_key))
