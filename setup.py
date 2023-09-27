@@ -18,7 +18,7 @@ setup(
     long_description=long_description,
     packages=find_packages(include=['Declare4Py*']),
     include_package_data=True,
-    install_requires=['numpy', 'pandas', 'pm4py', 'matplotlib', 'boolean.py', 'clingo'],
+    install_requires=['numpy', 'pandas', 'pm4py', 'matplotlib', 'boolean.py', 'clingo', 'ltlf2dfa'],
     keywords=['python', 'bpm', 'declare', 'process-mining', 'rule-mining', 'business-process-management', 'declarative-process-models'],
     classifiers=[
         "Development Status :: 3 - Alpha",
