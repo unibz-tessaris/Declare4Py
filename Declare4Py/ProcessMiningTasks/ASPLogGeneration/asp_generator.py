@@ -24,7 +24,7 @@ from Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
     DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr, DeclareModelTemplate
 import concurrent.futures
-import pandas as pd
+
 
 class LogTracesType(typing.TypedDict):
     positive: typing.List
@@ -142,8 +142,8 @@ class AspGenerator(LogGenerator):
         # decl_model.templates[0].template_line
         for template_def, cond_num_list in self.activation_conditions.items():
             template_def = template_def.strip()
-            decl_template_parsed: [DeclareModelConstraintTemplate] = [val for key, val in decl_model.templates.items()
-                                                                      if val.line == template_def]
+            decl_template_parsed: list[DeclareModelConstraintTemplate] = [val for key, val in decl_model.templates.items()
+                                                                          if val.line == template_def]
             decl_template_parsed: DeclareModelConstraintTemplate = decl_template_parsed[0]
             asp_template_idx = decl_template_parsed.template_index
             if decl_template_parsed is None:
@@ -286,8 +286,6 @@ class AspGenerator(LogGenerator):
                 self.__generate_asp_trace(lp_model, events, traces, trace_type)
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
-        #import pdb
-        #pdb.set_trace()
         """
         Generate ASP trace using Clingo based on the given parameters and then generate also the variation
         Parameters
@@ -540,26 +538,31 @@ class AspGenerator(LogGenerator):
         else:
             return res_name_decoded, res_value_decoded
 
-    def toPD(self, data) -> pd.DataFrame:
-        activities = []
+    def toEventLog(self, data) -> pm4py.objects.log.obj.EventLog:
+        log = pm4py.objects.log.obj.EventLog(attributes={'concept:name': 'ASP Synthetic Log'})
         for trace_type in data:
             for trace in data[trace_type]:
-                trace_id = trace["trace_name"]
+                log_trace = pm4py.objects.log.obj.Trace(attributes={
+                    'concept:name': trace['trace_name'],
+                    "label": trace_type
+                })
+
                 for id_ev, event in enumerate(trace["events"]):
-                    traceEvent = {
-                        "case:concept:name": f'{trace_id}',
-                        "time:timestamp": datetime.now() + timedelta(hours=id_ev, seconds=random.randint(0, 3599)), #.isoformat(),
-                        # "date": datetime.now(),
-                        "lifecycle:transition": event["lifecycle:transition"],
+                    attributes = {
                         "concept:name": event["ev"],
-                        "case:label": trace_type,  # "complete",
+                        "lifecycle:transition": event["lifecycle:transition"],
+                        "time:timestamp": datetime.now() + timedelta(hours=id_ev, seconds=random.randint(0,3599))
                     }
-                    for res in event["resources"]:
-                        for k, v in res.items():
-                            traceEvent[k] = v
-                    activities.append(traceEvent)
-        df = pd.DataFrame(activities)
-        return df
+
+                    for att in event['resources']:
+                        attributes.update(att)
+
+                    log_event = pm4py.objects.log.obj.Event(attributes)
+                    log_trace.append(log_event)
+
+                log.append(log_trace)
+
+        return log
 
     def to_xes(self, output_fn: str):
         """
@@ -577,16 +580,8 @@ class AspGenerator(LogGenerator):
         if len(self.traces_generated_events['positive']) == 0 and len(self.traces_generated_events['negative']) == 0:
             warnings.warn("Unable to produce the logs with given model and parameters set for it.")
             return
-        pd_dataframe = self.toPD(self.traces_generated_events)
-        pd_dataframe.dropna(axis='columns', how='all')
-        pm4py.write_xes(pd_dataframe, output_fn)
-        # ## Following code is to clean the NaN values not yet tested if it removes all event or just an attribute ##
-        # xes = pm4py.read_xes(output_fn)
-        # float_or_int_cols = pd_dataframe.select_dtypes(include=['float64', 'int64']).columns.tolist()
-        # cols_with_nan = pd_dataframe[float_or_int_cols].columns[pd_dataframe[float_or_int_cols].isna().any()].tolist()
-        # rows_to_remove = xes[cols_with_nan].isna().any(axis=1)
-        # cleaned_xes = xes[~rows_to_remove]
-        # pm4py.write_xes(cleaned_xes, output_fn)
+        log = self.toEventLog(self.traces_generated_events)
+        pm4py.write_xes(log, output_fn)
 
 
     def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
