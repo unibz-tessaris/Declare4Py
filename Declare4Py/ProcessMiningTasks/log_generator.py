@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections
 import logging
 import typing
 from abc import ABC
@@ -22,27 +23,40 @@ PMTask inheriting from PMTask
 
 class LogGenerator(AbstractPMTask, ABC):
 
-    def __init__(self, num_traces: int, min_event: int, max_event: int, p_model: ProcessModel):
+    def __init__(self,
+                 num_traces: int,
+                 min_event: int,
+                 max_event: int,
+                 p_model: ProcessModel
+                 ):
+
         super().__init__(None, p_model)
-        if min_event > max_event :
-            raise ValueError(f"min_events({min_event}) > max_events({max_event}) not valid! Min events are greater than max events")
-        if min_event < 0:
-            raise ValueError(f"min_events({min_event}) > max_events({max_event}) not valid!")
-        if min_event < 0 or max_event < 0:
+
+        """INIT Conditions"""
+        if min_event > max_event:
+            raise ValueError(f"min_events({min_event}) > max_events({max_event})! "
+                             f"Min events should no be greater than max events")
+        if min_event < 0 and max_event < 0:
             raise ValueError(f"min and max events should be greater than 0!")
+        if min_event < 0:
+            raise ValueError(f"min_events({min_event}) should be greater than 0!")
+        if max_event < 0:
+            raise ValueError(f"max_events({max_event}) should be greater than 0!")
         if not isinstance(min_event, int) or not isinstance(max_event, int):
             raise ValueError(f"min_events or/and max_events are not valid!")
+
+        """DEF"""
         self.__py_logger = logging.getLogger("Log generator")
         self.log_length: int = num_traces
         self.max_events: int = max_event
         self.min_events: int = min_event
 
         # Distributions Setting
-        self.traces_length = {}
+        self.traces_length: typing.Union[collections.Counter, typing.Dict] = {}
         self.distributor_type: typing.Literal["uniform", "gaussian", "custom"] = "uniform"
         self.custom_probabilities: None = None
-        self.scale: float = None
-        self.loc: float = None
+        self.scale: typing.Union[float, None] = None
+        self.loc: typing.Union[float, None] = None
 
         # Constraint violations
         """
@@ -51,7 +65,7 @@ class LogGenerator(AbstractPMTask, ABC):
         constraint " Response[Driving_Test, Resit] |A.Grade<=2 | " is not satisfied, i.e. it is violated!
         """
         self.violate_all_constraints: bool = False  # if false: clingo will decide itself the constraints to violate
-        self.violatable_constraints: [str] = []  # constraint list which should be violated
+        self.violable_constraints: [str] = []  # constraint list which should be violated
         self.negative_traces = 0
 
         # constraint template conditions
@@ -59,8 +73,8 @@ class LogGenerator(AbstractPMTask, ABC):
 
     def add_constraints_to_violate(self, constrains_to_violate: typing.Union[str, list[str]] = True):
         if isinstance(constrains_to_violate, str):
-            self.violatable_constraints.append(constrains_to_violate)
+            self.violable_constraints.append(constrains_to_violate)
         else:
-            self.violatable_constraints = constrains_to_violate
+            self.violable_constraints = constrains_to_violate
         return self
 

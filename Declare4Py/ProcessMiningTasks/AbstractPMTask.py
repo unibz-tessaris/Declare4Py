@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing
 from typing import Any
 from abc import abstractmethod
 
@@ -21,8 +22,8 @@ class AbstractPMTask:
         the process model
     """
 
-    def __init__(self, log: D4PyEventLog, process_model: ProcessModel):
-        self.event_log: D4PyEventLog = log
+    def __init__(self, log: typing.Union[D4PyEventLog, None], process_model: ProcessModel):
+        self.event_log: typing.Union[D4PyEventLog, None] = log
         self.process_model: ProcessModel = process_model
 
     @abstractmethod

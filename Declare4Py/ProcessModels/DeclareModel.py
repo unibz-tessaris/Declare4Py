@@ -36,7 +36,7 @@ class DeclareModelTemplate(str, Enum):
 
     def __init__(self, templ_str: str, is_binary: bool, is_negative: bool, supports_cardinality: bool,
                  both_activation_condition: bool = False, is_shortcut: bool = False,
-                 reverseActivationTarget: bool = False):
+                 reverse_activation_target: bool = False):
         """
         Initializes a DeclareModelTemplate instance with the provided attributes.
 
@@ -54,7 +54,7 @@ class DeclareModelTemplate(str, Enum):
             "Existence4[A]|||" means it should occur at least 4 times.
         both_activation_condition: bool
             Whether some templates don't have a target condition, and both conditions are activation conditions.
-        reverseActivationTarget: bool
+        reverse_activation_target: bool
             Whether some constraint templates have reverse activation and target conditions.
         """
         self.templ_str = templ_str
@@ -63,7 +63,7 @@ class DeclareModelTemplate(str, Enum):
         self.supports_cardinality = supports_cardinality
         self.both_activation_condition = both_activation_condition
         self.is_shortcut = is_shortcut
-        self.reverseActivationTarget = reverseActivationTarget
+        self.reverseActivationTarget = reverse_activation_target
 
     EXISTENCE = "Existence", False, False, True, False, False, False
     ABSENCE = "Absence", False, False, True, False, False, False
@@ -356,6 +356,10 @@ class DeclareModelAttributeType(str, Enum):
         return "\"" + self.__str__() + "\""
 
 
+class DeclareEncoderMeta(type):
+    pass
+
+
 class DeclareModelCoderSingletonMeta(type):
     """
         DeclareModelCoderSingletonMeta is a custom metaclass that implements the singleton pattern in Python.
@@ -545,7 +549,7 @@ class DeclareModelEventType(DeclareModelToken):
         super().__init__(name, "event_name")
 
 
-class DeclareModelEvent:
+class DeclareModelEvent(DeclareModelToken):
     """
     A class representing an event in a Declare Model, containing the event name, event type, and attributes.
     """
@@ -560,11 +564,11 @@ class DeclareModelEvent:
         event_type: str
             The event type, e.g., in activity(actName), activity is the event type.
         """
-        self.event_name = DeclareModelEventName(name)
-        self.event_type = DeclareModelEventType(event_type)
+        self.event_name: str = name
+        self.event_type: str = event_type
         self.attributes: dict[str, DeclareModelAttr] = {}
 
-    def set_bound_attributes(self, attrs_list: [DeclareModelAttr]) -> None:
+    def set_bound_attributes(self, attrs_list: typing.List[DeclareModelAttr]):
         """
         Sets the bound attributes for the event.
 
@@ -575,9 +579,8 @@ class DeclareModelEvent:
         """
         self.attributes = {}
         for i in attrs_list:
-            attrModel: DeclareModelAttr = i
-            self.attributes[attrModel.attr_name] = attrModel
-            j = j + 1
+            attr_model: DeclareModelAttr = i
+            self.attributes[attr_model.attr_name] = attr_model
 
     def set_bound_attribute(self, attr: DeclareModelAttr) -> None:
         """
@@ -599,7 +602,7 @@ class DeclareModelEvent:
         str
             The name of the event.
         """
-        return self.event_name.get_name()
+        return self.event_name
 
     def to_dict(self) -> dict:
         """
@@ -612,9 +615,9 @@ class DeclareModelEvent:
             and bound attributes resources.
         """
         return {
-            "event_type": self.event_type.get_name(),
-            "event_encoded_type": self.event_type.get_encoded_name(),
-            "event_name": self.event_name.get_name(),
+            "event_type": self.event_type,
+            "event_encoded_type": self.get_encoded_name(),
+            "event_name": self.event_name,
             "event_encoded_name": self.event_name.get_encoded_name(),
             "bound_attributes_resources": {key: value.to_dict() for key, value in self.attributes.items()},
         }
@@ -760,16 +763,18 @@ class DeclareModelAttr:
     """
     def __init__(self, attr: str, value: str = None):
         self.attr_name = DeclareModelAttrName(attr)
+        self.attr_value: typing.Union[str, None] = attr
         if value is not None:
             self.value_type: DeclareModelAttributeType = self.detect_declare_attr_value_type(value)
             self.attr_value = DeclareModelAttrValue(value, self.value_type)
         else:
-            self.attr_value: DeclareModelAttrValue = None
+            self.attr_value = None
         self.attached_events: dict[str, DeclareModelEvent] = {}
 
     def get_name(self) -> str:
         """Returns the name of the attribute """
-        return self.attr_name.get_name()
+        # return self.attr_name.get_name()
+        return self.attr_value
 
     def set_attached_events(self, ev_list: [DeclareModelEvent]):
         """Saves the attached events to a list """

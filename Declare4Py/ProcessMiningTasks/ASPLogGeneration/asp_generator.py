@@ -26,23 +26,35 @@ from Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDat
 import concurrent.futures
 import pandas as pd
 
+
 class LogTracesType(typing.TypedDict):
     positive: typing.List
     negative: typing.List
 
 
-def custom_sort_trace_key(x):
+# TODO cosa è x?
+def custom_sort_trace_key(x) -> typing.List[int]:
     # Extract the numeric parts of the string
-    parts = re.findall(r'\d+', x.name)
+    parts: typing.List[str] = re.findall(r'\d+', x.name)
     # Convert the numeric parts to integers
-    parts = [int(p) for p in parts]
-    return parts
+    integers: typing.List[int] = [int(p) for p in parts]
+    return integers
 
 
 class AspGenerator(LogGenerator):
+    """"""
+    """
+    Constructor
+    """
 
-    def __init__(self, decl_model: DeclareModel, num_traces: int, min_event: int, max_event: int,
-                 encode_decl_model: bool = True):
+    def __init__(self,
+                 decl_model: DeclareModel,
+                 num_traces: int,
+                 min_event: int,
+                 max_event: int,
+                 encode_decl_model: bool = True,
+                 include_boundaries: bool = True
+                 ):
         """
         ASPGenerator generates the log from declare model which translate declare model
         into ASP, and then it passes to the clingo, which generates the traces
@@ -62,37 +74,117 @@ class AspGenerator(LogGenerator):
 
         Because, clingo doesn't accept some names such as a name starting with capital letter.
         """
+        """Super class LogGenerator"""
         super().__init__(num_traces, min_event, max_event, decl_model)
-        self.py_logger = logging.getLogger("ASP generator")
-        self.clingo_output = []
+
+        """DEF Logger"""
+        self.py_logger: logging.Logger = logging.getLogger("ASP generator")
+
+        """DEF clingo outputs"""
+        self.clingo_output: typing.List = []
         self.clingo_current_output: typing.Sequence[Symbol]
-        self.clingo_output_traces_variation = []
+        self.clingo_output_traces_variation: typing.List = []
+
+        """DEF ASP outputs"""
         # self.asp_generated_traces: typing.List[ASPResultTraceModel] | None = None
         self.asp_generated_traces: typing.Union[LogTracesType, None] = None
         self.asp_encoding = ASPEncoding().get_ASP_encoding()
-        self.asp_template = ASPTemplate().value
-        self.num_repetition_per_trace = 0
-        self.trace_counter = 0
-        self.trace_variations_key_id = 0  #
-        self.parallel_workers = 10
-        self.trace_counter_id = 0
-        self.run_parallel: bool = False
-        self.parallel_futures: [] = []
-        # instead of using distribution
-        self._custom_counter: dict[
-            str, typing.Union[collections.Counter, None]] = None  # {"positive": None, "negative": None}
-        # self._custom_counter: { "positive": collections.Counter | None, "negative": collections.Counter | None} | None = None
+        self.asp_template: str = ASPTemplate().value
 
-        self.lp_model: ASPModel = None
-        self.traces_generated_events = None
-        self.encode_decl_model = encode_decl_model
+        """DEF specs and counters"""
+        self.num_repetition_per_trace: int = 0
+        self.trace_counter: int = 0
+        self.trace_variations_key_id: int = 0
+        self.parallel_workers: int = 10
+        self.trace_counter_id: int = 0
+        self.run_parallel: bool = False
+        self.parallel_futures: typing.List = []
+        self._custom_counter: dict[str, typing.Union[collections.Counter, None]] = {"positive": None, "negative": None}
+        self.include_boundaries: bool = include_boundaries
+
+        """DEF Model"""
+        self.lp_model: typing.Union[ASPModel, None] = None
+        self.traces_generated_events: typing.Union[typing.List, None] = None
+        self.encode_decl_model: bool = encode_decl_model
+
+        """Logger opt"""
         self.py_logger.debug(f"Distribution for traces {self.distributor_type}")
-        self.py_logger.debug(
-            f"traces: {num_traces}, events can have a trace min({self.min_events}) max({self.max_events})")
+        self.py_logger.debug(f"traces: {num_traces}, "
+                             f"events can have a trace min({self.min_events}) max({self.max_events})")
+
+        """Start Process"""
         self.compute_distribution()
 
-    def generate_asp_from_decl_model(self, encode: bool = True, save_file: str = None,
-                                     process_model: ProcessModel = None, violation: dict = None) -> str:
+    def compute_distribution(self, total_traces: typing.Union[int, None] = None) -> collections.Counter:
+        """
+         The compute_distribution method computes the distribution of the number of events in a trace based on
+         the distributor_type parameter. If the distributor_type is "gaussian", it uses the loc and scale parameters
+         to compute a Gaussian distribution. Otherwise, it uses a uniform or custom distribution.+
+
+         Parameters
+         total_traces: int, optional
+            the number of traces
+        """
+        self.py_logger.info("Computing distribution")
+
+        """INIT Conditions"""
+        if total_traces is None:
+            total_traces = self.log_length
+        if total_traces == 0:
+            return collections.Counter()
+
+        """DEF"""
+        traces_len: collections.Counter = collections.Counter()
+        d: Distributor = Distributor()
+
+        if self.distributor_type == "gaussian":
+
+            self.py_logger.info(f"Computing gaussian distribution with mu={self.loc} and sigma={self.scale}")
+
+            assert self.loc > 1  # Mu at least should be 2
+            assert self.scale >= 0  # standard deviation must be a positive value
+
+            result: typing.Union[collections.Counter, None] = d.distribution(self.loc,
+                                                                             self.scale,
+                                                                             total_traces,
+                                                                             self.distributor_type,
+                                                                             self.custom_probabilities
+                                                                             )
+
+            self.py_logger.info(f"Gaussian distribution result {result}")
+
+            if result is None or len(result) == 0:
+                raise ValueError("Unable to found the number of traces with events to produce in log.")
+
+            for k, v in result.items():
+
+                # Boundaries are always included, Otherwise must be specified in the constructor
+                if self.include_boundaries and self.min_events <= k <= self.max_events:
+                    traces_len[k] = v
+                if not self.include_boundaries and self.min_events < k < self.max_events:
+                    traces_len[k] = v
+
+            self.py_logger.info(f"Gaussian distribution after refinement {traces_len}")
+
+        else:
+
+            traces_len = d.distribution(self.min_events,
+                                        self.max_events,
+                                        total_traces,
+                                        self.distributor_type,
+                                        self.custom_probabilities)
+
+        self.py_logger.info(f"Distribution result {traces_len}")
+
+        self.traces_length = traces_len
+        return traces_len
+
+    def generate_asp_from_decl_model(self,
+                                     encode: bool = True,
+                                     save_file: str = None,
+                                     process_model: ProcessModel = None,
+                                     violation: dict = None
+                                     ) -> str:
         """
         Generates an ASP translation of the Declare model.
         Parameters
@@ -118,8 +210,11 @@ class AspGenerator(LogGenerator):
         """
         if process_model is None:
             process_model = self.process_model
+
         self.py_logger.debug("Translate declare model to ASP")
+
         self.lp_model = ASPModel(encode).from_decl_model(process_model, violation)
+
         self.__handle_activations_condition_asp_generation()
         lp = self.lp_model.to_str()
         if save_file:
@@ -149,9 +244,12 @@ class AspGenerator(LogGenerator):
             if decl_template_parsed is None:
                 warnings.warn("Unexpected found. Same constraint templates are defined multiple times.")
             if len(cond_num_list) == 2:
-                decoder = {v: k for k, v in decl_template_parsed.events_activities[0].event_name.encoder.encoded_values.items()}
+                decoder = {v: k for k, v in
+                           decl_template_parsed.events_activities[0].event_name.encoder.encoded_values.items()}
 
-                if (decl_template_parsed.template == DeclareModelTemplate.ALTERNATE_PRECEDENCE) or (decl_template_parsed.template == DeclareModelTemplate.PRECEDENCE) or (decl_template_parsed.template == DeclareModelTemplate.CHAIN_PRECEDENCE):
+                if (decl_template_parsed.template == DeclareModelTemplate.ALTERNATE_PRECEDENCE) or (
+                        decl_template_parsed.template == DeclareModelTemplate.PRECEDENCE) or (
+                        decl_template_parsed.template == DeclareModelTemplate.CHAIN_PRECEDENCE):
                     B = decoder[decl_template_parsed.events_activities[0].event_name.value]
                     A = decoder[decl_template_parsed.events_activities[1].event_name.value]
                 else:
@@ -286,8 +384,8 @@ class AspGenerator(LogGenerator):
                 self.__generate_asp_trace(lp_model, events, traces, trace_type)
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
-        #import pdb
-        #pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         """
         Generate ASP trace using Clingo based on the given parameters and then generate also the variation
         Parameters
@@ -501,14 +599,16 @@ class AspGenerator(LogGenerator):
                         "ev": decl_model.decode_value(asp_event['name'], self.encode_decl_model),
                         "lifecycle:transition": "complete",
                         "resources": [],
-                        "time:timestamp": datetime.now() + timedelta(hours=trace_position, seconds=random.randint(0, 3599))
+                        "time:timestamp": datetime.now() + timedelta(hours=trace_position,
+                                                                     seconds=random.randint(0, 3599))
                     }
                     _instance["events"].append(_event)
                     for res in asp_event['resources']:
                         res_name, res_value = list(res.items())[0]
-                        #res_name_decoded = decl_model.decode_value(res_name, self.encode_decl_model)
-                        #res_value_decoded = decl_model.decode_value(res_value, self.encode_decl_model)
-                        res_name_decoded, res_value_decoded = self.__decode_and_scale_value(decl_model, attr_list, res_name, res_value)
+                        # res_name_decoded = decl_model.decode_value(res_name, self.encode_decl_model)
+                        # res_value_decoded = decl_model.decode_value(res_value, self.encode_decl_model)
+                        res_name_decoded, res_value_decoded = self.__decode_and_scale_value(decl_model, attr_list,
+                                                                                            res_name, res_value)
                         _event["resources"].append({res_name_decoded: res_value_decoded})
                 instance.append(_instance)
             flattened[result] = instance
@@ -548,7 +648,8 @@ class AspGenerator(LogGenerator):
                 for id_ev, event in enumerate(trace["events"]):
                     traceEvent = {
                         "case:concept:name": f'{trace_id}',
-                        "time:timestamp": datetime.now() + timedelta(hours=id_ev, seconds=random.randint(0, 3599)), #.isoformat(),
+                        "time:timestamp": datetime.now() + timedelta(hours=id_ev, seconds=random.randint(0, 3599)),
+                        # .isoformat(),
                         # "date": datetime.now(),
                         "lifecycle:transition": event["lifecycle:transition"],
                         "concept:name": event["ev"],
@@ -587,7 +688,6 @@ class AspGenerator(LogGenerator):
         # rows_to_remove = xes[cols_with_nan].isna().any(axis=1)
         # cleaned_xes = xes[~rows_to_remove]
         # pm4py.write_xes(cleaned_xes, output_fn)
-
 
     def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
         """
@@ -711,45 +811,6 @@ class AspGenerator(LogGenerator):
             n_dict[templates[m].line] = n
         self.activation_conditions = n_dict
         return self
-
-    def compute_distribution(self, total_traces: typing.Union[int, None] = None):
-        """
-         The compute_distribution method computes the distribution of the number of events in a trace based on
-         the distributor_type parameter. If the distributor_type is "gaussian", it uses the loc and scale parameters
-         to compute a Gaussian distribution. Otherwise, it uses a uniform or custom distribution.+
-
-         Parameters
-         total_traces: int, optional
-            the number of traces
-        """
-        self.py_logger.info("Computing distribution")
-        d = Distributor()
-        if total_traces is None:
-            total_traces = self.log_length
-        traces_len = {}
-        if total_traces == 0:
-            return collections.Counter()
-        if self.distributor_type == "gaussian":
-            self.py_logger.info(f"Computing gaussian distribution with mu={self.loc} and sigma={self.scale}")
-            assert self.loc > 1  # Mu atleast should be 2
-            assert self.scale >= 0  # standard deviation must be a positive value
-            result: typing.Union[collections.Counter, None] = d.distribution(
-                self.loc, self.scale, total_traces, self.distributor_type, self.custom_probabilities)
-            self.py_logger.info(f"Gaussian distribution result {result}")
-            if result is None or len(result) == 0:
-                raise ValueError("Unable to found the number of traces with events to produce in log.")
-            for k, v in result.items():
-                if self.min_events <= k <= self.max_events:  # TODO: ask whether the boundaries should be included
-                    traces_len[k] = v
-            self.py_logger.info(f"Gaussian distribution after refinement {traces_len}")
-        else:
-            traces_len: typing.Union[collections.Counter, None] = d.distribution(self.min_events, self.max_events,
-                                                                                 total_traces,
-                                                                                 self.distributor_type,
-                                                                                 self.custom_probabilities)
-        self.py_logger.info(f"Distribution result {traces_len}")
-        self.traces_length = traces_len
-        return traces_len
 
     def set_custom_trace_lengths(self, custom_lengths: dict[int, int],
                                  negative_custom_lengths: dict[int, int] | None = None):
