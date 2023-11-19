@@ -1284,21 +1284,85 @@ class DeclareModel(LTLModel):
         return st.replace("'", '"')
 
 
-# TODO Testare se il nuovo encoder funziona come dovrebbe ed e' singleton
-# TODO oppure rendere tutto statico?
-
 class _Encoder(object):
+    """
+    The Encoder class is used by the DeclareModelToken class in order to encode and decode the value of the Model
 
-    def __init__(self):
-        self.encoded_values: dict[str, str] = {}
-        self._inverse_encoded_values_store: dict[str, str] = {}
-        self.counters: dict[str, int] = {
-            "event_name": 0,
-            "event_value": 0,
-            "attr_name": 0,
-            "attr_val": 0,
-            "other": 0,
-        }
+    This class uses the singleton pattern to maintain uniqueness between decoded model names for each model type
+
+    Utilizes the TypeEncoder class in order to define uniqueness of each DeclareModelToken utilizing name and type
+    and not only name
+    """
+
+    class TypeEncoder:
+        """
+        The TypeEncoder class is used by the Encoder class in order to store the encoded values for each type.
+
+        This class stores also the number of encoded values and the inverse store of the decoded values
+        """
+        def __init__(self, model_type: str):
+            self.model_type: str = model_type
+            self.counter: int = 0
+            self.encoded_values: dict[str, str] = {}
+            self.inverse_encoded_values_store: dict[str, str] = {}
+
+        def encode_value(self, val_to_encode: str, val_type: str) -> str:
+            """
+            Encode the given value
+            Parameters
+            ----------
+            val_to_encode: str
+                value to encode
+            val_type: str, optional
+                type of value it is. Ie. the value can be the name of activity, attribute or its values(enumeration).
+
+            Returns
+            -------
+            str: The encoded value
+            """
+
+            if val_type != self.model_type:
+                return val_to_encode
+            if val_to_encode in self.encoded_values:
+                return val_to_encode
+            if val_to_encode in self.inverse_encoded_values_store:
+                return self.inverse_encoded_values_store[val_to_encode]
+
+            encoded_val: str = f"{val_type}_{self.counter}"
+            self.counter += 1
+
+            self.encoded_values[encoded_val] = val_to_encode
+            self.inverse_encoded_values_store[val_to_encode] = encoded_val
+            return encoded_val
+
+        def decode_value(self, encoded_val: str) -> str:
+            """
+            Decode the given value if it finds in the encoded_values list.
+            Parameters
+            ----------
+            encoded_val: str
+                a string value to decode.
+
+            Returns
+            -------
+            str: The decoded value
+            """
+
+            if encoded_val in self.encoded_values:
+                return self.encoded_values[encoded_val]
+
+            if encoded_val in self._inverse_encoded_values_store:
+                return self._inverse_encoded_values_store[encoded_val]
+
+            raise ValueError(f"Unable to decode value {encoded_val}.")
+
+    _counters: dict[str, TypeEncoder] = {
+        "event_name": TypeEncoder("event_name"),
+        "event_value": TypeEncoder("event_value"),
+        "attr_name": TypeEncoder("attr_name"),
+        "attr_val": TypeEncoder("attr_val"),
+        "other": TypeEncoder("other"),
+    }
 
     def __new__(cls) -> _Encoder:
         """
@@ -1332,29 +1396,25 @@ class _Encoder(object):
         if val_to_encode.isnumeric():
             return val_to_encode
         val_to_encode = val_to_encode.strip()
-        if val_to_encode in self.encoded_values:
-            return val_to_encode
-        if val_to_encode in self._inverse_encoded_values_store:
-            return self._inverse_encoded_values_store[val_to_encode]
 
-        if val_type in self.counters.keys():
-            encoded_val = f"{val_type}_{self.counters[val_type]}"
-            self.counters[val_type] = self.counters[val_type] + 1
+        if val_type in self._counters.keys():
+            return self._counters[val_type].encode_value(val_to_encode, val_type)
         else:
-            encoded_val = f"other_{self.other_counter}"
-            self.counters["other"] = self.counters["other"] + 1
+            return self._counters["other"].encode_value(val_to_encode, val_type)
 
-        self.encoded_values[encoded_val] = val_to_encode
-        self._inverse_encoded_values_store[val_to_encode] = encoded_val
-        return encoded_val
-
-    def decode_value(self, encoded_val: str) -> str:
+    def decode_value(self,
+                     encoded_val: str,
+                     val_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]
+                     ) -> str:
         """
         Decode the given value if it finds in the encoded_values list.
         Parameters
         ----------
         encoded_val: str
             a string value to decode.
+
+        val_type: str, optional
+            type of value it is. Ie. the value can be the name of activity, attribute or its values(enumeration).
 
         Returns
         -------
@@ -1365,9 +1425,8 @@ class _Encoder(object):
         if encoded_val.isnumeric():
             return encoded_val
         encoded_val = encoded_val.strip()
-        if encoded_val in self.encoded_values:
-            return self.encoded_values[encoded_val]
 
-        if encoded_val in self._inverse_encoded_values_store:
-            return self._inverse_encoded_values_store[encoded_val]
-        raise ValueError(f"Unable to decode value {encoded_val}.")
+        if val_type in self._counters.keys():
+            return self._counters[val_type].decode_value(encoded_val)
+        else:
+            return self._counters["other"].decode_value(encoded_val)
