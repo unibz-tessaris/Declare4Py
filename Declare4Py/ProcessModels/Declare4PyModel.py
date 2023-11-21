@@ -49,7 +49,7 @@ class DeclareModelTemplate(str, Enum):
         is_negative: bool
             Whether the template is negative.
         supports_cardinality: bool
-            Whether the template supports cardinality, e.g., Existence template is unary
+            Whether the template supports cardinality, e.g., Existence template is unary,
             but you can specify a number for how many times Existence should occur.
             "Existence4[A]|||" means it should occur at least 4 times.
         both_activation_condition: bool
@@ -84,7 +84,7 @@ class DeclareModelTemplate(str, Enum):
 
     # response(A, b) and precedence(a, b) = succession(a, b)
     # responded_existence(A, b) and responded_existence(b, a) = coexistence(a, b)
-    # TODO implementare i checker
+    # TODO implements checker
     SUCCESSION = "Succession", True, False, False, True, True, False
     ALTERNATE_SUCCESSION = "Alternate Succession", True, False, False, True, True, False
     CO_EXISTENCE = "Co-Existence", True, False, False, True, True, False
@@ -220,7 +220,8 @@ class DeclareModelConditionParserUtility:
     def __init__(self):
         super().__init__()
 
-    def parse_data_cond(self, cond: str):  # TODO: could be improved using recursion ?
+    @staticmethod
+    def parse_data_cond(cond: str):  # TODO: could be improved using recursion ?
         """
         Parse the data condition
         Parameters
@@ -276,8 +277,8 @@ class DeclareModelConditionParserUtility:
                                 cond = cond[len(w):].lstrip()
                                 tmp.append(w)
                             attr = " ".join(tmp)
-                            py_cond = py_cond + " " + attr + " in A and " + attr + " in T " \
-                                      + 'and A["' + attr + '"] == T["' + attr + '"]'
+                            py_cond = (py_cond + " " + attr + " in A and " + attr + " in T "
+                                       + 'and A["' + attr + '"] == T["' + attr + '"]')
                         elif next_word.lower() == "different":
                             tmp = []
                             while cond and not (cond.startswith(')') or cond.lower().startswith('and')
@@ -286,8 +287,8 @@ class DeclareModelConditionParserUtility:
                                 cond = cond[len(w):].lstrip()
                                 tmp.append(w)
                             attr = " ".join(tmp)
-                            py_cond = py_cond + " " + attr + " in A and " + attr + " in T " \
-                                      + 'and A["' + attr + '"] != T["' + attr + '"]'
+                            py_cond = (py_cond + " " + attr + " in A and " + attr + " in T "
+                                       + 'and A["' + attr + '"] != T["' + attr + '"]')
                         elif next_word.lower() == "true":
                             py_cond = py_cond + " True"
                         elif next_word.lower() == "false":
@@ -306,7 +307,8 @@ class DeclareModelConditionParserUtility:
         except Exception:
             raise SyntaxError
 
-    def parse_time_cond(self, condition: str):
+    @staticmethod
+    def parse_time_cond(condition: str):
         """
         Parse time condition
         Parameters
@@ -346,7 +348,7 @@ class DeclareModelToken(ABC):
 
     def __init__(self,
                  name: str,
-                 model_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]
+                 model_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"] | str
                  ):
 
         if not isinstance(name, str):
@@ -356,7 +358,7 @@ class DeclareModelToken(ABC):
         if model_type in ["event_name", "event_value", "attr_name", "attr_val"]:
             self.__model_type: str = model_type
         else:
-            self.__model_type: str = f"other_{model_type}"
+            self.__model_type: str = f"other"
 
         self.encoder: _Encoder = _Encoder()
 
@@ -376,12 +378,12 @@ class DeclareModelToken(ABC):
         """
         if self.__name.lower() == "activity" and self.__model_type == "event_name":
             return "activity"
-        return self.encoder.encode_value(self.get_name(), self.__model_type)
+        return self.encoder.encode_value(self.get_name(), typing.Type[self.__model_type])
 
     def to_dict(self) -> typing.Dict[str, str]:
         """ Returns the dict which represents the object itself. This is for generating the JSON object"""
         return {
-            self.__model_type: self.__name,
+            self.__model_type: self.get_name(),
             f"encoded_{self.__model_type}": self.get_encoded_name(),
         }
 
@@ -423,7 +425,7 @@ class DeclareModelEvent:
         self.attributes = {}
         for i in attrs_list:
             attr_model: DeclareModelAttr = i
-            self.attributes[attr_model.__attr_name] = attr_model
+            self.attributes[attr_model.get_attr_name()] = attr_model
 
     def set_bound_attribute(self, attr: DeclareModelAttr):
         """
@@ -434,7 +436,7 @@ class DeclareModelEvent:
         attr: DeclareModelAttr
             A DeclareModelAttr instance representing an event attribute.
         """
-        self.attributes[attr.get_name()] = attr
+        self.attributes[attr.get_attr_name()] = attr
 
     def get_event_name(self) -> str:
         """Returns the name of the event"""
@@ -446,11 +448,11 @@ class DeclareModelEvent:
 
     def get_event_value(self) -> str:
         """Returns the value of the event"""
-        return self.__event_name.get_name()
+        return self.__event_value.get_name()
 
     def get_encoded_event_value(self) -> str:
         """Returns the encoded value of the event"""
-        return self.__event_name.get_encoded_name()
+        return self.__event_value.get_encoded_name()
 
     def to_dict(self) -> dict:
         """
@@ -463,8 +465,7 @@ class DeclareModelEvent:
             and bound attributes resources.
         """
 
-        # TODO sistemare il typing + capire cosa e' attributes
-        res_dict: typing.Dict[str, typing.Union[str, dict]] = self.event_name.to_dict() | self.event_type.to_dict()
+        res_dict: typing.Dict[str, typing.Union[str, dict]] = self.__event_name.to_dict() | self.__event_value.to_dict()
 
         res_dict["bound_attributes_resources"] = {key: value.to_dict() for key, value in self.attributes.items()}
 
@@ -477,6 +478,12 @@ class DeclareModelAttr:
      between events. Contains information about the name of attribute, values, events attached to it.
     """
 
+    INTEGER = "integer"
+    FLOAT = "float"
+    INTEGER_RANGE = "integer_range"
+    FLOAT_RANGE = "float_range"
+    ENUMERATION = "enumeration"
+
     def __init__(self, attr_name: str, attr_value: str | None = None):
 
         self.__attr_name: DeclareModelToken = DeclareModelToken(attr_name, "attr_name")
@@ -484,7 +491,7 @@ class DeclareModelAttr:
         self.__attr_value: typing.Union[DeclareModelAttrValue, None] = None
 
         if attr_value is not None:
-            self.__value_type = self.detect_declare_attr_value_type(attr_value)
+            self.__value_type = DeclareModelAttributeType.detect_declare_attr_value_type(attr_value)
             self.__attr_value = DeclareModelAttrValue(attr_value, self.__value_type)
 
         self.attached_events: dict[str, DeclareModelEvent] = {}
@@ -527,36 +534,9 @@ class DeclareModelAttr:
         self.attached_events[event.get_event_name()] = event
         event.set_bound_attribute(self)
 
-    def detect_declare_attr_value_type(self, value: str) -> DeclareModelAttributeType:
-        """
-        Detect the type of value assigned to an attribute assigned
-        Parameters
-        ----------
-        value: str
-            assigned value
-
-        Returns
-        -------
-            DeclareModelAttributeType
-        """
-        value = value.strip()
-        v2 = value.replace("  ", "")
-        if re.search(r"^[+-]?\d+$", value, re.MULTILINE):
-            return DeclareModelAttributeType.INTEGER
-        elif re.search(r"^[+-]?\d+(?:\.\d+)?$", value, re.MULTILINE):
-            return DeclareModelAttributeType.FLOAT
-        elif v2 and v2.lower().startswith("integer between"):
-            # ^integer * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.INTEGER_RANGE
-        elif v2 and v2.lower().startswith("float between"):
-            # ^float * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.FLOAT_RANGE
-        else:
-            return DeclareModelAttributeType.ENUMERATION
-
     def set_attr_value(self, attr_value: str):
-        self.__value_type = self.detect_declare_attr_value_type(attr_value)
-        self.__attr_value = DeclareModelAttrValue(attr_value, self.value_type)
+        self.__value_type = DeclareModelAttributeType.detect_declare_attr_value_type(attr_value)
+        self.__attr_value = DeclareModelAttrValue(attr_value, self.__value_type)
 
     def to_dict(self) -> dict:
         """
@@ -567,12 +547,15 @@ class DeclareModelAttr:
         dict
             A dictionary containing the attribute information.
         """
-        return self.__attr_name.to_dict() | {"attr_value": self.attr_value.to_dict()}
+        return self.__attr_name.to_dict() | {"attr_value": self.__attr_value.to_dict()}
 
 
 class DeclareModelAttrValue(DeclareModelToken, ABC):
     """
-    A class representing a Declare Model Attribute Value, which can be one of three types: enumeration, float range, or integer range.
+    A class representing a Declare Model Attribute Value, which can be one of three types:
+        - enumeration
+        - float range
+        - integer range
     """
 
     def __init__(self, value: str, value_type: DeclareModelAttributeType):
@@ -587,8 +570,8 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
             The type of the attribute value (enumeration, float range, or integer range).
         """
         super().__init__(value, "attr_val")
-        self.value: [DeclareModelToken] | [float] | [int] = None
-        self.value_original: [str] | [float] | [int] = value
+        self.value: typing.Union[typing.List[DeclareModelToken], typing.List[float], typing.List[int], None] = None
+        self.value_original: str = value
         self.attribute_value_type = value_type
         self.precision: int = 1
         self.parse_attr_value()
@@ -615,7 +598,8 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
             raise ValueError("Unable to parse the attribute value. Attribute values can be Enumeration separated"
                              " by ',', or integer range, or float range")
 
-    def get_float_biggest_precision(self, v1: float, v2: float) -> int:
+    @staticmethod
+    def get_float_biggest_precision(v1: float, v2: float) -> int:
         """
         Gets the biggest float precision to scale up a number.
 
@@ -644,11 +628,11 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
             return 0
         return max(decimal_len_list)
 
-    def get_precisioned_value(self) -> [DeclareModelToken] | [int]:
+    def get_precisioned_value(self) -> typing.Union[typing.List[DeclareModelToken], typing.List[int]]:
         """
         Returns the attribute value with precision applied, if it's a float range.
         If the value is type of range float or integer, it will return array of two integer values, precision applied.
-        if the value is type of enumeration, then the each element will be type of DeclareModelToken.
+        if the value is type of enumeration, then each element will be type of DeclareModelToken.
         Precision applied means that floats are converted into integer and scaled up based on decimal values.
         Returns
         -------
@@ -704,12 +688,40 @@ class DeclareModelAttributeType(str, Enum):
     def __repr__(self):
         return "\"" + self.__str__() + "\""
 
+    @staticmethod
+    def detect_declare_attr_value_type(value: str) -> DeclareModelAttributeType:
+        """
+        Detect the type of value assigned to an attribute assigned
+        Parameters
+        ----------
+        value: str
+            assigned value
+
+        Returns
+        -------
+            DeclareModelAttributeType
+        """
+        value = value.strip()
+        v2 = value.replace("  ", "")
+        if re.search(r"^[+-]?\d+$", value, re.MULTILINE):
+            return DeclareModelAttributeType.INTEGER
+        elif re.search(r"^[+-]?\d+(?:\.\d+)?$", value, re.MULTILINE):
+            return DeclareModelAttributeType.FLOAT
+        elif v2 and v2.lower().startswith("integer between"):
+            # ^integer * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
+            return DeclareModelAttributeType.INTEGER_RANGE
+        elif v2 and v2.lower().startswith("float between"):
+            # ^float * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
+            return DeclareModelAttributeType.FLOAT_RANGE
+        else:
+            return DeclareModelAttributeType.ENUMERATION
+
 
 class DeclareModelConstraintTemplate:
     """
     A class representing a Declare Model Constraint Template.
-    Some properties are created private so the logic of providing correct information such as conditions and activity name
-    based on the constraint templates.
+    Some properties are created private so the logic of providing correct information such as conditions and
+    activity name based on the constraint templates.
     I.E Existence and Absence case where Existence1 and Absence1 doesn't exist but other unary does.
     Another case is for the reverseConditions of some constraints.
     """
@@ -728,11 +740,11 @@ class DeclareModelConstraintTemplate:
         self.line = template_line
         self.events_activities: [DeclareModelEvent] = []
         self.cardinality: int = 0  # cardinality is only for unary and 0 means template doesn't have
-        self.template: DeclareModelTemplate = None
+        self.template: typing.Union[DeclareModelTemplate, None] = None
         self.template_index: int = template_number_id
         self.violate: bool = False
-        self._template_name: str = None
-        self._conditions_line: str = None
+        self._template_name: typing.Union[str, None] = None
+        self._conditions_line: typing.Union[str, None] = None
         self._conditions: [str] = []  # conditions: activation, target, time
 
     def get_template_name(self) -> str:
@@ -780,12 +792,12 @@ class DeclareModelConstraintTemplate:
                                   f" Conditions should start with \"|\"")
             self._conditions_line = conditions
             conditions = conditions.strip("|")
-            conds_list = conditions.split("|")
-            self._conditions = [cl.strip() for cl in conds_list]
+            conditions_list = conditions.split("|")
+            self._conditions = [cl.strip() for cl in conditions_list]
             """ Some declare models use T.attribute for target conditions reference and some uses B.attributes"""
-            if self.template.is_binary and len(conds_list) < 2:
+            if self.template.is_binary and len(conditions_list) < 2:
                 raise ValueError(f"Unable to parse the conditions of binary constraint template")
-            if len(conds_list) > 3:
+            if len(conditions_list) > 3:
                 raise ValueError(f"Unable to parse the line due to the exceeds conditions (> 3)")
 
     def get_activation_condition(self):
@@ -945,7 +957,7 @@ class DeclareParsedDataModel:
         attr_name : str
             The name of the attribute.
         """
-        event_model: DeclareModelEvent = None
+        event_model: typing.Union[DeclareModelEvent, None] = None
         for i in self.events:
             if event_name not in self.events[i]:
                 raise ValueError(f"Unable to find the event or activity {event_name}")
@@ -959,7 +971,7 @@ class DeclareParsedDataModel:
             attr = self.attributes_list[attr_name]
         else:
             attr = DeclareModelAttr(attr_name)
-            self.attributes_list[attr.get_name()] = attr
+            self.attributes_list[attr.get_attr_name()] = attr
         attr.set_attached_event(event_model)
 
     def add_attribute_value(self, attr_name: str, attr_value: str):
@@ -1037,7 +1049,9 @@ class DeclareParsedDataModel:
         # TODO: raise an error.
         return None
 
-    def decode_value(self, val: str, is_encoded: bool) -> str:
+    # TODO ask professor the uniqueness of encoded variables
+    @staticmethod
+    def decode_value(val: str, is_encoded: bool) -> str:
         """
         Decode a value if it is encoded.
 
@@ -1054,7 +1068,14 @@ class DeclareParsedDataModel:
             The decoded value.
         """
         if is_encoded:
-            val = _Encoder.decode_value(val)
+
+            val_type = "other"
+            for type_name in ["event_name", "event_value", "attr_name", "attr_val"]:
+                if val.find(type_name) != -1:
+                    val_type = type_name
+                    break
+
+            val = _Encoder().decode_value(val, typing.Type[val_type])
         return val
 
     def to_dict(self):
@@ -1072,6 +1093,9 @@ class DeclareParsedDataModel:
             "attributes": {key: value.to_dict() for key, value in self.attributes_list.items()},
             "constraint_templates": {key: value.to_dict() for key, value in self.templates.items()},
         }
+
+    def to_json(self):
+        return self.to_json()
 
 
 class DeclareModel(LTLModel):
@@ -1151,7 +1175,6 @@ class DeclareModel(LTLModel):
         -------
 
         """
-        lines = []
         with open(filename, "r+") as file:
             lines = file.readlines()
         self.declare_model_lines = lines
@@ -1294,12 +1317,15 @@ class _Encoder(object):
     and not only name
     """
 
+    instance = None
+
     class TypeEncoder:
         """
         The TypeEncoder class is used by the Encoder class in order to store the encoded values for each type.
 
         This class stores also the number of encoded values and the inverse store of the decoded values
         """
+
         def __init__(self, model_type: str):
             self.model_type: str = model_type
             self.counter: int = 0
@@ -1314,7 +1340,7 @@ class _Encoder(object):
             val_to_encode: str
                 value to encode
             val_type: str, optional
-                type of value it is. Ie. the value can be the name of activity, attribute or its values(enumeration).
+                type of value it is. I.e. the value can be the name of activity, attribute or its values(enumeration).
 
             Returns
             -------
@@ -1351,8 +1377,8 @@ class _Encoder(object):
             if encoded_val in self.encoded_values:
                 return self.encoded_values[encoded_val]
 
-            if encoded_val in self._inverse_encoded_values_store:
-                return self._inverse_encoded_values_store[encoded_val]
+            if encoded_val in self.inverse_encoded_values_store:
+                return self.inverse_encoded_values_store[encoded_val]
 
             raise ValueError(f"Unable to decode value {encoded_val}.")
 
@@ -1364,12 +1390,12 @@ class _Encoder(object):
         "other": TypeEncoder("other"),
     }
 
-    def __new__(cls) -> _Encoder:
+    def __new__(cls):
         """
         A singleton class which encodes and decodes the given values. It contains the information of encoded values
         during its lifecycle, so, it can decode the values back.
         """
-        if not hasattr(cls, 'instance'):
+        if cls.instance is None:
             cls.instance = super(_Encoder, cls).__new__(cls)
         return cls.instance
 
@@ -1384,7 +1410,7 @@ class _Encoder(object):
         val_to_encode: str
             value to encode
         val_type: str, optional
-            type of value it is. Ie. the value can be the name of activity, attribute or its values(enumeration).
+            type of value it is. I.e. the value can be the name of activity, attribute or its values(enumeration).
 
         Returns
         -------
@@ -1414,7 +1440,7 @@ class _Encoder(object):
             a string value to decode.
 
         val_type: str, optional
-            type of value it is. Ie. the value can be the name of activity, attribute or its values(enumeration).
+            type of value it is. I.e. the value can be the name of activity, attribute or its values(enumeration).
 
         Returns
         -------
