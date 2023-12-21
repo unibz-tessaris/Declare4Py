@@ -4,9 +4,9 @@ import logging
 
 from clingo import Symbol
 
-from Declare4Py.ProcessMiningTasks.log_generator import LogGenerator
+from Declare4Py.ProcessMiningTasks.AbstractLogGenerator import AbstractLogGenerator
 from Declare4Py.ProcessModels.Declare4PyModel import DeclareModel
-from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.Distribution import Distributor
+from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.Distribution import Distribution
 from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils import ASPTemplate
 from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.ASPEncoding import ASPEncoder
 from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPTranslator.ASPModel import ASPModel
@@ -17,14 +17,13 @@ class LogTracesType(typing.TypedDict):
     negative: typing.List
 
 
-class AspGenerator(LogGenerator):
+class AspGenerator(AbstractLogGenerator):
 
     def __init__(self,
                  decl_model: DeclareModel,
                  num_traces: int,
                  min_event: int,
                  max_event: int,
-                 distributor_type: str = "uniform",
                  encode_decl_model: bool = True,
                  include_boundaries: bool = True
                  ):
@@ -48,7 +47,7 @@ class AspGenerator(LogGenerator):
         Because, clingo doesn't accept some names such as a name starting with capital letter.
         """
         """Super class LogGenerator"""
-        super().__init__(num_traces, min_event, max_event, decl_model, distributor_type)
+        super().__init__(num_traces, min_event, max_event, decl_model)
 
         """DEF Logger"""
         self.py_logger: logging.Logger = logging.getLogger("ASP generator")
@@ -88,34 +87,35 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug(f"traces: {num_traces}, "
                              f"events can have a trace min({self.min_events}) max({self.max_events})")
 
-        """Start Process"""
-        self.compute_distribution()
-
-    def compute_distribution(self, total_traces: typing.Union[int, None] = None) -> collections.Counter:
+        # Constraint violations
         """
-         The compute_distribution method computes the distribution of the number of events in a trace based on
-         the distributor_type parameter. If the distributor_type is "gaussian", it uses the loc and scale parameters
-         to compute a Gaussian distribution. Otherwise, it uses a uniform or custom distribution.
-
-         Parameters
-         total_traces: int, optional
-            the number of traces
+        A trace is positive if it satisfies all three constraints that are defined in this model. Whereas it is
+        negative if at least one of them is not satisfied. In the generated log you sent me, in all traces the 
+        constraint " Response[Driving_Test, Resit] |A.Grade<=2 | " is not satisfied, i.e. it is violated!
         """
-        self.py_logger.info("Computing distribution")
+        # self.violate_all_constraints: bool = False  # if false: clingo will decide itself the constraints to violate
+        # self.violable_constraints: [str] = []  # constraint list which should be violated
+        # self.negative_traces = 0
 
-        """INIT Conditions"""
-        if total_traces is None:
-            total_traces = self.log_length
-        if total_traces == 0:
-            return collections.Counter()
-
-        """DEF"""
-        traces_len: collections.Counter = collections.Counter()
-        d: Distributor = Distributor()
-
-        if self.distributor_type == "gaussian":
-            print()
-        pass
+        # constraint template conditions
+        # self.activation_conditions: typing.Union[dict, None] = None
 
     def run(self, *args, **kwargs) -> typing.Any:
+        """
+        modello declare -> tradotto in modello ASP -> Dare il modello ASP ad un ASP solver.
+        ASO Solver si chiama Clingo, Clingo restituisce un output -> Che sono le tracce (con formaztazione loro)
+        Ritradurre la traccia in un event log
+        Declare Model-> ASP Model -> Clingo -> Tracce formattate -> Log
+
+        """
+        self.compute_distribution()
         pass
+
+    """
+    def add_constraints_to_violate(self, constrains_to_violate: typing.Union[str, list[str]] = True):
+        if isinstance(constrains_to_violate, str):
+            self.violable_constraints.append(constrains_to_violate)
+        else:
+            self.violable_constraints = constrains_to_violate
+        return self
+    """
