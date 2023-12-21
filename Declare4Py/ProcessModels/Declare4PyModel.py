@@ -228,7 +228,7 @@ class DeclareModelConditionParserUtility:
         ----------
         cond: str
             Could be activation or target condition
-
+            Parsing modello declare, deve ancora trasformarlo in asp
         Returns
         -------
             str
@@ -1446,6 +1446,7 @@ class _Encoder(object):
         -------
         str: The decoded value
         """
+
         if not isinstance(encoded_val, str):
             return encoded_val
         if encoded_val.isnumeric():
