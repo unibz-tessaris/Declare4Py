@@ -1,3 +1,6 @@
+import typing
+
+
 class ASPEncoder:
     """
     A class which create the encoding for the ASP.
@@ -17,7 +20,7 @@ class ASPEncoder:
     __val4 = """#show trace/2.\n#show assigned_value/3.\n%#show sat/2.\n"""
 
     @classmethod
-    def get_asp_encoding(cls, facts_name: [str] = ["activity"], is_sat: bool = True):
+    def get_asp_encoding(cls, facts_name: typing.List[str] = ["activity"], is_sat: bool = True):
         """
         We need add the facts. The facts name can be anything described in the decl model.
         Parameters

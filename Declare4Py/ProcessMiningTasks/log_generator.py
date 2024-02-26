@@ -7,7 +7,7 @@ from abc import ABC
 
 from Declare4Py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
 from Declare4Py.ProcessModels.AbstractModel import ProcessModel
-
+from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.Distribution import Distribution
 
 """
 
@@ -27,23 +27,31 @@ class LogGenerator(AbstractPMTask, ABC):
                  num_traces: int,
                  min_event: int,
                  max_event: int,
-                 p_model: ProcessModel
+                 p_model: ProcessModel,
+                 distributor_type: str = "uniform"
                  ):
 
         super().__init__(None, p_model)
 
         """INIT Conditions"""
+        if not isinstance(min_event, int):
+            raise ValueError(f"min_events is not of type int!")
+        if not isinstance(max_event, int):
+            raise ValueError(f"max_event is not of type int!")
+        if not isinstance(num_traces, int):
+            raise ValueError(f"num_traces is not of type int!")
+
         if min_event > max_event:
             raise ValueError(f"min_events({min_event}) > max_events({max_event})! "
-                             f"Min events should no be greater than max events")
+                             f"Min events should not be greater than max events")
         if min_event < 0 and max_event < 0:
             raise ValueError(f"min and max events should be greater than 0!")
         if min_event < 0:
             raise ValueError(f"min_events({min_event}) should be greater than 0!")
         if max_event < 0:
             raise ValueError(f"max_events({max_event}) should be greater than 0!")
-        if not isinstance(min_event, int) or not isinstance(max_event, int):
-            raise ValueError(f"min_events or/and max_events are not valid!")
+        if num_traces < 0:
+            raise ValueError(f"num_traces({num_traces}) should be greater or equal than 0!")
 
         """DEF"""
         self.__py_logger = logging.getLogger("Log generator")
@@ -53,7 +61,9 @@ class LogGenerator(AbstractPMTask, ABC):
 
         # Distributions Setting
         self.traces_length: typing.Union[collections.Counter, typing.Dict] = {}
-        self.distributor_type: typing.Literal["uniform", "gaussian", "custom"] = "uniform"
+        self.__available_distributions: typing.List[str] = Distribution.get_distributions()
+        self.__distributor_type: str = None
+        self.set_distributor_type(distributor_type)
         self.custom_probabilities: None = None
         self.scale: typing.Union[float, None] = None
         self.loc: typing.Union[float, None] = None
@@ -71,10 +81,14 @@ class LogGenerator(AbstractPMTask, ABC):
         # constraint template conditions
         self.activation_conditions: dict = None
 
+    def set_distributor_type(self, distributor_type: str):
+        if distributor_type not in self.__available_distributions:
+            raise ValueError(f"Invalid distributor_type:{distributor_type}. Valid options are 'uniform', 'gaussian', 'custom'")
+        self.__distributor_type = distributor_type
+
     def add_constraints_to_violate(self, constrains_to_violate: typing.Union[str, list[str]] = True):
         if isinstance(constrains_to_violate, str):
             self.violable_constraints.append(constrains_to_violate)
         else:
             self.violable_constraints = constrains_to_violate
         return self
-

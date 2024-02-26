@@ -56,7 +56,7 @@ class AspGenerator(LogGenerator):
                  include_boundaries: bool = True
                  ):
         """
-        ASPGenerator generates the log from declare model which translate declare model
+        ASP generates the log from declare model which translate declare model
         into ASP, and then it passes to the clingo, which generates the traces
 
         Parameters

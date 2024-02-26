@@ -3,11 +3,20 @@ import logging
 import typing
 import fractions
 import numpy as np
+from enum import Enum
+
+# class Distribution(Enum):
 
 
 class Distribution:
     """
     A class for generating trace lengths according to different distributions.
+    """
+
+    """   
+    UNIFORM = "UNIFORM"
+    GAUSSIAN = "GAUSSIAN"
+    CUSTOM = "CUSTOM"
     """
 
     # Defining Logger
@@ -167,5 +176,8 @@ class Distribution:
 
 
 if __name__ == "__main__":
-    p = Distribution.normal_distribution(2.1, 3.5, 20)
-    print(p)
+    print(Distribution.get_distributions())
+    #print(Distribution.UNIFORM in Distribution.get_distributions())
+
+    # p = Distribution.normal_distribution(2.1, 3.5, 20)
+    # print(p)

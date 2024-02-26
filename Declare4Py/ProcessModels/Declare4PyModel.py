@@ -454,7 +454,10 @@ class DeclareModelEvent:
         """Returns the encoded value of the event"""
         return self.__event_value.get_encoded_name()
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> typing.Dict:
+
+        #  typing.Dict[str, typing.Union[str, dict]]:
+
         """
         Converts the DeclareModelEvent instance to a dictionary representation.
 
@@ -464,12 +467,7 @@ class DeclareModelEvent:
             A dictionary containing the event type, encoded event type, event name, encoded event name,
             and bound attributes resources.
         """
-
-        res_dict: typing.Dict[str, typing.Union[str, dict]] = self.__event_name.to_dict() | self.__event_value.to_dict()
-
-        res_dict["bound_attributes_resources"] = {key: value.to_dict() for key, value in self.attributes.items()}
-
-        return res_dict
+        return {"event_names": self.__event_name.to_dict(), "event_values": self.__event_value.to_dict(), "bound_attributes_resources": {key: value.to_dict() for key, value in self.attributes.items()}}
 
 
 class DeclareModelAttr:
@@ -547,7 +545,7 @@ class DeclareModelAttr:
         dict
             A dictionary containing the attribute information.
         """
-        return self.__attr_name.to_dict() | {"attr_value": self.__attr_value.to_dict()}
+        return {**self.__attr_name.to_dict(), **{"attr_value": self.__attr_value.to_dict()}}
 
 
 class DeclareModelAttrValue(DeclareModelToken, ABC):
