@@ -101,6 +101,7 @@ class AspGenerator(LogGenerator):
         self.parallel_futures: typing.List = []
         self._custom_counter: dict[str, typing.Union[collections.Counter, None]] = {"positive": None, "negative": None}
         self.include_boundaries: bool = include_boundaries
+        self.distributor_type = "uniform"
 
         """DEF Model"""
         self.lp_model: typing.Union[ASPModel, None] = None
@@ -309,10 +310,26 @@ class AspGenerator(LogGenerator):
         if self.negative_traces > self.log_length:
             warnings.warn("Negative traces can not be greater than total traces asked to generate. Nothing Generating")
             return
+
         self.trace_counter = 0
         pos_traces = self.log_length - self.negative_traces
         neg_traces = self.negative_traces
         self.parallel_futures = []
+
+        # ---
+
+        if self._custom_counter["positive"] is not None and self._custom_counter["negative"] is not None:
+            self.py_logger.debug("******* Using custom traces length *******")
+            pos_traces_dist = self._custom_counter["positive"]
+            neg_traces_dist = self._custom_counter["negative"]
+        else:
+            self.py_logger.debug("Using custom traces length")
+            pos_traces_dist = self.compute_distribution(pos_traces)
+            neg_traces_dist = self.compute_distribution(neg_traces)
+
+        # ---
+
+        """
         if self._custom_counter is not None:
             self.py_logger.debug("******* Using custom traces length *******")
             if ("positive" in self._custom_counter) or ("negative" in self._custom_counter):
@@ -322,9 +339,11 @@ class AspGenerator(LogGenerator):
             self.py_logger.debug("Using custom traces length")
             pos_traces_dist = self.compute_distribution(pos_traces)
             neg_traces_dist = self.compute_distribution(neg_traces)
+        """
 
         result: LogTracesType = LogTracesType(negative=[], positive=[])
         result_variation: LogTracesType = LogTracesType(negative=[], positive=[])
+
         if self.negative_traces > 0:
             self.py_logger.debug("Generating negative traces")
             violation = {'constraint_violation': True, 'violate_all_constraints': self.violate_all_constraints}
@@ -341,15 +360,19 @@ class AspGenerator(LogGenerator):
 
         self.py_logger.debug("Generating traces")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
-        # print(lp) 
+        # print(lp)
+
         self.__generate_traces(lp, pos_traces_dist, "positive")
+
         if self.run_parallel:
             concurrent.futures.wait(self.parallel_futures)
+
         result['positive'] = self.clingo_output
         result_variation['positive'] = self.clingo_output_traces_variation
 
         self.py_logger.debug(f"Traces generated. Positive: {len(result['positive'])}"
                              f" Neg: {len(result['negative'])}. Parsing Trace results.")
+
         self.__resolve_clingo_results(result)
         self.__resolve_clingo_results_variation(result_variation)
         self.py_logger.debug(f"Trace results parsed")
@@ -412,9 +435,13 @@ class AspGenerator(LogGenerator):
                     future = executor.submit(self.__run_clingo, i, num_traces, num_events, freq, asp, trace_type)
                     self.parallel_futures.append(future)
         else:
-            for i in range(num_traces):
-                self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces} with events:{num_events})")
-                self.__run_clingo(i, num_traces, num_events, freq, asp, trace_type)
+
+            # TODO fix matteo
+            pass
+
+            #for i in range(num_traces):
+            #    self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces} with events:{num_events})")
+            #    self.__run_clingo(i, num_traces, num_events, freq, asp, trace_type)
 
     def __run_clingo(self, i, num_traces, num_events, freq, asp, trace_type):
         self.clingo_current_output = None
@@ -426,9 +453,12 @@ class AspGenerator(LogGenerator):
             f"1",
             "--project",
             "--sign-def=rnd",
+
+            "--configuration=frumpy",
+            "-t 64",
+
             f"--rand-freq={freq}",
             f"--restart-on-model",
-            # f"--seed=8794",
             f"--seed={seed}",
         ])
         ctl.add(asp)
@@ -661,6 +691,18 @@ class AspGenerator(LogGenerator):
                     activities.append(traceEvent)
         df = pd.DataFrame(activities)
         return df
+
+    def to_csv(self, path: str):
+
+        if self.traces_generated_events is None or len(self.traces_generated_events) == 0:
+            self.__pm4py_log()
+        if len(self.traces_generated_events['positive']) == 0 and len(self.traces_generated_events['negative']) == 0:
+            warnings.warn("Unable to produce the logs with given model and parameters set for it.")
+            return
+        pd_dataframe = self.toPD(self.traces_generated_events)
+        pd_dataframe.dropna(axis='columns', how='all')
+        pd_dataframe.to_csv(path)
+
 
     def to_xes(self, output_fn: str):
         """
