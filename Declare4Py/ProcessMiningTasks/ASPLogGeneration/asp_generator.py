@@ -299,7 +299,7 @@ class AspGenerator(LogGenerator):
                 raise ValueError(
                     "Interval values are wrong. It must have only 2 values, represents, left and right interval")
 
-    def run(self, generated_asp_file_path: typing.Union[str, None] = None):
+    def run(self, alg: str, generated_asp_file_path: typing.Union[str, None] = None):
         """
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         Parameters
@@ -353,7 +353,7 @@ class AspGenerator(LogGenerator):
                                                        dupl_decl_model, violation)
             else:
                 lp = self.generate_asp_from_decl_model(self.encode_decl_model, None, dupl_decl_model, violation)
-                self.__generate_traces(lp, neg_traces_dist, "negative")
+                self.__generate_traces(lp, neg_traces_dist, "negative", alg)
 
             result['negative'] = self.clingo_output
             result_variation['negative'] = self.clingo_output_traces_variation
@@ -362,7 +362,7 @@ class AspGenerator(LogGenerator):
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
         # print(lp)
 
-        self.__generate_traces(lp, pos_traces_dist, "positive")
+        self.__generate_traces(lp, pos_traces_dist, "positive", alg)
 
         if self.run_parallel:
             concurrent.futures.wait(self.parallel_futures)
@@ -378,7 +378,7 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug(f"Trace results parsed")
         self.__pm4py_log()
 
-    def __generate_traces(self, lp_model: str, traces_to_generate: collections.Counter, trace_type: str):
+    def __generate_traces(self, lp_model: str, traces_to_generate: collections.Counter, trace_type: str, alg: str):
         """
         Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         Parameters
@@ -401,10 +401,86 @@ class AspGenerator(LogGenerator):
                     future = executor.submit(self.__generate_asp_trace, lp_model, events, traces, trace_type)
                     self.parallel_futures.append(future)
         else:
-            for events, traces in traces_to_generate.items():
-                self.py_logger.debug(
-                    f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
-                self.__generate_asp_trace(lp_model, events, traces, trace_type)
+            if alg == "matteo":
+                self.py_logger.debug("Matteo configuration")
+                self.__run_clingo_one_time_per_set_of_trace(lp_model, traces_to_generate, trace_type)
+            else:
+                self.py_logger.debug("Manpreet configuration")
+                for events, traces in traces_to_generate.items():
+                    self.py_logger.debug(
+                        f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
+                    self.__generate_asp_trace(lp_model, events, traces, trace_type)
+
+
+    def __run_clingo_one_time_per_set_of_trace(self, asp: str, traces_to_generate: collections.Counter, trace_type: str,
+                                               freq: float = 1):
+
+        configurations = ["frumpy", "jumpy", "tweety", "handy", "crafty", "trendy"]
+        config = configurations[2]
+        opt_mode = ["opt", "enum", "optN"]
+        opt = opt_mode[2]
+        seed = randrange(0, 2 ** 30 - 1)
+
+        for num_events, num_traces in traces_to_generate.items():
+            self.py_logger.debug(
+                f" Total trace to generate and events: Traces:{num_traces}, Events: {num_events}, RandFrequency: {freq}")
+
+            ctl = clingo.Control([
+                "-c",
+                f"t={int(num_events)}",
+                f"{int(num_traces)}",
+                "--project",
+                # "--sign-def=rnd",
+
+                f"--configuration={config}",
+                f"--opt-mode={opt}",
+                "-t 8",
+
+                f"--rand-freq={freq}",
+                f"--restart-on-model",
+                f"--seed={seed}",
+            ])
+
+            """ctl = clingo.Control([
+                "-c",
+                "--project"
+                # f"--mode={mode}",
+                # f"--configuration={config}",
+                # f"--opt-mode={opt}",
+                # f"--rand-freq={freq}",
+                # f"--restart-on-model",
+                # f"t={int(events)}",
+                # f"{traces}",  # Genera x modelli
+                # f"-t {traces}"  # Deve generare x tracce -> usa x thread
+            ])"""
+
+            ctl.add(asp)
+            ctl.add(self.asp_encoding)
+            ctl.add(self.asp_template)
+            ctl.ground([("base", [])], context=self)
+            result = ctl.solve(on_model=self.__handle_clingo_result)
+            self.py_logger.debug(f" Clingo Result: {str(result)}")
+
+            if result.unsatisfiable:
+                """
+                    Clingo was not able to generate trace events with exactly num_events, thus it returns
+                    unsatisfiable.
+                """
+                warnings.warn(
+                    f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model.')
+                return  # we exit because we cannot generate more traces with same params.
+            elif self.num_repetition_per_trace > 0:
+                self.trace_counter = self.trace_counter + 1
+                self.clingo_output_traces_variation[
+                    len(self.clingo_output_traces_variation)] = []  # to generate the name of variation trace
+                num = self.num_repetition_per_trace - 1
+                if num > 0 and self.clingo_current_output is not None:
+                    c = ASPResultTraceModel(f"variation__trace_{self.trace_counter}", self.clingo_current_output)
+                    asp_variation = asp + "\n"
+                    for ev in c.events:
+                        asp_variation = asp_variation + f"trace({ev.name}, {ev.pos}).\n"
+                    for nm in range(0, num):
+                        self.__generate_asp_trace_variation(asp_variation, num_events, 1, freq)
 
     def __generate_asp_trace(self, asp: str, num_events: int, num_traces: int, trace_type: str, freq: float = 0.9):
         # import pdb
@@ -435,13 +511,9 @@ class AspGenerator(LogGenerator):
                     future = executor.submit(self.__run_clingo, i, num_traces, num_events, freq, asp, trace_type)
                     self.parallel_futures.append(future)
         else:
-
-            # TODO fix matteo
-            pass
-
-            #for i in range(num_traces):
-            #    self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces} with events:{num_events})")
-            #    self.__run_clingo(i, num_traces, num_events, freq, asp, trace_type)
+            for i in range(num_traces):
+                self.py_logger.debug(f" Generating trace:{i + 1}/{num_traces} with events:{num_events})")
+                self.__run_clingo(i, num_traces, num_events, freq, asp, trace_type)
 
     def __run_clingo(self, i, num_traces, num_events, freq, asp, trace_type):
         self.clingo_current_output = None
@@ -453,10 +525,6 @@ class AspGenerator(LogGenerator):
             f"1",
             "--project",
             "--sign-def=rnd",
-
-            "--configuration=frumpy",
-            "-t 64",
-
             f"--rand-freq={freq}",
             f"--restart-on-model",
             f"--seed={seed}",
@@ -703,7 +771,6 @@ class AspGenerator(LogGenerator):
         pd_dataframe.dropna(axis='columns', how='all')
         pd_dataframe.to_csv(path)
 
-
     def to_xes(self, output_fn: str):
         """
         Save log in xes file
@@ -918,3 +985,22 @@ class AspGenerator(LogGenerator):
         self.custom_probabilities = custom_probabilities
         self.scale = scale
         self.loc = loc
+
+
+if __name__ == "__main__":
+    import os
+    from Declare4Py.ProcessModels.DeclareModel import DeclareModel
+
+    model_name = 'sepsis'
+    model: DeclareModel = DeclareModel().parse_from_file(
+        os.path.join("../../../", "tests", "test_models", f"{model_name}.decl"))
+    # Number of cases that have be generated
+    num_of_cases = 10
+
+    # Minimum and maximum number of events a case can contain
+    (num_min_events, num_max_events) = (6, 10)
+
+    asp_gen: AspGenerator = AspGenerator(model, num_of_cases, num_min_events, num_max_events)
+    asp_gen.run()
+
+    asp_gen.to_csv(f'{model_name}.csv')
