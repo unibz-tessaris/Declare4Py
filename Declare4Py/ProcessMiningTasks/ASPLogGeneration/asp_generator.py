@@ -299,11 +299,13 @@ class AspGenerator(LogGenerator):
                 raise ValueError(
                     "Interval values are wrong. It must have only 2 values, represents, left and right interval")
 
-    def run(self, alg: str, generated_asp_file_path: typing.Union[str, None] = None):
+    def run(self, clingo_config: typing.Dict[str, str] = None, generated_asp_file_path: typing.Union[str, None] = None):
         """
             Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         Parameters
         ----------
+        clingo_config : typing.List[str], optional
+            Specifies the configuration of the solver clingo
         generated_asp_file_path: str, optional
             Specify the file name if you want to write the ASP generated program
         """
@@ -353,7 +355,7 @@ class AspGenerator(LogGenerator):
                                                        dupl_decl_model, violation)
             else:
                 lp = self.generate_asp_from_decl_model(self.encode_decl_model, None, dupl_decl_model, violation)
-                self.__generate_traces(lp, neg_traces_dist, "negative", alg)
+                self.__generate_traces(lp, neg_traces_dist, "negative", clingo_config)
 
             result['negative'] = self.clingo_output
             result_variation['negative'] = self.clingo_output_traces_variation
@@ -362,7 +364,7 @@ class AspGenerator(LogGenerator):
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
         # print(lp)
 
-        self.__generate_traces(lp, pos_traces_dist, "positive", alg)
+        self.__generate_traces(lp, pos_traces_dist, "positive", clingo_config)
 
         if self.run_parallel:
             concurrent.futures.wait(self.parallel_futures)
@@ -378,7 +380,7 @@ class AspGenerator(LogGenerator):
         self.py_logger.debug(f"Trace results parsed")
         self.__pm4py_log()
 
-    def __generate_traces(self, lp_model: str, traces_to_generate: collections.Counter, trace_type: str, alg: str):
+    def __generate_traces(self, lp_model: str, traces_to_generate: collections.Counter, trace_type: str, clingo_config: typing.Dict[str, str] = None):
         """
         Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
         Parameters
@@ -401,29 +403,31 @@ class AspGenerator(LogGenerator):
                     future = executor.submit(self.__generate_asp_trace, lp_model, events, traces, trace_type)
                     self.parallel_futures.append(future)
         else:
-            if alg == "matteo":
-                self.py_logger.debug("Matteo configuration")
-                self.__run_clingo_one_time_per_set_of_trace(lp_model, traces_to_generate, trace_type)
-            else:
-                self.py_logger.debug("Manpreet configuration")
-                for events, traces in traces_to_generate.items():
-                    self.py_logger.debug(
-                        f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
-                    self.__generate_asp_trace(lp_model, events, traces, trace_type)
+            self.__run_clingo_one_time_per_set_of_trace(lp_model, traces_to_generate, trace_type, clingo_config)
 
+            """ 
+            self.py_logger.debug("Manpreet configuration")
+            for events, traces in traces_to_generate.items():
+                self.py_logger.debug(f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
+                self.__generate_asp_trace(lp_model, events, traces, trace_type)
+            """
 
-    def __run_clingo_one_time_per_set_of_trace(self, asp: str, traces_to_generate: collections.Counter, trace_type: str,
-                                               freq: float = 1):
+    def __run_clingo_one_time_per_set_of_trace(self, asp: str, traces_to_generate: collections.Counter, trace_type: str, clingo_config: typing.Dict[str, str] = None):
 
-        configurations = ["frumpy", "jumpy", "tweety", "handy", "crafty", "trendy"]
-        config = configurations[2]
-        opt_mode = ["opt", "enum", "optN"]
-        opt = opt_mode[2]
-        seed = randrange(0, 2 ** 30 - 1)
+        if clingo_config is None:
+            config = "tweety"
+            t = 10
+            freq = 1.0
+        else:
+            config = clingo_config["config"]
+            t = clingo_config["threads"]
+            freq = clingo_config["freq"]
 
         for num_events, num_traces in traces_to_generate.items():
-            self.py_logger.debug(
-                f" Total trace to generate and events: Traces:{num_traces}, Events: {num_events}, RandFrequency: {freq}")
+
+            seed = randrange(0, 2 ** 30 - 1)
+
+            self.py_logger.debug(f" Total trace to generate and events: Traces:{num_traces}, Events: {num_events}, RandFrequency: {freq}")
 
             ctl = clingo.Control([
                 "-c",
@@ -433,26 +437,13 @@ class AspGenerator(LogGenerator):
                 # "--sign-def=rnd",
 
                 f"--configuration={config}",
-                f"--opt-mode={opt}",
-                "-t 8",
+                "--opt-mode=optN",
+                f"-t {t}",
 
                 f"--rand-freq={freq}",
                 f"--restart-on-model",
                 f"--seed={seed}",
             ])
-
-            """ctl = clingo.Control([
-                "-c",
-                "--project"
-                # f"--mode={mode}",
-                # f"--configuration={config}",
-                # f"--opt-mode={opt}",
-                # f"--rand-freq={freq}",
-                # f"--restart-on-model",
-                # f"t={int(events)}",
-                # f"{traces}",  # Genera x modelli
-                # f"-t {traces}"  # Deve generare x tracce -> usa x thread
-            ])"""
 
             ctl.add(asp)
             ctl.add(self.asp_encoding)
