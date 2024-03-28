@@ -35,7 +35,7 @@ class DeclareModelConditionResolver2ASP:
         act_ev: DeclareModelEvent = ct.events_activities[0]
         act_ev_name = act_ev.event_name.get_encoded_name() if self.is_encoded else act_ev.event_name.get_name()
         ls.append('activation({},{}).'.format(idx, act_ev_name))
-        if ct.template.is_binary:
+        if ct.template.is_binary and ct.events_activities[1] is not None:
             tar_ev: DeclareModelEvent = ct.events_activities[1]
             tar_ev_name = tar_ev.event_name.get_encoded_name() if self.is_encoded else tar_ev.event_name.get_name()
             ls.append('target({},{}).'.format(idx, tar_ev_name))
