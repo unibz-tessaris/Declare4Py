@@ -5,6 +5,7 @@ import typing
 from abc import ABC
 from enum import Enum
 
+from Declare4Py.ProcessModels.AbstractModel import T
 from Declare4Py.ProcessModels.LTLModel import LTLModel
 
 
@@ -78,9 +79,9 @@ class DeclareModelTemplate(str, Enum):
     RESPONSE = "Response", True, False, False, False, False, False
     ALTERNATE_RESPONSE = "Alternate Response", True, False, False, False, False, False
     CHAIN_RESPONSE = "Chain Response", True, False, False, False, False, False
-    PRECEDENCE = "Precedence", True, False, False, False, False, True
-    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False, False, True
-    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False, False, True
+    PRECEDENCE = "Precedence", True, False, False, False, False, False
+    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False, False, False
+    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False, False, False
 
     # response(A, b) and precedence(a, b) = succession(a, b)
     # responded_existence(A, b) and responded_existence(b, a) = coexistence(a, b)
@@ -95,9 +96,9 @@ class DeclareModelTemplate(str, Enum):
 
     NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False, False, False
     NOT_RESPONSE = "Not Response", True, True, False, False, False, False
-    NOT_PRECEDENCE = "Not Precedence", True, True, False, False, False, True
+    NOT_PRECEDENCE = "Not Precedence", True, True, False, False, False, False
     NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False, False, False
-    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False, False, True
+    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False, False, False
 
     @classmethod
     def get_template_from_string(cls, template_str):
@@ -1094,6 +1095,105 @@ class DeclareParsedDataModel:
 
     def to_json(self):
         return self.to_json()
+
+"""
+class Declare4PyModel(LTLModel):
+
+    def __init__(self):
+        super().__init__()
+
+        self.declare_model_lines: typing.List[str] = []
+
+    def parse_from_file(self, model_path: str, **kwargs) -> Declare4PyModel:
+
+        with open(model_path, "r+") as file:
+            lines = file.readlines()
+        self.declare_model_lines = lines
+        self.parse()
+        return self
+
+    def parse(self):
+        pass
+
+    def to_file(self, model_path: str, **kwargs):
+        raise NotImplementedError("Method to_file not implemented")
+
+
+class Activity:
+
+    def __init__(self, name):
+        self.name: str = name
+        self.attributes: typing.List[Attribute] = []
+
+
+class Attribute:
+
+    INTEGER = "integer"
+    FLOAT = "float"
+    INTEGER_RANGE = "integer_range"
+    FLOAT_RANGE = "float_range"
+    BOOLEAN = "boolean"
+    ENUMERATION = "enumeration"
+
+    def __init__(self, name):
+        self.name: str = name
+        self.__init: bool = False
+        self.attr_type: str = ""
+
+        self.values: typing.List[str] = []
+        self.precision: int = 0
+        self.value_from: typing.Union[int, float] = 0
+        self.value_to: typing.Union[int, float] = 0
+
+        self.to_dict: typing.Dict[str, any] = {"Name": self.name}
+
+    def initialized(self):
+        if not self.__init:
+            raise NotImplementedError(f"Attribute {self.name} not initialized")
+
+    def initialize(self, attr_type: str, values: None):
+
+        attr_type: str = attr_type.lower()
+        if attr_type not in [Attribute.INTEGER, Attribute.FLOAT, Attribute.BOOLEAN, Attribute.ENUMERATION, Attribute.FLOAT_RANGE, Attribute.INTEGER_RANGE]:
+            raise ValueError(f"Invalid attribute {attr_type} type for attribute {self.name}")
+
+        self.attr_type = attr_type
+        self.to_dict["Type"] = attr_type
+
+        if attr_type not in [Attribute.INTEGER, Attribute.FLOAT]:
+            if attr_type == Attribute.ENUMERATION:
+                if values is None:
+                    raise ValueError(f"Attribute values cannot be None for attribute {self.name} of type ENUMERATION")
+                self.values.append(values)
+                self.to_dict["Values"] = values
+            elif attr_type == Attribute.BOOLEAN:
+                self.values = [True, False]
+                self.to_dict["Values"] = values
+            elif self.attr_type == Attribute.INTEGER_RANGE:
+                if isinstance(values, list):
+                    self.value_from = values[0]
+                    self.value_to = values[1]
+                    self.to_dict["ValueFrom"] = values[0]
+                    self.to_dict["ValueTo"] = values[1]
+                else:
+                    raise ValueError(f"Attribute values cannot be {values} for attribute {self.name} of type INTEGER_RANGE")
+            else:
+                if isinstance(values, list):
+                    pass
+                else:
+                    raise ValueError(f"Attribute values cannot be {values} for attribute {self.name} of type INTEGER_RANGE")
+                self.to_dict["Precision"] = self.precision
+
+        self.__init = True
+
+    def to_dict(self):
+        return self.to_dict
+class Conditions:
+    pass
+
+class Constraint:
+    pass
+"""
 
 
 class DeclareModel(LTLModel):

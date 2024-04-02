@@ -78,9 +78,9 @@ class DeclareModelTemplate(str, Enum):
     RESPONSE = "Response", True, False, False, False, False, False
     ALTERNATE_RESPONSE = "Alternate Response", True, False, False, False, False, False
     CHAIN_RESPONSE = "Chain Response", True, False, False, False, False, False
-    PRECEDENCE = "Precedence", True, False, False, False, False, True
-    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False, False, True
-    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False, False, True
+    PRECEDENCE = "Precedence", True, False, False, False, False, False
+    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False, False, False
+    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False, False, False
 
     # response(A, b) and precedence(a, b) = succession(a, b)
     # responded_existence(A, b) and responded_existence(b, a) = coexistence(a, b)
@@ -95,9 +95,9 @@ class DeclareModelTemplate(str, Enum):
 
     NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False, False, False
     NOT_RESPONSE = "Not Response", True, True, False, False, False, False
-    NOT_PRECEDENCE = "Not Precedence", True, True, False, False, False, True
+    NOT_PRECEDENCE = "Not Precedence", True, True, False, False, False, False
     NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False, False, False
-    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False, False, True
+    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False, False, False
 
     @classmethod
     def get_template_from_string(cls, template_str):
@@ -927,6 +927,7 @@ class DeclareModelConstraintTemplate:
         str
             The activation condition, if present. Otherwise, None.
         """
+
         if self._conditions and self.template.reverseActivationTarget:  # if template has reverse conditions, so we xyz
             if len(self._conditions) > 1:
                 c = self._conditions[1]

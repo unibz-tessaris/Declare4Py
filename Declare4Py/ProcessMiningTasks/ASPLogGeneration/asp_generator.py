@@ -32,7 +32,6 @@ class LogTracesType(typing.TypedDict):
     negative: typing.List
 
 
-# TODO cosa è x?
 def custom_sort_trace_key(x) -> typing.List[int]:
     # Extract the numeric parts of the string
     parts: typing.List[str] = re.findall(r'\d+', x.name)
@@ -218,6 +217,7 @@ class AspGenerator(LogGenerator):
 
         self.__handle_activations_condition_asp_generation()
         lp = self.lp_model.to_str()
+
         if save_file:
             with open(save_file, 'w+') as f:
                 f.write(lp)
@@ -238,8 +238,7 @@ class AspGenerator(LogGenerator):
         # decl_model.templates[0].template_line
         for template_def, cond_num_list in self.activation_conditions.items():
             template_def = template_def.strip()
-            decl_template_parsed: [DeclareModelConstraintTemplate] = [val for key, val in decl_model.templates.items()
-                                                                      if val.line == template_def]
+            decl_template_parsed: [DeclareModelConstraintTemplate] = [val for key, val in decl_model.templates.items() if val.line == template_def]
             decl_template_parsed: DeclareModelConstraintTemplate = decl_template_parsed[0]
             asp_template_idx = decl_template_parsed.template_index
             if decl_template_parsed is None:
@@ -248,14 +247,17 @@ class AspGenerator(LogGenerator):
                 decoder = {v: k for k, v in
                            decl_template_parsed.events_activities[0].event_name.encoder.encoded_values.items()}
 
+                """
                 if (decl_template_parsed.template == DeclareModelTemplate.ALTERNATE_PRECEDENCE) or (
                         decl_template_parsed.template == DeclareModelTemplate.PRECEDENCE) or (
                         decl_template_parsed.template == DeclareModelTemplate.CHAIN_PRECEDENCE):
                     B = decoder[decl_template_parsed.events_activities[0].event_name.value]
                     A = decoder[decl_template_parsed.events_activities[1].event_name.value]
                 else:
-                    A = decoder[decl_template_parsed.events_activities[0].event_name.value]
-                    B = decoder[decl_template_parsed.events_activities[1].event_name.value]
+                """
+
+                A = decoder[decl_template_parsed.events_activities[0].event_name.value]
+                B = decoder[decl_template_parsed.events_activities[1].event_name.value]
 
                 if cond_num_list[0] <= 0:
                     # left side tends to -inf or 0 starting from cond_num_list[1]. cond_num_list = [0, 2]
@@ -362,7 +364,6 @@ class AspGenerator(LogGenerator):
 
         self.py_logger.debug("Generating traces")
         lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
-        # print(lp)
 
         self.__generate_traces(lp, pos_traces_dist, "positive", clingo_config)
 

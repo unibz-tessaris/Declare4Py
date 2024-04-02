@@ -18,6 +18,8 @@ activity IV Liquid
 bind IV Liquid: org:group, Diagnose, Age
 activity Release A
 bind Release A: org:group
+activity Release B
+bind Release B: org:group
 activity Return ER
 bind Return ER: org:group
 activity Admission IC
