@@ -250,10 +250,9 @@ class Distribution:
             self.__distribution_logger.debug(str(msg))
 
 
-"""
+
 if __name__ == '__main__':
-    print(Distribution(6, 10, 10, "NOT UNIFORM", None, True).get_distribution())
+    print(sum(Distribution(6, 10, 10, "NOT UNIFORM", None, True).get_distribution().values()))
     print(Distribution(6, 10, 10, "UNIFORM", None, True).get_distribution())
     print(Distribution(1.5, 0.15, 1000, Distribution.GAUSSIAN, None, True).get_distribution())
     print(Distribution(2, 4, 10, Distribution.CUSTOM, [0.3333333333333333, 0.3333333333333333, 0.3333333333333333], True).get_distribution())
-"""

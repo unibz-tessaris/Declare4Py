@@ -21,7 +21,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
 
     def __init__(
             self,
-            num_traces: int,
+            total_traces: int,
             min_event: int,
             max_event: int,
             process_model: ProcessModel,
@@ -34,34 +34,35 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         """Initialize Abstract Log Generator"""
         self.__py_logger = logging.getLogger("Abstract Log Generator")
 
-        self.num_traces: int = 0
+        self.total_traces: int = 0
         self.max_events: int = 0
         self.min_events: int = 0
         self.verbose: bool = False
 
         """Check Init Conditions"""
-        self.set_num_traces(num_traces)
+        self.set_total_traces(total_traces)
         self.set_min_max_events(min_event, max_event)
 
         """Initialize Distributions Setting"""
-        self.distribution: Distribution = Distribution(min_event, max_event, num_traces, Distribution.UNIFORM, None, verbose)
-        self.traces_length: typing.Union[collections.Counter, typing.Dict] = self.distribution.get_distribution()
+        self.distribution: Distribution = Distribution(min_event, max_event, total_traces, Distribution.UNIFORM, None, verbose)
+        self.total_traces_distribution: typing.Union[collections.Counter, typing.Dict] = self.distribution.get_distribution()
         self.distribution_type: str = Distribution.UNIFORM
         self.custom_probabilities: None = None
         self.mu: typing.Union[float, None] = None
         self.sigma: typing.Union[float, None] = None
 
-    def set_distribution(
+    def compute_distribution(
             self,
             min_num_events_or_mu: typing.Union[int, float, None] = None,
             max_num_events_or_sigma: typing.Union[int, float, None] = None,
-            num_traces: typing.Union[int, None] = None,
+            total_traces: typing.Union[int, None] = None,
             dist_type: str = Distribution.UNIFORM,
             custom_probabilities: typing.Optional[typing.List[float]] = None
-    ):
+    ) -> collections.Counter:
 
         """
-        Changes the distribution of the Log Generator by inserting new parameters or values
+        Computes the distribution of the given process model.
+        It changes the distribution of the Log Generator if new parameters or values are inserted
         If some values are None the current will be selected and used
 
         Parameters:
@@ -69,7 +70,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
                 The minimum trace length for uniform distributions, or the mean of the distribution for normal distributions.
             max_num_events_or_sigma:
                 The maximum trace length for uniform distributions, or the standard deviation of the distribution for normal distributions.
-            num_traces:
+            total_traces:
                 The number of traces to generate.
             dist_type:
                 The type of distribution to use. Can be "uniform", "gaussian", or "custom". Default is "uniform".
@@ -82,7 +83,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         """
 
         # Sets the new number of traces
-        self.set_num_traces(num_traces)
+        self.set_total_traces(total_traces)
         self.custom_probabilities = custom_probabilities
 
         # If the dist is gaussian sets mu and sigma
@@ -110,20 +111,22 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
             max_num_events_or_sigma = self.max_events
 
         # Create the new distribution
-        self.distribution = Distribution(min_num_events_or_mu, max_num_events_or_sigma, self.num_traces, dist_type, self.custom_probabilities, self.verbose)
-        self.traces_length = self.distribution.get_distribution()
+        self.distribution = Distribution(min_num_events_or_mu, max_num_events_or_sigma, self.total_traces, dist_type, self.custom_probabilities, self.verbose)
+        self.total_traces_distribution = self.distribution.get_distribution()
         self.distribution_type = self.distribution.get_distribution_type()
 
         self.debug_message(f"New Distribution min_num_events_or_mu: {min_num_events_or_mu}, "
-                           f"max_num_events_or_sigma: {max_num_events_or_sigma}, num_traces: {self.num_traces}, "
-                           f"distribution: {dist_type}, probabilities: {custom_probabilities}")
+                           f"max_num_events_or_sigma: {max_num_events_or_sigma}, num_traces: {self.total_traces}, "
+                           f"distribution: {dist_type}, probabilities: {custom_probabilities} calculated")
 
-    def regenerate_distribution(self):
+        return self.total_traces_distribution
+
+    def recompute_distribution(self):
         """
         Generates another distribution using the current distribution settings
         """
 
-        self.traces_length = self.distribution.distribute_probabilities()
+        self.total_traces_distribution = self.distribution.distribute_probabilities()
 
     def set_min_max_events(self, min_event: typing.Union[int, float, None], max_event: typing.Union[int, float, None]):
         """
@@ -158,7 +161,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
             else:
                 raise ValueError(f"max_event is not of type int but of type {type(min_event)}!")
 
-        if min_event > max_event: # swap if min is bigger than max
+        if min_event > max_event:  # swap if min is bigger than max
             max_event, min_event = min_event, max_event
         if min_event <= 0 and max_event <= 0:
             raise ValueError(f"min_events({min_event}) and max_events({max_event}) events should be greater than 0!")
@@ -171,7 +174,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         self.max_events: int = max_event
         self.min_events: int = min_event
 
-    def set_num_traces(self, num_traces: int):
+    def set_total_traces(self, total_traces: int):
         """
         Sets the number of traces for the distribution
 
@@ -179,16 +182,16 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
             ValueError: If num_traces is not a positive integer
         """
 
-        if num_traces is None: # Do not change
+        if total_traces is None:  # Do not change
             return
 
         # Otherwise a changes has been made
-        if not isinstance(num_traces, int):
+        if not isinstance(total_traces, int):
             raise ValueError(f"num_traces is not of type int!")
-        if num_traces <= 0:
-            raise ValueError(f"num_traces({num_traces}) must be greater than zero!")
+        if total_traces <= 0:
+            raise ValueError(f"num_traces({total_traces}) must be greater than zero!")
 
-        self.num_traces = num_traces
+        self.total_traces = total_traces
 
     def set_verbose(self, verbose: bool):
         """
