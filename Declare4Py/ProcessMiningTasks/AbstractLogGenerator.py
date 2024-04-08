@@ -114,6 +114,10 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         self.traces_length = self.distribution.get_distribution()
         self.distribution_type = self.distribution.get_distribution_type()
 
+        self.debug_message(f"New Distribution min_num_events_or_mu: {min_num_events_or_mu}, "
+                           f"max_num_events_or_sigma: {max_num_events_or_sigma}, num_traces: {self.num_traces}, "
+                           f"distribution: {dist_type}, probabilities: {custom_probabilities}")
+
     def regenerate_distribution(self):
         """
         Generates another distribution using the current distribution settings
