@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from abc import ABC
 
 from Declare4Py.ProcessMiningTasks.AbstractPMTask import AbstractPMTask
@@ -13,15 +12,8 @@ import collections
 from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.Distribution import Distribution
 
 """
-
 An abstract class for verifying whether the behavior of a given process model, as recorded in a log,
- is in line with some expected behaviors provided in the form of a process model ()
-
-Parameters
--------
-    consider_vacuity : bool
-        True means that vacuously satisfied traces are considered as satisfied, violated otherwise.
-
+is in line with some expected behaviors provided in the form of a process model ()
 """
 
 
@@ -29,98 +21,183 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
 
     def __init__(
             self,
-            log: D4PyEventLog,
             num_traces: int,
             min_event: int,
             max_event: int,
-            process_model: ProcessModel
+            process_model: ProcessModel,
+            log: typing.Union[D4PyEventLog, None] = None,
+            verbose: bool = False
     ):
 
         super().__init__(log, process_model)
 
-        """INIT Conditions"""
-        if min_event > max_event:
-            raise ValueError(f"min_events({min_event}) > max_events({max_event})! "
-                             f"Min events should no be greater than max events")
-        if min_event < 0 and max_event < 0:
-            raise ValueError(f"min and max events should be greater than 0!")
-        if min_event < 0:
-            raise ValueError(f"min_events({min_event}) should be greater than 0!")
-        if max_event < 0:
-            raise ValueError(f"max_events({max_event}) should be greater than 0!")
-        if not isinstance(min_event, int) or not isinstance(max_event, int):
-            raise ValueError(f"min_events or/and max_events are not valid!")
+        """Initialize Abstract Log Generator"""
+        self.__py_logger = logging.getLogger("Abstract Log Generator")
 
-        """DEF"""
-        self.__py_logger = logging.getLogger("Log generator")
-        self.log_length: int = num_traces
+        self.num_traces: int = 0
+        self.max_events: int = 0
+        self.min_events: int = 0
+        self.verbose: bool = False
+
+        """Check Init Conditions"""
+        self.set_num_traces(num_traces)
+        self.set_min_max_events(min_event, max_event)
+
+        """Initialize Distributions Setting"""
+        self.distribution: Distribution = Distribution(min_event, max_event, num_traces, Distribution.UNIFORM, None, verbose)
+        self.traces_length: typing.Union[collections.Counter, typing.Dict] = self.distribution.get_distribution()
+        self.distribution_type: str = Distribution.UNIFORM
+        self.custom_probabilities: None = None
+        self.mu: typing.Union[float, None] = None
+        self.sigma: typing.Union[float, None] = None
+
+    def set_distribution(
+            self,
+            min_num_events_or_mu: typing.Union[int, float, None] = None,
+            max_num_events_or_sigma: typing.Union[int, float, None] = None,
+            num_traces: typing.Union[int, None] = None,
+            dist_type: str = Distribution.UNIFORM,
+            custom_probabilities: typing.Optional[typing.List[float]] = None
+    ):
+
+        """
+        Changes the distribution of the Log Generator by inserting new parameters or values
+        If some values are None the current will be selected and used
+
+        Parameters:
+            min_num_events_or_mu:
+                The minimum trace length for uniform distributions, or the mean of the distribution for normal distributions.
+            max_num_events_or_sigma:
+                The maximum trace length for uniform distributions, or the standard deviation of the distribution for normal distributions.
+            num_traces:
+                The number of traces to generate.
+            dist_type:
+                The type of distribution to use. Can be "uniform", "gaussian", or "custom". Default is "uniform".
+            custom_probabilities:
+                A list of custom probabilities to use for the "custom" distribution type. Default is None
+
+        Raises:
+            ValueError:
+                The Distribution class will raise ValueErrors if the parameters are invalid.
+        """
+
+        # Sets the new number of traces
+        self.set_num_traces(num_traces)
+        self.custom_probabilities = custom_probabilities
+
+        # If the dist is gaussian sets mu and sigma
+        if dist_type == Distribution.GAUSSIAN:
+
+            if min_num_events_or_mu is None:
+                raise ValueError("min_num_events_or_mu cannot be None")
+            if max_num_events_or_sigma is None:
+                raise ValueError("min_num_events_or_mu cannot be None")
+
+            # Sets mu and sigma
+            self.mu = min_num_events_or_mu = float(min_num_events_or_mu)
+            self.sigma = max_num_events_or_sigma = float(max_num_events_or_sigma)
+
+        else:
+            # Resets mu and sigma
+            self.mu = None
+            self.sigma = None
+
+            # Sets new min max events
+            self.set_min_max_events(min_num_events_or_mu, max_num_events_or_sigma)
+
+            # Recover values
+            min_num_events_or_mu = self.min_events
+            max_num_events_or_sigma = self.max_events
+
+        # Create the new distribution
+        self.distribution = Distribution(min_num_events_or_mu, max_num_events_or_sigma, self.num_traces, dist_type, self.custom_probabilities, self.verbose)
+        self.traces_length = self.distribution.get_distribution()
+        self.distribution_type = self.distribution.get_distribution_type()
+
+    def regenerate_distribution(self):
+        """
+        Generates another distribution using the current distribution settings
+        """
+
+        self.traces_length = self.distribution.distribute_probabilities()
+
+    def set_min_max_events(self, min_event: typing.Union[int, float, None], max_event: typing.Union[int, float, None]):
+        """
+        Sets the minimum number of events and the maximum number of events for the logger
+
+        Raises:
+            ValueError:
+                If min_event is not a positive integer
+            ValueError:
+                If max_event is not a positive integer
+        """
+
+        if min_event is None and max_event is None:  # Do not change values
+            return
+
+        # Otherwise a change has been made
+        # If one is None the current value is used
+        if min_event is None:
+            min_event = self.min_events
+        if max_event is None:
+            max_event = self.max_events
+
+        # Checks essential conditions on the min max events
+        if not isinstance(min_event, int):
+            if isinstance(min_event, float):
+                min_event = int(min_event)
+            else:
+                raise ValueError(f"min_events is not of type int but of type {type(min_event)}!")
+        if not isinstance(max_event, int):
+            if isinstance(max_event, float):
+                max_event = int(max_event)
+            else:
+                raise ValueError(f"max_event is not of type int but of type {type(min_event)}!")
+
+        if min_event > max_event: # swap if min is bigger than max
+            max_event, min_event = min_event, max_event
+        if min_event <= 0 and max_event <= 0:
+            raise ValueError(f"min_events({min_event}) and max_events({max_event}) events should be greater than 0!")
+        if min_event <= 0:
+            raise ValueError(f"min_events({min_event}) should be greater than 0!")
+        if max_event <= 0:
+            raise ValueError(f"max_events({max_event}) should be greater than 0!")
+
+        # Assign
         self.max_events: int = max_event
         self.min_events: int = min_event
 
-        # Distributions Setting
-        self.traces_length: typing.Union[collections.Counter, typing.Dict] = {}
-        self.possible_distributions = Distribution.get_distributions()
-        self.distributor_type: str = "uniform"
-        self.custom_probabilities: None = None
-        self.scale: typing.Union[float, None] = None
-        self.loc: typing.Union[float, None] = None
-
-    def set_distribution(self, distributor_type: str = "uniform",
-                         custom_probabilities: typing.Optional[typing.List[float]] = None,
-                         loc: float = None, scale: float = None):
+    def set_num_traces(self, num_traces: int):
         """
-        We specify rules regarding the length of a trace that spans between a minimum and a maximum.
-         This span is set according to a uniform, gaussian or custom distribution.
+        Sets the number of traces for the distribution
 
-        Parameters
-        ----------
-        distributor_type: str
-            "uniform", "gaussian", "custom"
-        custom_probabilities: list, optional
-            it must be used when custom distribution is chosen
-        loc: float
-            used for gaussian/normal distribution
-        scale: float
-            used for gaussian/normal distribution
-
-        Returns
-        -------
-
+        Raises:
+            ValueError: If num_traces is not a positive integer
         """
-        if distributor_type.lower() not in self.possible_distributions:
-            raise ValueError(f"Invalid distribution {distributor_type}")
 
-        self.distributor_type = distributor_type.lower()
-        self.custom_probabilities = custom_probabilities
-        self.scale = scale
-        self.loc = loc
+        if num_traces is None: # Do not change
+            return
 
-    def compute_distribution(self, total_traces: typing.Union[int, None] = None) -> collections.Counter:
+        # Otherwise a changes has been made
+        if not isinstance(num_traces, int):
+            raise ValueError(f"num_traces is not of type int!")
+        if num_traces <= 0:
+            raise ValueError(f"num_traces({num_traces}) must be greater than zero!")
+
+        self.num_traces = num_traces
+
+    def set_verbose(self, verbose: bool):
         """
-         The compute_distribution method computes the distribution of the number of events in a trace based on
-         the distributor_type parameter. If the distributor_type is "gaussian", it uses the loc and scale parameters
-         to compute a Gaussian distribution. Otherwise, it uses a uniform or custom distribution.
-
-         Parameters
-         total_traces: int, optional
-            the number of traces
+        Sets verbose for debugging information
         """
-        self.__py_logger.info("Computing distribution")
 
-        """INIT Conditions"""
-        if total_traces is None:
-            total_traces = self.log_length
-        if total_traces == 0:
-            return collections.Counter()
+        if isinstance(verbose, bool):
+            self.verbose = verbose
 
-        """DEF"""
-        traces_len: collections.Counter = collections.Counter()
+    def debug_message(self, msg: any):
+        """
+        Used for debugging purposes, If verbose is True, the message is printed.
+        """
 
-        if self.distributor_type == "gaussian":
-            print()
-        else:
-            print()
-
-        self.__py_logger.info(f"Distribution result {traces_len}")
-        self.traces_length = traces_len
-        return traces_len
+        if self.verbose:
+            self.__py_logger.debug(str(msg))
