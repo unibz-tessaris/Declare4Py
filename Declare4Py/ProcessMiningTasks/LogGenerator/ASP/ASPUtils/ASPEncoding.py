@@ -20,7 +20,7 @@ class ASPEncoder:
     __val4 = """#show trace/2.\n#show assigned_value/3.\n%#show sat/2.\n"""
 
     @classmethod
-    def get_asp_encoding(cls, facts_name: typing.List[str] = ["activity"], is_sat: bool = True):
+    def get_asp_encoding(cls, facts_name: typing.Union[typing.List[str], None] = None, is_sat: bool = True):
         """
         We need add the facts. The facts name can be anything described in the decl model.
         Parameters
@@ -34,9 +34,14 @@ class ASPEncoder:
 
         """
 
-        val3: str = ":- sat(I), not sat(I,t)."
+        if facts_name is None:
+            facts_name = ["activity"]
+        if not isinstance(facts_name, list):
+            raise ValueError(f"facts_name is not of type list!")
+
+        val3: str = ":- sat(I), not sat(I,t).\n"
         if not is_sat:
-            val3 += "\n:- unsat(I), sat(I,t).\n"
+            val3 += ":- unsat(I), sat(I,t).\n"
 
         ls = []
         fact_contains = []
@@ -46,3 +51,5 @@ class ASPEncoder:
                 fact_contains.append(n.lower())
         return cls.__value + "\n".join(ls) + "\n" + cls.__val2 + "\n" + val3 + "\n" + cls.__val4
 
+if __name__ == "__main__":
+    print(ASPEncoder.get_asp_encoding(is_sat=False))
