@@ -34,7 +34,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         """Initialize Abstract Log Generator"""
         self.__py_logger = logging.getLogger("Abstract Log Generator")
 
-        self.total_traces: int = 0
+        self.log_length: int = 0
         self.max_events: int = 0
         self.min_events: int = 0
         self.verbose: bool = False
@@ -111,12 +111,12 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
             max_num_events_or_sigma = self.max_events
 
         # Create the new distribution
-        self.distribution = Distribution(min_num_events_or_mu, max_num_events_or_sigma, self.total_traces, dist_type, self.custom_probabilities, self.verbose)
+        self.distribution = Distribution(min_num_events_or_mu, max_num_events_or_sigma, self.log_length, dist_type, self.custom_probabilities, self.verbose)
         self.total_traces_distribution = self.distribution.get_distribution()
         self.distribution_type = self.distribution.get_distribution_type()
 
         self.debug_message(f"New Distribution min_num_events_or_mu: {min_num_events_or_mu}, "
-                           f"max_num_events_or_sigma: {max_num_events_or_sigma}, num_traces: {self.total_traces}, "
+                           f"max_num_events_or_sigma: {max_num_events_or_sigma}, num_traces: {self.log_length}, "
                            f"distribution: {dist_type}, probabilities: {custom_probabilities} calculated")
 
         return self.total_traces_distribution
@@ -191,7 +191,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         if total_traces <= 0:
             raise ValueError(f"num_traces({total_traces}) must be greater than zero!")
 
-        self.total_traces = total_traces
+        self.log_length = total_traces
 
     def set_verbose(self, verbose: bool):
         """

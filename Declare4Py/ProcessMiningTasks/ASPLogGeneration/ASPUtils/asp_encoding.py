@@ -44,3 +44,7 @@ class ASPEncoding(str):
                 ls.append(f"{{trace(A,T) : {n}(A)}} = 1 :- time(T).")
                 fact_contains.append(n.lower())
         return self.value + "\n".join(ls) + "\n" + self.val2 + "\n" + self.val3 + "\n" + self.val4
+
+if __name__ == "__main__":
+    a =ASPEncoding(True).get_ASP_encoding()
+    print(a)

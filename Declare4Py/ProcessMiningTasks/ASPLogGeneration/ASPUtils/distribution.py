@@ -157,11 +157,13 @@ class Distributor:
             raise AttributeError(f"Specified type of distribution {dist_type} not supported yet.")
 
 
-# if __name__ == "__main__":
-#     # print(distribution(2, 4, "uniform", num_traces=100))
-#     # print(normal_distribution(1.5, 0.15, 1000))
-#     # print(distribution(2, 10, "normal"))
-#     d = Distributor()
-#     print(d.uniform_distribution(2, 4, 10))
-#     print(d.custom_distribution(2, 4, 10, [0.3333333333333333, 0.3333333333333333, 0.3333333333333333]))
-#     print(d.normal_distribution(3, 4, 10))
+"""
+if __name__ == "__main__":
+    d = Distributor()
+    print(d.distribution(6, 10, 10,"uniform"))
+    print(d.normal_distribution(1.5, 0.15, 1000))
+    print(d.distribution(2, 10, 10, "gaussian"))\
+    print(d.uniform_distribution(2, 4, 10))
+    print(d.custom_distribution(2, 4, 10, [0.3333333333333333, 0.3333333333333333, 0.3333333333333333]))
+    print(d.normal_distribution(3, 4, 10))
+"""

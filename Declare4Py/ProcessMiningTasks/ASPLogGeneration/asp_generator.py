@@ -9,6 +9,7 @@ import warnings
 from datetime import datetime, timedelta
 import random
 from random import randrange
+import os
 
 import clingo
 import pm4py
@@ -417,7 +418,7 @@ class AspGenerator(LogGenerator):
 
         if clingo_config is None:
             config = "tweety"
-            t = 10
+            t = os.cpu_count() if os.cpu_count() is not None else 1
             freq = 1.0
         else:
             config = clingo_config["config"]
@@ -435,7 +436,7 @@ class AspGenerator(LogGenerator):
                 f"t={int(num_events)}",
                 f"{int(num_traces)}",
                 "--project",
-                # "--sign-def=rnd",
+                "--sign-def=rnd",
 
                 f"--configuration={config}",
                 "--opt-mode=optN",
