@@ -78,9 +78,9 @@ class DeclareModelTemplate(str, Enum):
     RESPONSE = "Response", True, False, False, False, False, False
     ALTERNATE_RESPONSE = "Alternate Response", True, False, False, False, False, False
     CHAIN_RESPONSE = "Chain Response", True, False, False, False, False, False
-    PRECEDENCE = "Precedence", True, False, False, False, False, False
-    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False, False, False
-    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False, False, False
+    PRECEDENCE = "Precedence", True, False, False, False, False, True
+    ALTERNATE_PRECEDENCE = "Alternate Precedence", True, False, False, False, False, True
+    CHAIN_PRECEDENCE = "Chain Precedence", True, False, False, False, False, True
 
     # response(A, b) and precedence(a, b) = succession(a, b)
     # responded_existence(A, b) and responded_existence(b, a) = coexistence(a, b)
@@ -95,9 +95,9 @@ class DeclareModelTemplate(str, Enum):
 
     NOT_RESPONDED_EXISTENCE = "Not Responded Existence", True, True, False, False, False, False
     NOT_RESPONSE = "Not Response", True, True, False, False, False, False
-    NOT_PRECEDENCE = "Not Precedence", True, True, False, False, False, False
-    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False, False, False
-    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False, False, False
+    NOT_PRECEDENCE = "Not Precedence", True, True, False, False, False, True
+    NOT_CHAIN_RESPONSE = "Not Chain Response", True, True, False, False, False, True
+    NOT_CHAIN_PRECEDENCE = "Not Chain Precedence", True, True, False, False, False, True
 
     @classmethod
     def get_template_from_string(cls, template_str):
@@ -874,6 +874,9 @@ class DeclareModelConstraintTemplate:
         str
             The template name.
         """
+        if self._template_name is None:
+            return None
+
         if self.template.supports_cardinality:
             new_name = self.template.templ_str
             if self.cardinality > 0:
@@ -928,6 +931,7 @@ class DeclareModelConstraintTemplate:
             The activation condition, if present. Otherwise, None.
         """
 
+        """
         if self._conditions and self.template.reverseActivationTarget:  # if template has reverse conditions, so we xyz
             if len(self._conditions) > 1:
                 c = self._conditions[1]
@@ -937,7 +941,8 @@ class DeclareModelConstraintTemplate:
                 c = self._conditions[0]
                 return c
                 # return c if len(c) > 1 else None
-        return None
+        """
+        return self._conditions[0] if len(self._conditions) > 0 else None
 
     def get_target_condition(self):
         """
@@ -948,13 +953,17 @@ class DeclareModelConstraintTemplate:
         str
             The target condition, if present. Otherwise, None.
         """
-        cond = ""
+
+        """
         if self._conditions and self.template.reverseActivationTarget:
             if len(self._conditions) > 0:
                 cond = self._conditions[0]
         else:
-            if len(self._conditions) > 1:
-                cond = self._conditions[1]
+        """
+
+        cond = ""
+        if len(self._conditions) > 1:
+            cond = self._conditions[1]
         time_int = r"^[\d.]+,?([\d.]+)?[,]?(s|m|d|h)$"
         is_matched = re.search(time_int, cond, re.IGNORECASE)
         if is_matched:
@@ -1147,7 +1156,10 @@ class DeclareParsedDataModel:
             events = al.group(2).strip()
             events = [e.strip() for e in events.split(',')]
             if template.is_binary:
-                tmplt.events_activities = [self.find_event_by_name(events[0]), self.find_event_by_name(events[1])]
+                if template.reverseActivationTarget:
+                    tmplt.events_activities = [self.find_event_by_name(events[1]), self.find_event_by_name(events[0])]
+                else:
+                    tmplt.events_activities = [self.find_event_by_name(events[0]), self.find_event_by_name(events[1])]
             else:
                 tmplt.events_activities = [self.find_event_by_name(events[0])]
         tmplt.parse_constraint_conditions()
