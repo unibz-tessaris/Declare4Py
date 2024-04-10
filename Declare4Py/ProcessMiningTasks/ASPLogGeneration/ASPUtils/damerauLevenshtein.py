@@ -1,8 +1,16 @@
 import pandas as pd
 from typing import List, Set, Dict
-
+import pm4py
+import os
 
 class DamerauLevenshteinDistance:
+
+    @staticmethod
+    def analize_csv_from_xes(path: str) -> float:
+        log = pm4py.read_xes(path)
+        pd = pm4py.convert_to_dataframe(log)
+        pd.to_csv(path[:-4] + ".csv", index=False)
+        return DamerauLevenshteinDistance.analize_csv(path[:-4] + ".csv")
 
     @staticmethod
     def analize_csv(path: str) -> float:
@@ -13,17 +21,22 @@ class DamerauLevenshteinDistance:
         act_loc_set: Set = set(df["concept:name"].unique())
         symbol_to_ascii_map: Dict[str, chr] = {symbol: chr(idx + ascii_offset) for idx, symbol in enumerate(list(act_loc_set))}
 
-        case: int = 0
         traces: List[str] = []
         trace: str = ""
 
+        current_case = None
         for _, row in df.iterrows():
-            if row["case:concept:name"] == f"case_{case}":
+
+            if current_case is None:
+                current_case = row["case:concept:name"]
+
+            if row["case:concept:name"] == current_case:
                 trace += symbol_to_ascii_map[row["concept:name"]]
             else:
                 traces.append(trace)
+                current_case = row["case:concept:name"]
                 trace = symbol_to_ascii_map[row["concept:name"]]
-                case += 1
+
         traces.append(trace)
 
         count: int = 0
@@ -57,3 +70,12 @@ class DamerauLevenshteinDistance:
 
         # Return the edit distance
         return dp[len(s1)][len(s2)]
+
+
+if __name__ == "__main__":
+
+    path = "C:\\Users\\Matteo\\Desktop\\"
+    for file in ["rum_test1", "rum_test2", "rum_test3", "rum_test4", "rum_test5"]:
+
+        val = DamerauLevenshteinDistance.analize_csv_from_xes(path + file + ".xes")
+        os.rename(f"{path}{file}.csv", f"{path}similarity_{round(val, 4)}_{file}.csv")
