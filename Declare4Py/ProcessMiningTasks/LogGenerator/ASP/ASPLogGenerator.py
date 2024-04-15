@@ -14,15 +14,12 @@ import os
 import clingo
 import pm4py
 from clingo import Symbol
-import concurrent.futures
 import pandas as pd
-
 
 # NEW
 from Declare4Py.ProcessMiningTasks.AbstractLogGenerator import AbstractLogGenerator
 from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.ASPTemplate import ASPTemplate
 from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.ASPEncoding import ASPEncoder
-from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.Distribution import Distribution
 from Declare4Py.ProcessModels.AbstractModel import ProcessModel
 
 # from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPTranslator import
@@ -32,22 +29,12 @@ from Declare4Py.ProcessModels.AbstractModel import ProcessModel
 from Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPTranslator.asp_translator import ASPModel
 from Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPUtils.asp_result_parser import ASPResultTraceModel
 from Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
-    DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr, DeclareModelTemplate
-
-
+    DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr
 
 
 class LogTracesType(typing.TypedDict):
-    positive: typing.List
-    negative: typing.List
-
-
-def custom_sort_trace_key(x) -> typing.List[int]:
-    # Extract the numeric parts of the string
-    parts: typing.List[str] = re.findall(r'\d+', x.name)
-    # Convert the numeric parts to integers
-    integers: typing.List[int] = [int(p) for p in parts]
-    return integers
+    positive: typing.Union[typing.List, typing.Dict]
+    negative: typing.Union[typing.List, typing.Dict]
 
 
 class AspGenerator(AbstractLogGenerator):
@@ -88,12 +75,26 @@ class AspGenerator(AbstractLogGenerator):
         super().__init__(num_traces, min_event, max_event, decl_model, None, verbose)
 
         """DEF Logger"""
-        self.py_logger: logging.Logger = logging.getLogger("ASP generator")
+        self.__ASP_Log_Gen_Logger: logging.Logger = logging.getLogger("ASP generator")
+
+        """ Clingo Config """
+        self.use_custom_clingo_config: bool = False
+        self.default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "THREADS": str(os.cpu_count()), "FREQUENCY": "1.0", "SIGN-DEF": "asp", "MODE": "optN"}
+        self.custom_configuration: typing.Dict[str, str] = self.default_configuration.copy()
 
         """DEF clingo outputs"""
         self.clingo_output: typing.List = []
         self.clingo_current_output: typing.Sequence[Symbol]
-        self.clingo_output_traces_variation: typing.List = []
+        self.clingo_output_traces_variation: typing.Dict = {}
+
+        self.result_traces: LogTracesType = LogTracesType(negative=[], positive=[])
+        self.result_traces_variation: LogTracesType = LogTracesType(negative=[], positive=[])
+
+        """DEF TRACES"""
+        self.positive_traces = self.log_length
+        self.negative_traces = 0
+        self.positive_traces_distribution: collections.Counter = collections.Counter()
+        self.negative_traces_distribution: collections.Counter = collections.Counter()
 
         """DEF ASP outputs"""
         # self.asp_generated_traces: typing.List[ASPResultTraceModel] | None = None
@@ -116,9 +117,8 @@ class AspGenerator(AbstractLogGenerator):
         self.encode_decl_model: bool = encode_decl_model
 
         """Logger opt"""
-        self.debug_message(f"Distribution for traces {self.distribution_type}")
-        self.debug_message(f"traces: {num_traces}, "
-                             f"events can have a trace min({self.min_events}) max({self.max_events})")
+        self.__debug_message(f"Distribution for traces {self.distribution_type}")
+        self.__debug_message(f"traces: {num_traces}, events can have a trace min({self.min_events}) max({self.max_events})")
 
         # Constraint violations
         """
@@ -128,383 +128,145 @@ class AspGenerator(AbstractLogGenerator):
         """
         self.violate_all_constraints: bool = False  # if false: clingo will decide itself the constraints to violate
         self.violable_constraints: [str] = []  # constraint list which should be violated
-        self.negative_traces = 0
 
         # constraint template conditions
-        self.activation_conditions: dict = None
+        self.activation_conditions: dict = {}
 
-    def generate_asp_from_decl_model(self,
-                                     encode: bool = True,
-                                     save_file: str = None,
-                                     process_model: ProcessModel = None,
-                                     violation: dict = None
-                                     ) -> str:
-        """
-        Generates an ASP translation of the Declare model.
-        Parameters
-        ----------
-        encode: bool
-            whether to use the encoded values to generate ASP
-        save_file: str
-            specify filepath with name, in which the generated ASP will be saved
-        process_model:
-            DeclareModel which will be converted or translated into the ASP
-        violation: dict
-            A dictionary containing information about the constraint templates which should be violated or in order
-            to generate the negative traces.
+    def run(self, generated_asp_file_path: typing.Union[str, None] = None):
 
-        Returns
-        -------
-        str
-            ASP program
-        """
-        """
-             It takes an optional encode parameter, which is a boolean
-             indicating whether to encode the model or not. The default value is True.
-        """
-        if process_model is None:
-            process_model = self.process_model
-
-        self.py_logger.debug("Translate declare model to ASP")
-
-        self.lp_model = ASPModel(encode).from_decl_model(process_model, violation)
-
-        self.__handle_activations_condition_asp_generation()
-        lp = self.lp_model.to_str()
-
-        if save_file:
-            with open(save_file, 'w+') as f:
-                f.write(lp)
-        self.py_logger.debug(f"Declare model translated to ASP. Total Facts {len(self.lp_model.fact_names)}")
-
-        if self.negative_traces > 0:
-            self.asp_encoding = ASPEncoder.get_asp_encoding(self.lp_model.fact_names, False)
-        else:
-            self.asp_encoding = ASPEncoder.get_asp_encoding(self.lp_model.fact_names)
-        self.py_logger.debug("ASP encoding generated")
-        return lp
-
-    def __handle_activations_condition_asp_generation(self) -> None:
-        """ Handles the logic for the activations condition """
-        if self.activation_conditions is None:
-            return
-        decl_model: DeclareParsedDataModel = self.process_model.parsed_model
-        # decl_model.templates[0].template_line
-        for template_def, cond_num_list in self.activation_conditions.items():
-            template_def = template_def.strip()
-            decl_template_parsed: [DeclareModelConstraintTemplate] = [val for key, val in decl_model.templates.items() if val.line == template_def]
-            decl_template_parsed: DeclareModelConstraintTemplate = decl_template_parsed[0]
-            asp_template_idx = decl_template_parsed.template_index
-            if decl_template_parsed is None:
-                warnings.warn("Unexpected found. Same constraint templates are defined multiple times.")
-            if len(cond_num_list) == 2:
-                decoder = {v: k for k, v in
-                           decl_template_parsed.events_activities[0].event_name.encoder.encoded_values.items()}
-
-                A = decoder[decl_template_parsed.events_activities[0].event_name.value]
-                B = decoder[decl_template_parsed.events_activities[1].event_name.value]
-
-                if cond_num_list[0] <= 0:
-                    # left side tends to -inf or 0 starting from cond_num_list[1]. cond_num_list = [0, 2]
-                    # means it can have only at most 2 activations
-                    self.lp_model.add_asp_line(
-                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
-                    if decl_template_parsed.template.both_activation_condition:  # some templates's both conditions are activation conditions
-                        self.lp_model.add_asp_line(
-                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
-                elif cond_num_list[1] == math.inf:
-                    # right side tends to inf from cond_num_list[0] to +inf. cond_num_list = [2, math.inf]
-                    # means it can have it should at least 2 activations and can go to infinite
-                    self.lp_model.add_asp_line(
-                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
-                    if decl_template_parsed.template.both_activation_condition:
-                        self.lp_model.add_asp_line(
-                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
-                else:
-                    # ie cond_num_list = [2, 4]
-                    # self.lp_model.add_asp_line(
-                    #     f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
-                    # self.lp_model.add_asp_line(
-                    #     f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
-                    # if decl_template_parsed.template.both_activation_condition:
-                    #     self.lp_model.add_asp_line(
-                    #         f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
-                    #     self.lp_model.add_asp_line(
-                    #         f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
-                    self.lp_model.add_asp_line(
-                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
-                    self.lp_model.add_asp_line(
-                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} > {cond_num_list[1]}."
-                    )
-                    if decl_template_parsed.template.both_activation_condition:
-                        self.lp_model.add_asp_line(
-                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
-                        self.lp_model.add_asp_line(
-                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[1]}.")
-
-            else:
-                raise ValueError(
-                    "Interval values are wrong. It must have only 2 values, represents, left and right interval")
-
-    def run(self, clingo_config: typing.Dict[str, str] = None, generated_asp_file_path: typing.Union[str, None] = None):
-        """
-            Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
-        Parameters
-        ----------
-        clingo_config : typing.List[str], optional
-            Specifies the configuration of the solver clingo
-        generated_asp_file_path: str, optional
-            Specify the file name if you want to write the ASP generated program
-        """
-        if self.negative_traces > self.log_length:
-            warnings.warn("Negative traces can not be greater than total traces asked to generate. Nothing Generating")
-            return
-
+        # --- Set up the traces distribution to generate ---
         self.trace_counter = 0
-        pos_traces = self.log_length - self.negative_traces
-        neg_traces = self.negative_traces
 
         if self._custom_counter["positive"] is not None and self._custom_counter["negative"] is not None:
-            self.py_logger.debug("******* Using custom traces length *******")
-            pos_traces_dist = self._custom_counter["positive"]
-            neg_traces_dist = self._custom_counter["negative"]
+            self.__debug_message("Using custom trace distribution")
+            # Copy the traces
+            self.positive_traces_distribution = self._custom_counter["positive"]
+            self.negative_traces_distribution = self._custom_counter["negative"]
+            # Get the respective length
+            self.positive_traces = sum(self.positive_traces_distribution.values())
+            self.negative_traces = sum(self.negative_traces_distribution.values())
         else:
-            self.py_logger.debug("Using custom traces length")
-            pos_traces_dist = self.compute_distribution(total_traces=pos_traces)
-            if neg_traces > 0:
-                neg_traces_dist = self.compute_distribution(total_traces=neg_traces)
+            # Calculate the distribution for the current
+            self.positive_traces_distribution = self.compute_distribution(total_traces=self.positive_traces)
+            if self.negative_traces > 0:
+                self.negative_traces_distribution = self.compute_distribution(total_traces=self.negative_traces)
 
+        # Setting the overall length of the traces
+        self.log_length = self.positive_traces + self.negative_traces
 
-        result: LogTracesType = LogTracesType(negative=[], positive=[])
-        result_variation: LogTracesType = LogTracesType(negative=[], positive=[])
+        self.__debug_message(f"Prepared distribution of {self.positive_traces} positive traces with distribution: {self.positive_traces_distribution}")
+        self.__debug_message(f"Prepared distribution of {self.negative_traces} negative traces with distribution: {self.negative_traces_distribution}")
+
+        # --- Generating Positive traces ---
+
+        self.result_traces: LogTracesType = LogTracesType(negative=[], positive=[])
+        self.result_traces_variation: LogTracesType = LogTracesType(negative=[], positive=[])
+
+        self.__debug_message("Generating positive Traces")
+
+        asp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
+        self.__run_clingo_per_trace_set(asp, self.positive_traces_distribution, "positive")
+
+        self.result_traces['positive'] = self.clingo_output
+        self.result_traces_variation['positive'] = self.clingo_output_traces_variation
+
+        # --- Generating Negative traces (if possible) ---
 
         if self.negative_traces > 0:
-            self.py_logger.debug("Generating negative traces")
+
+            self.__debug_message("Generating negative traces")
+
             violation = {'constraint_violation': True, 'violate_all_constraints': self.violate_all_constraints}
             dupl_decl_model = self.__get_decl_model_with_violate_constraint()
-            if generated_asp_file_path is not None:
-                lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path + '.neg.lp',
-                                                       dupl_decl_model, violation)
-            else:
-                lp = self.generate_asp_from_decl_model(self.encode_decl_model, None, dupl_decl_model, violation)
-                self.__generate_traces(lp, neg_traces_dist, "negative", clingo_config)
+            path = None if generated_asp_file_path is None else generated_asp_file_path + 'neg.lp'
+            asp = self.generate_asp_from_decl_model(self.encode_decl_model, path, dupl_decl_model, violation)
+            self.__run_clingo_per_trace_set(asp, self.negative_traces_distribution, "negative")
 
-            result['negative'] = self.clingo_output
-            result_variation['negative'] = self.clingo_output_traces_variation
+            self.result_traces['negative'] = self.clingo_output
+            self.result_traces_variation['negative'] = self.clingo_output_traces_variation
 
-        self.py_logger.debug("Generating traces")
-        lp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
+        self.__debug_message(f"Traces generated. Positive: {len(self.result_traces['positive'])} Neg: {len(self.result_traces['negative'])}. Parsing Trace results.")
 
-        self.__generate_traces(lp, pos_traces_dist, "positive", clingo_config)
+        # --- Resolving traces ---
 
-        result['positive'] = self.clingo_output
-        result_variation['positive'] = self.clingo_output_traces_variation
-
-        self.py_logger.debug(f"Traces generated. Positive: {len(result['positive'])}"
-                             f" Neg: {len(result['negative'])}. Parsing Trace results.")
-
-        self.__resolve_clingo_results(result)
-        self.__resolve_clingo_results_variation(result_variation)
-        self.py_logger.debug(f"Trace results parsed")
+        self.__resolve_clingo_results(self.result_traces)
+        self.__resolve_clingo_results_variation(self.result_traces_variation)
+        self.__debug_message("Parsing result traces")
         self.__pm4py_log()
 
-    def __generate_traces(self, lp_model: str, traces_to_generate: collections.Counter, trace_type: str, clingo_config: typing.Dict[str, str] = None):
-        """
-        Runs Clingo on the ASP translated, encoding and templates of the Declare model to generate the traces.
-        Parameters
-        ----------
-        lp_model: str
-            ASP model
-        traces_to_generate: collections.Counter
-            a counter ({ 4:2, 1: 3}), means 2 traces of 4 events, 3 traces with just 1 event.
-        trace_type: str
-            trace type: negative or positive
-        Returns
-        -------
-        """
+    def __run_clingo_per_trace_set(self, asp: str, traces_to_generate: collections.Counter, trace_type: str):
+
         self.clingo_output = []
         self.clingo_output_traces_variation = {}
-        self.py_logger.debug(f"Start generating traces: {traces_to_generate}")
-        self.__run_clingo_one_time_per_set_of_trace(lp_model, traces_to_generate, trace_type, clingo_config)
 
-        """ 
-        self.py_logger.debug("Manpreet configuration")
-        for events, traces in traces_to_generate.items():
-            self.py_logger.debug(f" Total trace to generate and events: Traces:{traces}, Events: {events}, RandFrequency: 0.9")
-            self.__generate_asp_trace(lp_model, events, traces, trace_type)
-        """
-
-    def __run_clingo_one_time_per_set_of_trace(self, asp: str, traces_to_generate: collections.Counter, trace_type: str, clingo_config: typing.Dict[str, str] = None):
-
-        #TODO sistemare la configurazione di clingo
-        if clingo_config is None:
-            config = "tweety"
-            t = os.cpu_count() if os.cpu_count() is not None else 1
-            freq = 1.0
-            sign = "rnd"
-            mode = "optN"
+        # Select the clingo configuration to use
+        if self.use_custom_clingo_config:
+            config = self.custom_configuration
         else:
-            config = clingo_config["config"]
-            t = clingo_config["threads"]
-            freq = clingo_config["freq"]
-            sign = clingo_config["sign"]
-            mode = clingo_config["mode"]
+            config = self.default_configuration
 
-        for num_events, num_traces in traces_to_generate.items():
+        def run_clingo(asp_model: str, clingo_config: typing.Dict, number_of_events: int, number_of_traces: int, trace_variation: bool = False):
 
             seed = randrange(0, 2 ** 30 - 1)
 
-            self.py_logger.debug(f" Total trace to generate and events: Traces:{num_traces}, Events: {num_events}, RandFrequency: {freq}")
-
             ctl = clingo.Control([
                 "-c",
-                f"t={int(num_events)}",
-                f"{int(num_traces)}",
+                f"t={int(number_of_events)}",
+                f"{int(number_of_traces)}",
                 "--project",
-                f"--sign-def={sign}",
+                f"--sign-def={clingo_config['SIGN-DEF']}",
 
-                f"--configuration={config}",
-                f"--opt-mode={mode}",
-                f"-t {t}",
+                f"--configuration={clingo_config['CONFIG']}",
+                f"--opt-mode={clingo_config['MODE']}",
+                f"-t {clingo_config['THREADS']}",
 
-                f"--rand-freq={freq}",
+                f"--rand-freq={clingo_config['FREQUENCY']}",
                 f"--restart-on-model",
                 f"--seed={seed}",
             ])
 
-            ctl.add(asp)
+            ctl.add(asp_model)
             ctl.add(self.asp_encoding)
             ctl.add(self.asp_template)
             ctl.ground([("base", [])], context=self)
-            result = ctl.solve(on_model=self.__handle_clingo_result)
-            self.py_logger.debug(f" Clingo Result: {str(result)}")
+
+            variation: str = "Variation " if trace_variation else ""
+
+            self.__debug_message(f"Total {variation}trace to generate and events: Traces:{num_traces}, Events: {num_events}, RandFrequency: {clingo_config['FREQUENCY']}, Seed:{seed}")
+
+            if not trace_variation:
+                res = ctl.solve(on_model=self.__handle_clingo_result)
+            else:
+                res = ctl.solve(on_model=self.__handle_clingo_variation_result)
+
+            self.__debug_message(f"Clingo {variation}Result :{str(res)}")
+            return res
+
+        # Generate traces
+        for num_events, num_traces in traces_to_generate.items():
+
+            result = run_clingo(asp, config, num_events, num_traces)
 
             if result.unsatisfiable:
-                """
-                    Clingo was not able to generate trace events with exactly num_events, thus it returns
-                    unsatisfiable.
-                """
-                warnings.warn(
-                    f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model.')
-                return  # we exit because we cannot generate more traces with same params.
+                warnings.warn(f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model.')
+
             elif self.num_repetition_per_trace > 0:
-                self.trace_counter = self.trace_counter + 1
-                self.clingo_output_traces_variation[
-                    len(self.clingo_output_traces_variation)] = []  # to generate the name of variation trace
-                num = self.num_repetition_per_trace - 1
-                if num > 0 and self.clingo_current_output is not None:
+
+                self.trace_counter += 1
+                self.clingo_output_traces_variation[len(self.clingo_output_traces_variation)] = []  # to generate the name of variation trace
+                num_events = self.num_repetition_per_trace
+
+                if num_events > 0 and self.clingo_current_output is not None:
+
                     c = ASPResultTraceModel(f"variation__trace_{self.trace_counter}", self.clingo_current_output)
                     asp_variation = asp + "\n"
+
                     for ev in c.events:
                         asp_variation = asp_variation + f"trace({ev.name}, {ev.pos}).\n"
-                    for nm in range(0, num):
-                        self.__generate_asp_trace_variation(asp_variation, num_events, 1, freq)
 
-    def __generate_asp_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
-        """
-        Generate variation traces based on the parameters
-
-        Parameters
-        ----------
-        asp: str
-            asp model program
-        num_events: int
-            number of events in a trace
-        num_traces: int
-            number of traces
-        freq: float
-            any float number between 0 and 1
-
-        Returns
-        -------
-
-        """
-        """ """
-
-        for i in range(num_traces):
-            self.__run_clingo_trace_variation(asp, num_events, num_traces, freq)
-
-    def __run_clingo_trace_variation(self, asp: str, num_events: int, num_traces: int, freq: float = 0.9):
-        """
-        Generate variation traces based on the parameters
-
-        Parameters
-        ----------
-        asp: str
-            asp model program
-        num_events: int
-            number of events in a trace
-        num_traces: int
-            number of traces
-        freq: float
-            any float number between 0 and 1
-
-        Returns
-        -------
-
-        """
-        # TODO Adattare alla configurazione di matteo
-        # "--project --sign-def=3 --rand-freq=0.9 --restart-on-model --seed=" + seed
-
-        seed = randrange(0, 2 ** 30 - 1)
-        self.py_logger.debug(f" Generating variation trace: {num_traces}, events{num_events}, seed:{seed}")
-        ctl = clingo.Control([f"-c t={int(num_events)}", "--project", f"1",  # f"{int(num_traces)}",
-                              f"--seed={seed}", f"--sign-def=rnd", f"--restart-on-model", f"--rand-freq={freq}"])
-        ctl.add(asp)
-        ctl.add(self.asp_encoding)
-        ctl.add(self.asp_template)
-        ctl.ground([("base", [])], context=self)
-        result = ctl.solve(on_model=self.__handle_clingo_variation_result)
-        self.py_logger.debug(f" Clingo variation Result :{str(result)}")
-        if result.unsatisfiable:
-            warnings.warn(f'WARNING: Failed to generate trace variation/case.')
-
-    def __handle_clingo_result(self, output: clingo.solving.Model):
-        """A callback method which is given to the clingo """
-        symbols = output.symbols(shown=True)
-        self.clingo_current_output = symbols
-        self.py_logger.debug(f" Traces generated :{symbols}")
-        self.clingo_output.append(symbols)
-
-    def __resolve_clingo_results(self, results: LogTracesType):
-        """Resolve clingo produced result in customized structured
-        Parameters
-        ----------
-        results: LogTracesType
-            An object containing information about the generated traces/ solution model but to be parsed
-        Returns
-        -------
-
-        """
-        self.asp_generated_traces = LogTracesType(positive=[], negative=[])
-        i = 0
-        for result in results:  # result value can be 'negative' or 'positive'
-            asp_model = []
-            for clingo_trace in results[result]:
-                trace_model = ASPResultTraceModel(f"case_{i}", clingo_trace)
-                asp_model.append(trace_model)
-                i = i + 1
-            self.asp_generated_traces[result] = asp_model
-
-    def __resolve_clingo_results_variation(self, variations_result: LogTracesType):
-        """Resolve clingo produced variations result in particular structured """
-        if self.asp_generated_traces is None:
-            self.asp_generated_traces = LogTracesType(positive=[], negative=[])
-        for result in variations_result:  # result value can be 'negative' or 'positive'
-            asp_model = []
-            for traces_key_id in variations_result[result]:
-                i = 0
-                for clingo_trace in variations_result[result][traces_key_id]:
-                    trace_model = ASPResultTraceModel(f"case_{traces_key_id}_variation_{i}", clingo_trace)
-                    asp_model.append(trace_model)
-                    i = i + 1
-            self.asp_generated_traces[result] = self.asp_generated_traces[result] + asp_model
-
-    def __handle_clingo_variation_result(self, output: clingo.solving.Model):
-        """A callback method which is given to the clingo """
-        symbols = output.symbols(shown=True)
-        self.py_logger.debug(f" Variation traces generated :{symbols}")
-        self.clingo_output_traces_variation[len(self.clingo_output_traces_variation) - 1].append(symbols)
+                    result = run_clingo(asp_variation, config, num_events, num_traces, True)
+                    if result.unsatisfiable:
+                        warnings.warn(f'WARNING: Failed to generate trace variation/case.')
 
     def __pm4py_log(self):
         """
@@ -513,7 +275,15 @@ class AspGenerator(AbstractLogGenerator):
         -------
 
         """
-        self.py_logger.debug(f"Generating Pm4py log")
+
+        def custom_sort_trace_key(x) -> typing.List[int]:
+            # Extract the numeric parts of the string
+            parts: typing.List[str] = re.findall(r'\d+', x.name)
+            # Convert the numeric parts to integers
+            integers: typing.List[int] = [int(p) for p in parts]
+            return integers
+
+        self.__debug_message(f"Generating Pm4py log")
         decl_model: DeclareParsedDataModel = self.get_process_model().parsed_model
         attr_list: dict[str, DeclareModelAttr] = decl_model.attributes_list
         tot_traces_generated = 0
@@ -551,8 +321,8 @@ class AspGenerator(AbstractLogGenerator):
             num = self.num_repetition_per_trace
             if num <= 0:
                 num = 1
-            self.py_logger.warning(f'PM4PY log generated: {tot_traces_generated}/{self.log_length * num} only.')
-        self.py_logger.debug(f"Pm4py generated but not saved yet")
+            self.__ASP_Log_Gen_Logger.warning(f'PM4PY log generated: {tot_traces_generated}/{self.log_length * num} only.')
+        self.__debug_message(f"Pm4py generated but not saved yet")
 
     def __decode_and_scale_value(self, decl_model, attr_list, res_name, res_value):
         res_name_decoded = decl_model.decode_value(res_name, self.encode_decl_model)
@@ -626,6 +396,7 @@ class AspGenerator(AbstractLogGenerator):
         pd_dataframe = self.toPD(self.traces_generated_events)
         pd_dataframe.dropna(axis='columns', how='all')
         pm4py.write_xes(pd_dataframe, output_fn)
+
         # ## Following code is to clean the NaN values not yet tested if it removes all event or just an attribute ##
         # xes = pm4py.read_xes(output_fn)
         # float_or_int_cols = pd_dataframe.select_dtypes(include=['float64', 'int64']).columns.tolist()
@@ -633,6 +404,195 @@ class AspGenerator(AbstractLogGenerator):
         # rows_to_remove = xes[cols_with_nan].isna().any(axis=1)
         # cleaned_xes = xes[~rows_to_remove]
         # pm4py.write_xes(cleaned_xes, output_fn)
+
+    def use_custom_clingo_configuration(self, config=None, threads=None, frequency=None, sign_def=None, mode=None):
+        self.use_custom_clingo_config = True
+        if config is not None:
+            self.custom_configuration["CONFIG"] = str(config)
+        if threads is not None:
+            self.custom_configuration["THREADS"] = str(threads)
+        if frequency is not None:
+            self.custom_configuration["FREQUENCY"] = str(frequency)
+        if sign_def is not None:
+            self.custom_configuration["SIGN-DEF"] = str(sign_def)
+        if mode is not None:
+            self.custom_configuration["MODE"] = str(mode)
+
+    def use_default_clingo_configuration(self):
+        self.use_custom_clingo_config = False
+
+    def __debug_message(self, msg: any):
+        """
+        Used for debugging purposes, If verbose is True, the message is printed.
+        """
+
+        if self.verbose:
+            self.__ASP_Log_Gen_Logger.debug(str(msg))
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def generate_asp_from_decl_model(self,
+                                     encode: bool = True,
+                                     save_file: str = None,
+                                     process_model: ProcessModel = None,
+                                     violation: dict = None
+                                     ) -> str:
+        """
+        Generates an ASP translation of the Declare model.
+        Parameters
+        ----------
+        encode: bool
+            whether to use the encoded values to generate ASP
+        save_file: str
+            specify filepath with name, in which the generated ASP will be saved
+        process_model:
+            DeclareModel which will be converted or translated into the ASP
+        violation: dict
+            A dictionary containing information about the constraint templates which should be violated or in order
+            to generate the negative traces.
+
+        Returns
+        -------
+        str
+            ASP program
+        """
+        """
+             It takes an optional encode parameter, which is a boolean
+             indicating whether to encode the model or not. The default value is True.
+        """
+        if process_model is None:
+            process_model = self.process_model
+
+        self.__debug_message("Translate declare model to ASP")
+
+        self.lp_model = ASPModel(encode).from_decl_model(process_model, violation)
+
+        self.__handle_activations_condition_asp_generation()
+        lp = self.lp_model.to_str()
+
+        if save_file:
+            with open(save_file, 'w+') as f:
+                f.write(lp)
+        self.__debug_message(f"Declare model translated to ASP. Total Facts {len(self.lp_model.fact_names)}")
+
+        if self.negative_traces > 0:
+            self.asp_encoding = ASPEncoder.get_asp_encoding(self.lp_model.fact_names, False)
+        else:
+            self.asp_encoding = ASPEncoder.get_asp_encoding(self.lp_model.fact_names)
+        self.__debug_message("ASP encoding generated")
+        return lp
+
+    def __handle_activations_condition_asp_generation(self) -> None:
+        """ Handles the logic for the activations condition """
+        if self.activation_conditions is None:
+            return
+        decl_model: DeclareParsedDataModel = self.process_model.parsed_model
+        # decl_model.templates[0].template_line
+        for template_def, cond_num_list in self.activation_conditions.items():
+            template_def = template_def.strip()
+            decl_template_parsed: [DeclareModelConstraintTemplate] = [val for key, val in decl_model.templates.items() if val.line == template_def]
+            decl_template_parsed: DeclareModelConstraintTemplate = decl_template_parsed[0]
+            asp_template_idx = decl_template_parsed.template_index
+            if decl_template_parsed is None:
+                warnings.warn("Unexpected found. Same constraint templates are defined multiple times.")
+            if len(cond_num_list) == 2:
+                decoder = {v: k for k, v in
+                           decl_template_parsed.events_activities[0].event_name.encoder.encoded_values.items()}
+
+                A = decoder[decl_template_parsed.events_activities[0].event_name.value]
+                B = decoder[decl_template_parsed.events_activities[1].event_name.value]
+
+                if cond_num_list[0] <= 0:
+                    # left side tends to -inf or 0 starting from cond_num_list[1]. cond_num_list = [0, 2]
+                    # means it can have only at most 2 activations
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                    if decl_template_parsed.template.both_activation_condition:  # some templates's both conditions are activation conditions
+                        self.lp_model.add_asp_line(
+                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                elif cond_num_list[1] == math.inf:
+                    # right side tends to inf from cond_num_list[0] to +inf. cond_num_list = [2, math.inf]
+                    # means it can have it should at least 2 activations and can go to infinite
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    if decl_template_parsed.template.both_activation_condition:
+                        self.lp_model.add_asp_line(
+                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                else:
+                    # ie cond_num_list = [2, 4]
+                    # self.lp_model.add_asp_line(
+                    #     f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    # self.lp_model.add_asp_line(
+                    #     f":- #count{{T:trace(A,T), activation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                    # if decl_template_parsed.template.both_activation_condition:
+                    #     self.lp_model.add_asp_line(
+                    #         f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[0]}.")
+                    #     self.lp_model.add_asp_line(
+                    #         f":- #count{{T:trace(A,T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[1]}.")
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
+                    self.lp_model.add_asp_line(
+                        f":- #count{{T:trace({A},T), activation_condition({asp_template_idx},T)}} > {cond_num_list[1]}."
+                    )
+                    if decl_template_parsed.template.both_activation_condition:
+                        self.lp_model.add_asp_line(
+                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} < {cond_num_list[0]}.")
+                        self.lp_model.add_asp_line(
+                            f":- #count{{T:trace({B},T), correlation_condition({asp_template_idx},T)}} > {cond_num_list[1]}.")
+
+            else:
+                raise ValueError(
+                    "Interval values are wrong. It must have only 2 values, represents, left and right interval")
+
+    def __handle_clingo_result(self, output: clingo.solving.Model):
+        """A callback method which is given to the clingo """
+        symbols = output.symbols(shown=True)
+        self.clingo_current_output = symbols
+        self.__debug_message(f" Traces generated :{symbols}")
+        self.clingo_output.append(symbols)
+
+    def __resolve_clingo_results(self, results: LogTracesType):
+        """Resolve clingo produced result in customized structured
+        Parameters
+        ----------
+        results: LogTracesType
+            An object containing information about the generated traces/ solution model but to be parsed
+        Returns
+        -------
+
+        """
+        self.asp_generated_traces = LogTracesType(positive=[], negative=[])
+        i = 0
+        for result in results:  # result value can be 'negative' or 'positive'
+            asp_model = []
+            for clingo_trace in results[result]:
+                trace_model = ASPResultTraceModel(f"case_{i}", clingo_trace)
+                asp_model.append(trace_model)
+                i = i + 1
+            self.asp_generated_traces[result] = asp_model
+
+    def __resolve_clingo_results_variation(self, variations_result: LogTracesType):
+        """Resolve clingo produced variations result in particular structured """
+        if self.asp_generated_traces is None:
+            self.asp_generated_traces = LogTracesType(positive=[], negative=[])
+        for result in variations_result:  # result value can be 'negative' or 'positive'
+            asp_model = []
+            for traces_key_id in variations_result[result]:
+                i = 0
+                for clingo_trace in variations_result[result][traces_key_id]:
+                    trace_model = ASPResultTraceModel(f"case_{traces_key_id}_variation_{i}", clingo_trace)
+                    asp_model.append(trace_model)
+                    i = i + 1
+            self.asp_generated_traces[result] = self.asp_generated_traces[result] + asp_model
+
+    def __handle_clingo_variation_result(self, output: clingo.solving.Model):
+        """A callback method which is given to the clingo """
+        symbols = output.symbols(shown=True)
+        self.__debug_message(f" Variation traces generated :{symbols}")
+        self.clingo_output_traces_variation[len(self.clingo_output_traces_variation) - 1].append(symbols)
+
+
 
     def set_constraints_to_violate(self, tot_negative_trace: int, violate_all: bool, constraints_list: list[str]):
         """
@@ -790,8 +750,8 @@ class AspGenerator(AbstractLogGenerator):
                 self.max_events = max(events, self.max_events)
             self.negative_traces = sum(negative_custom_lengths.values())
             self.traces_length = self.traces_length + self.negative_traces
-        self.py_logger.info(f"****----**** Trace lengths, min_events, max_events are updated ****----****")
-        self.py_logger.info(
+        self.__ASP_Log_Gen_Logger.info(f"****----**** Trace lengths, min_events, max_events are updated ****----****")
+        self.__ASP_Log_Gen_Logger.info(
             f"**--** Pos: {self.traces_length}, Neg: {self.negative_traces}, min {self.min_events}, max: {self.max_events} **--**")
         self._custom_counter = {"positive": custom_lengths, "negative": negative_custom_lengths}
 
@@ -802,7 +762,11 @@ class AspGenerator(AbstractLogGenerator):
             self.violable_constraints = constrains_to_violate
         return self
 
+    def run_clingo(self, asp_variation, config, num_events, num_events1):
+        pass
 
+
+"""
 if __name__ == "__main__":
     from Declare4Py.ProcessModels.DeclareModel import DeclareModel
 
@@ -819,3 +783,4 @@ if __name__ == "__main__":
     asp_gen.run()
 
     asp_gen.to_csv(f'{model_name}.csv')
+"""
