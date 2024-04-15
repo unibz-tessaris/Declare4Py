@@ -32,7 +32,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         super().__init__(log, process_model)
 
         """Initialize Abstract Log Generator"""
-        self.__py_logger = logging.getLogger("Abstract Log Generator")
+        self.__Abs_Log_Gen_Logger = logging.getLogger("Abstract Log Generator")
 
         self.log_length: int = 0
         self.max_events: int = 0
@@ -40,6 +40,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         self.verbose: bool = False
 
         """Check Init Conditions"""
+        self.set_verbose(verbose)
         self.set_total_traces(total_traces)
         self.set_min_max_events(min_event, max_event)
 
@@ -115,7 +116,7 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         self.total_traces_distribution = self.distribution.get_distribution()
         self.distribution_type = self.distribution.get_distribution_type()
 
-        self.debug_message(f"New Distribution min_num_events_or_mu: {min_num_events_or_mu}, "
+        self.__debug_message(f"New Distribution min_num_events_or_mu: {min_num_events_or_mu}, "
                            f"max_num_events_or_sigma: {max_num_events_or_sigma}, num_traces: {self.log_length}, "
                            f"distribution: {dist_type}, probabilities: {custom_probabilities} calculated")
 
@@ -201,10 +202,10 @@ class AbstractLogGenerator(AbstractPMTask, ABC):
         if isinstance(verbose, bool):
             self.verbose = verbose
 
-    def debug_message(self, msg: any):
+    def __debug_message(self, msg: any):
         """
         Used for debugging purposes, If verbose is True, the message is printed.
         """
 
         if self.verbose:
-            self.__py_logger.debug(str(msg))
+            self.__Abs_Log_Gen_Logger.debug(str(msg))
