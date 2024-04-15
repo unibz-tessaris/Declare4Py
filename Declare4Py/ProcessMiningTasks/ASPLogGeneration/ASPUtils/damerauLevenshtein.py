@@ -71,11 +71,16 @@ class DamerauLevenshteinDistance:
         # Return the edit distance
         return dp[len(s1)][len(s2)]
 
-
+"""
 if __name__ == "__main__":
 
     path = "C:\\Users\\Matteo\\Desktop\\"
+    file = "Rum_test_20_tracce"
+
+    val = DamerauLevenshteinDistance.analize_csv_from_xes(path + file + ".xes")
+    os.rename(f"{path}{file}.csv", f"{path}distance_{round(val, 4)}_{file}.csv")
+
     for file in ["rum_test1", "rum_test2", "rum_test3", "rum_test4", "rum_test5"]:
 
         val = DamerauLevenshteinDistance.analize_csv_from_xes(path + file + ".xes")
-        os.rename(f"{path}{file}.csv", f"{path}similarity_{round(val, 4)}_{file}.csv")
+        os.rename(f"{path}{file}.csv", f"{path}similarity_{round(val, 4)}_{file}.csv")"""
