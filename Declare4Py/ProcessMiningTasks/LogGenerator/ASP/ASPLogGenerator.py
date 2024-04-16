@@ -165,6 +165,7 @@ class AspGenerator(AbstractLogGenerator):
         self.__debug_message("Generating positive Traces")
 
         asp = self.generate_asp_from_decl_model(self.encode_decl_model, generated_asp_file_path)
+
         self.__run_clingo_per_trace_set(asp, self.positive_traces_distribution, "positive")
 
         self.result_traces['positive'] = self.clingo_output
@@ -243,6 +244,7 @@ class AspGenerator(AbstractLogGenerator):
             return res
 
         # Generate traces
+        # Generate traces
         for num_events, num_traces in traces_to_generate.items():
 
             result = run_clingo(asp, config, num_events, num_traces)
@@ -294,11 +296,11 @@ class AspGenerator(AbstractLogGenerator):
             # traces_generated.sort(key=lambda x: x.name)
             traces_generated = sorted(traces_generated, key=custom_sort_trace_key)
             instance = []
-            for trace in traces_generated:  # Positive, Negative...
+            for trace in traces_generated:
+                # Positive, Negative...
                 _instance = {"trace_name": trace.name, "posNeg": result, "events": []}
-                for trace_position in trace.parsed_result:
+                for trace_position in dict(sorted(trace.parsed_result.items())).keys():
                     asp_event = trace.parsed_result[trace_position]
-                    _event = {}
                     _event = {
                         "ev": decl_model.decode_value(asp_event['name'], self.encode_decl_model),
                         "lifecycle:transition": "complete",
@@ -761,9 +763,6 @@ class AspGenerator(AbstractLogGenerator):
         else:
             self.violable_constraints = constrains_to_violate
         return self
-
-    def run_clingo(self, asp_variation, config, num_events, num_events1):
-        pass
 
 
 """

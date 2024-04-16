@@ -455,6 +455,8 @@ class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
         return encoded_val
 
     def decode_value(self, s: str) -> str:
+
+
         """
         Decode the given value if it finds in the encoded_values list.
         Parameters
@@ -466,6 +468,7 @@ class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
         -------
         str
         """
+
         if not isinstance(s, str):
             return s
         if s.isnumeric():
@@ -931,7 +934,6 @@ class DeclareModelConstraintTemplate:
             The activation condition, if present. Otherwise, None.
         """
 
-        """
         if self._conditions and self.template.reverseActivationTarget:  # if template has reverse conditions, so we xyz
             if len(self._conditions) > 1:
                 c = self._conditions[1]
@@ -941,8 +943,8 @@ class DeclareModelConstraintTemplate:
                 c = self._conditions[0]
                 return c
                 # return c if len(c) > 1 else None
-        """
-        return self._conditions[0] if len(self._conditions) > 0 else None
+        return None
+        # return self._conditions[0] if len(self._conditions) > 0 else None
 
     def get_target_condition(self):
         """
@@ -954,16 +956,13 @@ class DeclareModelConstraintTemplate:
             The target condition, if present. Otherwise, None.
         """
 
-        """
+        cond = ""
         if self._conditions and self.template.reverseActivationTarget:
             if len(self._conditions) > 0:
                 cond = self._conditions[0]
         else:
-        """
-
-        cond = ""
-        if len(self._conditions) > 1:
-            cond = self._conditions[1]
+            if len(self._conditions) > 1:
+                cond = self._conditions[1]
         time_int = r"^[\d.]+,?([\d.]+)?[,]?(s|m|d|h)$"
         is_matched = re.search(time_int, cond, re.IGNORECASE)
         if is_matched:
@@ -1156,10 +1155,7 @@ class DeclareParsedDataModel:
             events = al.group(2).strip()
             events = [e.strip() for e in events.split(',')]
             if template.is_binary:
-                if template.reverseActivationTarget:
-                    tmplt.events_activities = [self.find_event_by_name(events[1]), self.find_event_by_name(events[0])]
-                else:
-                    tmplt.events_activities = [self.find_event_by_name(events[0]), self.find_event_by_name(events[1])]
+                tmplt.events_activities = [self.find_event_by_name(events[0]), self.find_event_by_name(events[1])]
             else:
                 tmplt.events_activities = [self.find_event_by_name(events[0])]
         tmplt.parse_constraint_conditions()
