@@ -1,4 +1,13 @@
+from __future__ import annotations
 
+from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPTranslator.ConstraintResolver import DeclareModelConditionResolver2ASP
+
+#TODO change imports
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelEvent, DeclareModelAttr
+from Declare4Py.ProcessModels.DeclareModel import DeclareModel
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
+
+# Tutto codice di Manpreet
 
 class ASPModel:
     """
@@ -197,4 +206,3 @@ class ASPModel:
     def __repr__(self):
         return f"{{ \"total_facts\": \"{len(self.lines) - len(self.values_assignment)}\"," \
                f" \"values_assignment\": \"{len(self.values_assignment)}\" }}"
-
