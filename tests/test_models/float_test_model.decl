@@ -1,0 +1,36 @@
+activity a
+bind a: valuerange1
+activity b
+bind b: valuerange1
+activity c
+bind c: valuerange1
+activity d
+bind d: valuerange2
+activity e
+bind e: valuerange2
+activity f
+bind f: valuerange2
+activity g
+bind g: valuerange2
+activity h
+bind h: valuerange3
+activity i
+bind i: valuerange3
+activity j
+bind j: valuerange3
+activity k
+bind k: valuerange3
+activity l
+bind l: valuerange4
+activity m
+bind m: valuerange4
+activity n
+bind n: valuerange4
+activity o
+bind o: valuerange4
+activity p
+bind p: valuerange4
+valuerange1: float between 0.2 and 381.3
+valuerange2: float between 75.23 and 221.32
+valuerange3: float between 5.231 and 21.323
+valuerange4: float between 0.2343 and 1.3432
