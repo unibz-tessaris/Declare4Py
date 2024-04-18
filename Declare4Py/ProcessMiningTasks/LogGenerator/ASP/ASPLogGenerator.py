@@ -526,7 +526,7 @@ class AspGenerator(AbstractLogGenerator):
                 if attr.value_type != DeclareModelAttributeType.ENUMERATION:
                     num = res_value_decoded
                     if attr.value_type == DeclareModelAttributeType.FLOAT_RANGE:
-                        num = int(res_value_decoded) / attr.attr_value.precision
+                        num = int(res_value_decoded) / 10**attr.attr_value.precision
                     elif attr.value_type == DeclareModelAttributeType.INTEGER_RANGE:
                         num = int(res_value_decoded)
                     res_value_decoded = num
