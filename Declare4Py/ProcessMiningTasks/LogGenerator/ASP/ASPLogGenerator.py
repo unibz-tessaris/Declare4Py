@@ -79,7 +79,7 @@ class AspGenerator(AbstractLogGenerator):
         """ Clingo Config """
         self.use_custom_clingo_config: bool = False
         self.clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "-t {}", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}", "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
-        self.default_configuration: typing.Dict[str, str] = {"CONFIG": "frumpy", "THREADS": str(os.cpu_count()), "FREQUENCY": "1.0", "SIGN-DEF": "asp", "MODE": "optN", "STRATEGY": None, "HEURISTIC": None}
+        self.default_configuration: typing.Dict[str, str] = {"CONFIG": "trendy", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.3", "SIGN-DEF": "asp", "MODE": "optN", "STRATEGY": None, "HEURISTIC": None}
         self.custom_configuration: typing.Dict[str, str] = self.default_configuration.copy()
 
         """DEF clingo outputs"""
@@ -595,7 +595,24 @@ class AspGenerator(AbstractLogGenerator):
             return
         pd_dataframe = self.toPD(self.traces_generated_events)
         pd_dataframe.dropna(axis='columns', how='all')
-        pm4py.write_xes(pd_dataframe, output_fn)
+
+        # in order to remove the Nan rows firs a temp.xes file is created
+        pm4py.write_xes(pd_dataframe, "temp.xes")
+
+        # The the file is readed and only the lines that do no contain value="nan" will be added to the cleared xes file
+        cleared_xes = []
+        with open("temp.xes", "r") as text_file:
+            for line in text_file:
+                if line.find('value="nan"') == -1:
+                    cleared_xes.append(line)
+
+        # The temporary file is then deleted
+        os.remove("temp.xes")
+
+        # The effective file is then created with only the cleared lines
+        with open(output_fn, "w") as text_file:
+            for line in cleared_xes:
+                text_file.write(line)
 
         # ## Following code is to clean the NaN values not yet tested if it removes all event or just an attribute ##
         # xes = pm4py.read_xes(output_fn)
