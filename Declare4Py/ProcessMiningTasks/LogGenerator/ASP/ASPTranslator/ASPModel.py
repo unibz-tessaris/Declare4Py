@@ -3,7 +3,9 @@ from __future__ import annotations
 from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPTranslator.ConstraintResolver import DeclareModelConditionResolver2ASP
 
 #TODO change imports
-from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelEvent, DeclareModelAttr
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelEvent
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttr
 from Declare4Py.ProcessModels.DeclareModel import DeclareModel
 from Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
 

@@ -15,6 +15,7 @@ import clingo
 import pm4py
 from clingo import Symbol
 import pandas as pd
+import ast
 
 # NEW
 from Declare4Py.ProcessMiningTasks.AbstractLogGenerator import AbstractLogGenerator
@@ -24,9 +25,11 @@ from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.ASPResultModel impo
 from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPTranslator.ASPModel import ASPModel
 
 # OLD
-
-from Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareParsedDataModel, \
-    DeclareModelConstraintTemplate, DeclareModelAttributeType, DeclareModelAttr
+from Declare4Py.ProcessModels.DeclareModel import DeclareModel
+from Declare4Py.ProcessModels.DeclareModel import DeclareParsedDataModel
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttr
 
 
 class LogTracesType(typing.TypedDict):
@@ -479,17 +482,30 @@ class AspGenerator(AbstractLogGenerator):
         attr_list: dict[str, DeclareModelAttr] = decl_model.attributes_list
         tot_traces_generated = 0
         flattened = {}
+
+        """
+        for template in decl_model.templates.values():
+            print(template.to_dict()["time_condition"])
+            print("\n")
+            if template.to_dict()["time_condition"]:
+                print(template.to_dict())
+            print("\n")
+        """
+
         for result in self.asp_generated_traces:
             tot_traces_generated = tot_traces_generated + len(self.asp_generated_traces[result])
             traces_generated = self.asp_generated_traces[result]
             # traces_generated.sort(key=lambda x: x.name)
             traces_generated = sorted(traces_generated, key=custom_sort_trace_key)
             instance = []
+
             for trace in traces_generated:
                 # Positive, Negative...
                 _instance = {"trace_name": trace.name, "posNeg": result, "events": []}
+
                 for trace_position in dict(sorted(trace.parsed_result.items())).keys():
                     asp_event = trace.parsed_result[trace_position]
+
                     _event = {
                         "ev": decl_model.decode_value(asp_event['name'], self.encode_decl_model),
                         "lifecycle:transition": "complete",
@@ -497,6 +513,7 @@ class AspGenerator(AbstractLogGenerator):
                         "time:timestamp": datetime.now() + timedelta(hours=trace_position,
                                                                      seconds=random.randint(0, 3599))
                     }
+
                     _instance["events"].append(_event)
                     for res in asp_event['resources']:
                         res_name, res_value = list(res.items())[0]
@@ -506,6 +523,7 @@ class AspGenerator(AbstractLogGenerator):
                                                                                             res_name, res_value)
                         _event["resources"].append({res_name_decoded: res_value_decoded})
                 instance.append(_instance)
+
             flattened[result] = instance
         self.traces_generated_events = flattened
         if tot_traces_generated != self.log_length:
@@ -557,6 +575,32 @@ class AspGenerator(AbstractLogGenerator):
         df = pd.DataFrame(activities)
         return df
 
+    def toEventLog(self, data) -> pm4py.objects.log.obj.EventLog:
+        log = pm4py.objects.log.obj.EventLog(attributes={'concept:name': 'ASP Synthetic Log'})
+        for trace_type in data:
+            for trace in data[trace_type]:
+                log_trace = pm4py.objects.log.obj.Trace(attributes={
+                    'concept:name': trace['trace_name'],
+                    "label": trace_type
+                })
+
+                for id_ev, event in enumerate(trace["events"]):
+                    attributes = {
+                        "concept:name": event["ev"],
+                        "lifecycle:transition": event["lifecycle:transition"],
+                        "time:timestamp": datetime.now() + timedelta(hours=id_ev, seconds=random.randint(0,3599))
+                    }
+
+                    for att in event['resources']:
+                        attributes.update(att)
+
+                    log_event = pm4py.objects.log.obj.Event(attributes)
+                    log_trace.append(log_event)
+
+                log.append(log_trace)
+
+        return log
+
     def to_csv(self, path: str):
         """
         Save log in csv file
@@ -593,34 +637,8 @@ class AspGenerator(AbstractLogGenerator):
         if len(self.traces_generated_events['positive']) == 0 and len(self.traces_generated_events['negative']) == 0:
             warnings.warn("Unable to produce the logs with given model and parameters set for it.")
             return
-        pd_dataframe = self.toPD(self.traces_generated_events)
-        pd_dataframe.dropna(axis='columns', how='all')
-
-        # in order to remove the Nan rows firs a temp.xes file is created
-        pm4py.write_xes(pd_dataframe, "temp.xes")
-
-        # The the file is readed and only the lines that do no contain value="nan" will be added to the cleared xes file
-        cleared_xes = []
-        with open("temp.xes", "r") as text_file:
-            for line in text_file:
-                if line.find('value="nan"') == -1:
-                    cleared_xes.append(line)
-
-        # The temporary file is then deleted
-        os.remove("temp.xes")
-
-        # The effective file is then created with only the cleared lines
-        with open(output_fn, "w") as text_file:
-            for line in cleared_xes:
-                text_file.write(line)
-
-        # ## Following code is to clean the NaN values not yet tested if it removes all event or just an attribute ##
-        # xes = pm4py.read_xes(output_fn)
-        # float_or_int_cols = pd_dataframe.select_dtypes(include=['float64', 'int64']).columns.tolist()
-        # cols_with_nan = pd_dataframe[float_or_int_cols].columns[pd_dataframe[float_or_int_cols].isna().any()].tolist()
-        # rows_to_remove = xes[cols_with_nan].isna().any(axis=1)
-        # cleaned_xes = xes[~rows_to_remove]
-        # pm4py.write_xes(cleaned_xes, output_fn)
+        log = self.toEventLog(self.traces_generated_events)
+        pm4py.write_xes(log, output_fn)
 
     def use_custom_clingo_configuration(self,
                                         config: typing.Union[str, None] = None,
@@ -905,23 +923,3 @@ class AspGenerator(AbstractLogGenerator):
         else:
             self.violable_constraints = constrains_to_violate
         return self
-
-
-"""
-if __name__ == "__main__":
-    from Declare4Py.ProcessModels.DeclareModel import DeclareModel
-
-    model_name = 'sepsis'
-    model: DeclareModel = DeclareModel().parse_from_file(
-        os.path.join("../../../", "tests", "test_models", f"{model_name}.decl"))
-    # Number of cases that have be generated
-    num_of_cases = 10
-
-    # Minimum and maximum number of events a case can contain
-    (num_min_events, num_max_events) = (6, 10)
-
-    asp_gen: AspGenerator = AspGenerator(model, num_of_cases, num_min_events, num_max_events)
-    asp_gen.run()
-
-    asp_gen.to_csv(f'{model_name}.csv')
-"""

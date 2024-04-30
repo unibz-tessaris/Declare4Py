@@ -9,7 +9,7 @@ import logging
 import typing
 import collections
 
-from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPUtils.Distribution import Distribution
+from Declare4Py.ProcessMiningTasks.LogGenerator.Utils.Distribution import Distribution
 
 
 class AbstractLogGenerator(AbstractPMTask, ABC):
