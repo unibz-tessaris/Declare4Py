@@ -1,4 +1,4 @@
-activity    ER    Triage
+activity ER Triage
 bind ER Triage: org:group, Diagnose, Age
 activity ER Registration
 bind ER Registration: InfectionSuspected, org:group, DiagnosticBlood, DisfuncOrg, SIRSCritTachypnea, Hypotensie, SIRSCritHeartRate, Infusion, DiagnosticArtAstrup, Age, DiagnosticIC, DiagnosticSputum, DiagnosticLiquor, DiagnosticOther, SIRSCriteria2OrMore, DiagnosticXthorax, SIRSCritTemperature, DiagnosticUrinaryCulture, SIRSCritLeucos, Oligurie, DiagnosticLacticAcid, Diagnose, Hypoxie, DiagnosticUrinarySediment, DiagnosticECG
@@ -26,7 +26,7 @@ activity Admission IC
 bind Admission IC: org:group
 CRP: float between 5.0 and 573.0
 InfectionSuspected: true, false
-org:group: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, ?
+org:group: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y
 DiagnosticBlood: true, false
 DisfuncOrg: true, false
 SIRSCritTachypnea: true, false
@@ -38,21 +38,25 @@ DiagnosticArtAstrup: true, false
 LacticAcid: float between 0.2 and 14.9
 Age: integer between 20 and 90
 DiagnosticIC: true, false
-DiagnosticSputum: false, true
-DiagnosticLiquor: false, true
-DiagnosticOther: false, true
+DiagnosticSputum: true, false
+DiagnosticLiquor: true, false
+DiagnosticOther: true, false
 SIRSCriteria2OrMore: true, false
 DiagnosticXthorax: true, false
 SIRSCritTemperature: true, false
 DiagnosticUrinaryCulture: true, false
-SIRSCritLeucos: false, true
-Oligurie: false, true
+SIRSCritLeucos: true, false
+Oligurie: true, false
 DiagnosticLacticAcid: true, false
 Diagnose: YA, YB, YC, YD, QA, QB, QC, QD, QE, IA, IB, IC, ID, IE, AA, AB, AC, AD, AE, ZA, ZB, ZC, ZD, RA, RB, RC, RD, JA, JB, JC, JD, JE, BA, BB, A, BC, B, BD, C, BE, D, E, F, G, H, I, J, K, L, M, N, SA, O, SB, P, SC, Q, SD, R, S, T, U, V, KA, W, KB, X, KC, Y, KD, Z, KE, CA, CB, CC, CD, CE, TA, TB, TC, TD, LA, LB, LC, LD, LE, DA, DB, DC, DD, DE, UA, UB, UC, UD, MA, MB, MC, MD, ME, EA, EB, EC, ED, EE, VA, VB, VC, VD, NA, NB, NC, ND, FA, FB, FC, FD, FE, WA, WB, WC, WD, OA, OB, OC, OD, OE, GA, GB, GC, GD, GE, XA, XB, XC, XD, PA, PB, PC, PD, PE, HA, HB, HC, HD, HE
-Hypoxie: false, true
+Hypoxie: true, false
 DiagnosticUrinarySediment: true, false
 DiagnosticECG: true, false
-!pos(ER Triage, 1, 1),pos(org:group, 1, -, !A),pos(Leucocytes, 2, >3, >=34)
-pos(Act_name, pos, tempo),payload_pos(org:group, pos, tempo, valore),pos(org:group, 1, 1, A)
-pos(ER Triage, 1, 1),pos(org:group, 1, 1, A),pos(org:group, 1, 1, A)
-!pos(ER Triage, p1 t1),pos(org:group, p1, t2, v2),pos(Leucocytes, 2, t3, v3), t1=t2,t3>t2+10,v3<v2
+
+# pos(activity, pos, tempo), payload(attribute, valore, pos)
+
+!pos(ER Triage, 1), payload(org:group, 1, !A), payload(Leucocytes, 2, 34<=)
+pos(ER Registration, 1), payload(org:group, 1, :V1), pos(ER Sepsis Triage, 2), payload(org:group, 2, :V2), V1 == V2
+pos(ER Registration, 1), pos(ER Triage, 2), payload(org:group, 1, B), payload(org:group, 1, B)
+pos(ER Triage, 1), payload(org:group, 1, A), pos(ER Registration, 2), payload(org:group, 2, A)
+pos(ER Triage, :P1), payload(org:group, :P1, :V1), payload(org:group, :P2, :V2), V1 == V2, P1 < P2

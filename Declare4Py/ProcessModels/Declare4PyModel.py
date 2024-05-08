@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import re
 import typing
+import warnings
 from abc import ABC
 from enum import Enum
 
-from Declare4Py.ProcessModels.AbstractModel import T
+
 from Declare4Py.ProcessModels.LTLModel import LTLModel
 
 
@@ -347,21 +348,28 @@ class DeclareModelConditionParserUtility:
 class DeclareModelToken(ABC):
     """A Data model that represent each word of declare model as token."""
 
+    __model_types: typing.List[str] = ["event_name", "event_value", "attr_name", "attr_val"]
+
     def __init__(self,
                  name: str,
-                 model_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"] | str
+                 model_type: str
                  ):
 
         if not isinstance(name, str):
             raise ValueError("Invalid instance for value name, should be a string!")
         self.__name: str = name
 
-        if model_type in ["event_name", "event_value", "attr_name", "attr_val"]:
-            self.__model_type: str = model_type
+        if DeclareModelToken.has_model_type(model_type):
+            self.__model_type: str = model_type.lower()
         else:
-            self.__model_type: str = f"other"
+            warnings.warn(f"Invalid value {model_type} for model type, expected: {DeclareModelToken.__model_types}. The model type is set as 'other'")
+            self.__model_type: str = "other"
 
         self.encoder: _Encoder = _Encoder()
+
+    @staticmethod
+    def has_model_type(model_type: str):
+        return model_type.lower() in DeclareModelToken.__model_types
 
     def get_name(self) -> str:
         """Returns the name of the token"""
@@ -470,7 +478,6 @@ class DeclareModelEvent:
         """
         return {"event_names": self.__event_name.to_dict(), "event_values": self.__event_value.to_dict(), "bound_attributes_resources": {key: value.to_dict() for key, value in self.attributes.items()}}
 
-
 class DeclareModelAttr:
     """
     A class representing the attribute of declare model, An attribute can be imagined as resources shared
@@ -486,14 +493,41 @@ class DeclareModelAttr:
     def __init__(self, attr_name: str, attr_value: str | None = None):
 
         self.__attr_name: DeclareModelToken = DeclareModelToken(attr_name, "attr_name")
-        self.__value_type: typing.Union[DeclareModelAttributeType, None] = None
+        self.__value_type: typing.Union[str, None] = None
         self.__attr_value: typing.Union[DeclareModelAttrValue, None] = None
 
         if attr_value is not None:
-            self.__value_type = DeclareModelAttributeType.detect_declare_attr_value_type(attr_value)
-            self.__attr_value = DeclareModelAttrValue(attr_value, self.__value_type)
+            self.set_attr_value(attr_value)
 
         self.attached_events: dict[str, DeclareModelEvent] = {}
+
+    @staticmethod
+    def detect_declare_attr_value_type(value: str) -> str:
+        """
+        Detect the type of value assigned to an attribute assigned
+        Parameters
+        ----------
+        value: str
+            assigned value
+
+        Returns
+        -------
+            DeclareModelAttributeType
+        """
+        value = value.strip()
+        v2 = value.replace("  ", "")
+        if re.search(r"^[+-]?\d+$", value, re.MULTILINE):
+            return DeclareModelAttr.INTEGER
+        elif re.search(r"^[+-]?\d+(?:\.\d+)?$", value, re.MULTILINE):
+            return DeclareModelAttr.FLOAT
+        elif v2 and v2.lower().startswith("integer between"):
+            # ^integer * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
+            return DeclareModelAttr.INTEGER_RANGE
+        elif v2 and v2.lower().startswith("float between"):
+            # ^float * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
+            return DeclareModelAttr.FLOAT_RANGE
+        else:
+            return DeclareModelAttr.ENUMERATION
 
     def get_attr_name(self) -> str:
         """Returns the name of the attribute """
@@ -503,17 +537,9 @@ class DeclareModelAttr:
         """Returns the encoded name of the attribute """
         return self.__attr_name.get_encoded_name()
 
-    def get_attr_value(self) -> str | None:
+    def get_attr_value(self) -> DeclareModelAttrValue:
         """Returns the value of the attribute """
-        if self.__attr_value is not None:
-            return self.__attr_value.get_name()
-        return None
-
-    def get_encoded_attr_value(self) -> str | None:
-        """Returns the encoded value of the attribute """
-        if self.__attr_value is not None:
-            return self.__attr_value.get_encoded_name()
-        return None
+        return self.__attr_value
 
     def set_attached_events(self, ev_list: [DeclareModelEvent]):
         """Saves the attached events to a list """
@@ -534,7 +560,7 @@ class DeclareModelAttr:
         event.set_bound_attribute(self)
 
     def set_attr_value(self, attr_value: str):
-        self.__value_type = DeclareModelAttributeType.detect_declare_attr_value_type(attr_value)
+        self.__value_type = DeclareModelAttr.detect_declare_attr_value_type(attr_value)
         self.__attr_value = DeclareModelAttrValue(attr_value, self.__value_type)
 
     def to_dict(self) -> dict:
@@ -557,7 +583,7 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
         - integer range
     """
 
-    def __init__(self, value: str, value_type: DeclareModelAttributeType):
+    def __init__(self, value: str, value_type: str):
         """
         Initializes a DeclareModelAttrValue instance with the provided value and value type.
 
@@ -583,15 +609,15 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
         if self.value_original is None:
             return
         pattern = re.compile(r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)")
-        if self.attribute_value_type == DeclareModelAttributeType.FLOAT_RANGE:
+        if self.attribute_value_type == DeclareModelAttr.FLOAT_RANGE:
             matches = pattern.findall(self.value_original)
             self.value = [float(matches[0]), float(matches[1])]
             self.precision = self.get_float_biggest_precision(self.value[0], self.value[1])
-        elif self.attribute_value_type == DeclareModelAttributeType.INTEGER_RANGE:
+        elif self.attribute_value_type == DeclareModelAttr.INTEGER_RANGE:
             self.precision = 1
             match = pattern.findall(self.value_original)  # Extract the numeric
             self.value = [int(match[0]), int(match[1])]
-        elif self.attribute_value_type == DeclareModelAttributeType.ENUMERATION:
+        elif self.attribute_value_type == DeclareModelAttr.ENUMERATION:
             self.value = [DeclareModelToken(v.strip(), "attr_val") for v in self.value_original.split(',')]
         else:
             raise ValueError("Unable to parse the attribute value. Attribute values can be Enumeration separated"
@@ -638,7 +664,7 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
         Union[List[DeclareModelToken], List[int]]
             The attribute value with precision applied.
         """
-        if self.attribute_value_type == DeclareModelAttributeType.FLOAT_RANGE:
+        if self.attribute_value_type == DeclareModelAttr.FLOAT_RANGE:
             frm = int((10 ** self.precision) * self.value[0])
             to = int((10 ** self.precision) * self.value[1])
             return [frm, to]
@@ -670,50 +696,6 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
             "value_original": self.value_original,
             "value": mr,
         }
-
-
-class DeclareModelAttributeType(str, Enum):
-    """An Enum class that specifies types of attributes of the Declare model
-    """
-    INTEGER = "integer"
-    FLOAT = "float"
-    INTEGER_RANGE = "integer_range"
-    FLOAT_RANGE = "float_range"
-    ENUMERATION = "enumeration"
-
-    def __str__(self):
-        return self.value
-
-    def __repr__(self):
-        return "\"" + self.__str__() + "\""
-
-    @staticmethod
-    def detect_declare_attr_value_type(value: str) -> DeclareModelAttributeType:
-        """
-        Detect the type of value assigned to an attribute assigned
-        Parameters
-        ----------
-        value: str
-            assigned value
-
-        Returns
-        -------
-            DeclareModelAttributeType
-        """
-        value = value.strip()
-        v2 = value.replace("  ", "")
-        if re.search(r"^[+-]?\d+$", value, re.MULTILINE):
-            return DeclareModelAttributeType.INTEGER
-        elif re.search(r"^[+-]?\d+(?:\.\d+)?$", value, re.MULTILINE):
-            return DeclareModelAttributeType.FLOAT
-        elif v2 and v2.lower().startswith("integer between"):
-            # ^integer * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.INTEGER_RANGE
-        elif v2 and v2.lower().startswith("float between"):
-            # ^float * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.FLOAT_RANGE
-        else:
-            return DeclareModelAttributeType.ENUMERATION
 
 
 class DeclareModelConstraintTemplate:
@@ -1375,7 +1357,7 @@ class DeclareModel(LTLModel):
         return x is not None
 
     @staticmethod
-    def detect_declare_attr_value_type(value: str) -> DeclareModelAttributeType:
+    def detect_declare_attr_value_type(value: str) -> str:
         """
         Detect the type of value assigned to an attribute assigned
         Parameters
@@ -1387,17 +1369,17 @@ class DeclareModel(LTLModel):
         value = value.strip()
         v2 = value.replace("  ", "")
         if re.search(r"^[+-]?\d+$", value, re.MULTILINE):
-            return DeclareModelAttributeType.INTEGER
+            return DeclareModelAttr.INTEGER
         elif re.search(r"^[+-]?\d+(?:\.\d+)?$", value, re.MULTILINE):
-            return DeclareModelAttributeType.FLOAT
+            return DeclareModelAttr.FLOAT
         elif v2 and v2.lower().startswith("integer between"):
             # ^integer * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.INTEGER_RANGE
+            return DeclareModelAttr.INTEGER_RANGE
         elif v2 and v2.lower().startswith("float between"):
             # ^float * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.FLOAT_RANGE
+            return DeclareModelAttr.FLOAT_RANGE
         else:
-            return DeclareModelAttributeType.ENUMERATION
+            return DeclareModelAttr.ENUMERATION
 
     def __str__(self):
         st = f"""{{"activities": {self.activities}, "serialized_constraints": {self.serialized_constraints},\

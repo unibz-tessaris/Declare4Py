@@ -60,7 +60,7 @@ class Attribute(ASPEntity, DeclareEntity):
         return self.__name
 
     def get_encoded_name(self) -> str:
-        return Encoder.encode_value("ATTRIBUTES", self.__name)
+        return Encoder().encode_value("ATTRIBUTES", self.__name)
 
     def get_type(self) -> typing.Union[str, None]:
         return self.__type
@@ -69,10 +69,13 @@ class Attribute(ASPEntity, DeclareEntity):
         return self.__values
 
     def get_encoded_values(self) -> str:
-        return Encoder.encode_values("ATTR_VALUES", self.__values)
+        return Encoder().encode_values("ATTR_VALUES", self.__values)
 
     def get_precision(self) -> int:
         return self.__precision
+
+    def apply_precision(self, value: int) -> float:
+        return value / 10 ** self.__precision
 
     def to_asp(self, encoded: bool = False) -> str:
         asp = ""
@@ -131,13 +134,13 @@ class Activity(ASPEntity, DeclareEntity):
         return self.__name
 
     def get_encoded_name(self) -> str:
-        return Encoder.encode_value("ACTIVITIES", self.__name)
+        return Encoder().encode_value("ACTIVITIES", self.__name)
 
     def get_attributes(self) -> typing.Dict[str, Attribute]:
         return self.__attributes
 
     def get_encoded_attributes(self) -> typing.List[str]:
-        return Encoder.encode_values("ATTRIBUTES", list(self.__attributes.keys()))
+        return Encoder().encode_values("ATTRIBUTES", list(self.__attributes.keys()))
 
     def set_attribute(self, attribute: typing.Union[str, Attribute]):
         if isinstance(attribute, str):
@@ -224,7 +227,7 @@ class PBConstraint(ASPEntity, DeclareEntity):
             except ValueError as error:
                 raise ValueError(str(error) + f", Original constraint: {original_const}")
 
-            if re.match(r"(\w+\s+(=|>|<|>=|<=)\s+\w+(,\s)*)+", constraint):
+            if re.match(r"(\w+\s+(==|=|>|<|>=|<=)\s+\w+(,\s)*)+", constraint):
                 parsed_constraints.append(constraint)
                 parsed_encoded_constraints.append(constraint)
                 continue
@@ -247,7 +250,7 @@ class PBConstraint(ASPEntity, DeclareEntity):
         format_list: typing.List[str] = [values[0].strip()]
         extra_conditions: str = ""
 
-        encoded_format_list: typing.List[str] = [Encoder.encode_value(target_type, values[0])]
+        encoded_format_list: typing.List[str] = [Encoder().encode_value(target_type, values[0])]
         encoded_extra_conditions: str = ""
 
         attr: int = 1
@@ -267,7 +270,7 @@ class PBConstraint(ASPEntity, DeclareEntity):
                         int(attribute)
                         encoded_attribute_value = attribute_value
                     except ValueError:
-                        encoded_attribute_value = attribute_value.replace(attribute, Encoder.encode_value("ATTR_VALUES", attribute))
+                        encoded_attribute_value = attribute_value.replace(attribute, Encoder().encode_value("ATTR_VALUES", attribute))
 
                 variable = self.__generate_new_variable_name()
 
@@ -333,7 +336,9 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
 
         self.__activities: typing.Dict[str, Activity] = {}
         self.__attributes: typing.Dict[str, Attribute] = {}
+        self.__precision_attributes: typing.Dict[str, Attribute] = {}
         self.__constraints: typing.List[PBConstraint] = []
+
 
     def parse_from_file(self, model_path: str, **kwargs) -> typing_extensions.Self:
 
@@ -358,6 +363,7 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
             self.__parse_line(index + 1, line)
 
         self.__integrity_check()
+        self.__set_precision_attributes()
         self.__parsed_model = content
 
         return self
@@ -445,6 +451,11 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
         if attribute_name not in activity.get_attributes().keys():
             activity.set_attribute(self.__attributes[attribute_name])
 
+    def __set_precision_attributes(self):
+        for attribute_name, attribute in self.__attributes.items():
+            if attribute.get_type() == Attribute.FLOAT_RANGE:
+                self.__precision_attributes[attribute_name] = attribute
+
     def __set_activity(self, index: int, activity_name: str):
         activity_name = activity_name.strip()
 
@@ -476,6 +487,11 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
 
         for attribute_to_remove in attributes_to_remove:
             self.__attributes.pop(attribute_to_remove)
+
+    def apply_precision(self, attribute_name: str, value: int):
+        if attribute_name in self.__precision_attributes.keys():
+            return self.__precision_attributes[attribute_name].apply_precision(value)
+        return value
 
     def to_file(self, model_path: str, asp_file: bool = True,  encode: bool = False, negative_traces: bool = False, decl_file: bool = True, parsed_model: bool = False):
 
@@ -518,12 +534,12 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
 
         for constraint in self.__constraints:
             asp += constraint.to_asp(encode) + "\n"
-        """
+
         if generate_negatives:
             asp += ":- " + ASPFunctions.ASP_CONSTRAINT_RULE + ".\n"
         else:
             asp += ":- not " + ASPFunctions.ASP_CONSTRAINT_RULE + ".\n"
-        """
+
         return asp
 
     def to_declare(self) -> str:
@@ -548,6 +564,15 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
             "constraints": [constr.to_dict() for constr in self.__constraints]
         }
 
+    def get_activity_dict(self) -> typing.Dict[str, Activity]:
+        return self.__activities
+
+    def get_attributes_dict(self) -> typing.Dict[str, Attribute]:
+        return self.__attributes
+
+    def get_constraints_list(self) -> typing.List[PBConstraint]:
+        return self.__constraints
+
     def get_parsed_model(self) -> str:
         return self.__parsed_model
 
@@ -560,7 +585,7 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
 
 
 if __name__ == "__main__":
-    model1 = PositionalBasedModel(True).parse_from_file("model.decl")
+    model1 = PositionalBasedModel(True).parse_from_file("Declare_Tests/model.decl")
     # model2 = PositionalBasedModel(True).parse_from_file("model_simplified.decl")
     # model2 = PositionalBasedModel(True).parse_from_file("model_simplified.decl").to_asp()
     model1.to_asp_file("asp_enc.lp", True)

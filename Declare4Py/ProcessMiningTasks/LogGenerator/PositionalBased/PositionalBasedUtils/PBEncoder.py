@@ -1,4 +1,5 @@
 import typing
+import re
 
 
 class Encoder:
@@ -27,6 +28,11 @@ class Encoder:
     @classmethod
     def encode_value(cls, value_type: str, value: any):
 
+        value = str(value)
+
+        if re.match("_[a-z1-9_]*_", value):
+            return value
+
         if value not in cls.ENCODE[value_type].keys():
             encoded = "_" + str(value).lower().strip().replace(" ", "_").replace(":", "_") + "_"
             cls.ENCODE[value_type][value] = encoded
@@ -44,4 +50,8 @@ class Encoder:
 
     @classmethod
     def decode_value(cls, value_type: str, value: str):
-        return cls.DECODE[value_type][value] if value in cls.DECODE[value_type].keys() else None
+        return cls.DECODE[value_type][value] if value in cls.DECODE[value_type].keys() else value
+
+    @classmethod
+    def reset(cls):
+        cls.instance = None

@@ -8,8 +8,8 @@ class ASPFunctions:
     ASP_ATTRIBUTE_RANGE = "attribute_value({}, {}..{})"
 
     ASP_CONSTRAINT_RULE = "rule"
-    ASP_EVENT = {"function": "event({}, {})", "attr_count": 2}
-    ASP_ASSIGNED_VALUE = {"function": "assigned_value({}, {}, {})", "attr_count": 3}
+    ASP_EVENT = {"function": "event({}, {})", "name": "event", "attr_count": 2}
+    ASP_ASSIGNED_VALUE = {"function": "assigned_value({}, {}, {})", "name": "assigned_value", "attr_count": 3}
 
     ASP_FILE_EXTENSION = ".lp"
 
