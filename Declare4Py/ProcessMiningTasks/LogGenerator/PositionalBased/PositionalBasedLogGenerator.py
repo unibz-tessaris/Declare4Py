@@ -21,8 +21,8 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         self.__PB_Logger = logging.getLogger("Positional Based Log Generator")
 
         self.__use_custom_clingo_config: bool = False
-        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode {},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}", "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
-        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.9", "SIGN-DEF": "rnd", "MODE": "optN", "STRATEGY": None, "HEURISTIC": None}
+        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}", "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
+        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "trendy", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.3", "SIGN-DEF": "asp", "MODE": "optN", "STRATEGY": None, "HEURISTIC": None}
         self.__custom_configuration: typing.Dict[str, str] = self.__default_configuration.copy()
 
         self.__pb_model: PositionalBasedModel = pb_model
@@ -61,13 +61,24 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
             # Defines some important parameters for clingo
             arguments: typing.List = [
+                "-c",
                 f"p={int(num_events)}",
                 f"{int(num_traces)}",
-                f"--seed={randrange(0, 2 ** 30 - 1)}"
+                f"--seed={randrange(0, 2 ** 30 - 1)}",
+                "--share=auto",
+                "--distribute=conflict,global,4",
+                "--integrate=gp",
+                "--enum-mode=auto",
+                "--deletion=basic,75,activity",
+                "--del-init=3.0",
+                "--project",
+
+
+
             ]
 
             # Appends the options of our configurations
-            # arguments += clingo_configuration
+            arguments += clingo_configuration
 
             # Sets up clingo
             ctl = clingo.Control(arguments)
@@ -109,7 +120,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                     self.__debug_message(f"Couldn't parse clingo function {function}")
 
             events.sort(key=lambda x: int(x[1]))
-            values.sort(key=lambda x: int(x[1]))
+            # values.sort(key=lambda x: int(x[1]))
 
             for activity, pos in events:
                 new_row: typing.Dict[str, typing.Any] = self.__new_pd_row.copy()
@@ -245,7 +256,7 @@ if __name__ == '__main__':
     model_name = path + model1
 
     model1 = PositionalBasedModel(True).parse_from_file(f"{model_name}.decl")
-    model1.to_asp_file(f"{model_name}.lp", True)
+    # model1.to_asp_file(f"{model_name}.lp", True)
     generator = PositionalBasedLogGenerator(100, 10, 10, model1, True)
     print("end")
     generator.run()
