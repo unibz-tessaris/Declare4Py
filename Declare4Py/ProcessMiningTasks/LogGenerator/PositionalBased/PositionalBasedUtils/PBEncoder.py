@@ -1,10 +1,10 @@
 import typing
-import re
 
 
 class Encoder:
     instance = None
 
+    # Constructor
     def __new__(cls):
         """
         A singleton class which encodes and decodes the given values. It contains the information of encoded values
@@ -14,44 +14,62 @@ class Encoder:
             cls.instance = super(Encoder, cls).__new__(cls)
         return cls.instance
 
-    ENCODE: typing.Dict[str, typing.Dict[str, str]] = {
-        "ACTIVITIES": {},
-        "ATTRIBUTES": {},
-        "ATTR_VALUES": {}
-    }
-    DECODE: typing.Dict[str, typing.Dict[str, str]] = {
-        "ACTIVITIES": {},
-        "ATTRIBUTES": {},
-        "ATTR_VALUES": {}
+    # Encoder dictionary for encoding and decoding
+    Encoder: typing.Dict[str, typing.Dict[str, str]] = {
+        "ENCODE": {},
+        "DECODE": {}
     }
 
-    @classmethod
-    def encode_value(cls, value_type: str, value: any):
+    # Encoding element name
+    ENCODING_ELEMENT_NAME = "_encoded_element_{}_"
 
-        value = str(value)
-
-        if re.match("_[a-z1-9_]*_", value):
-            return value
-
-        if value not in cls.ENCODE[value_type].keys():
-            encoded = "_" + str(value).lower().strip().replace(" ", "_").replace(":", "_") + "_"
-            cls.ENCODE[value_type][value] = encoded
-            cls.DECODE[value_type][encoded] = value
-
-        return cls.ENCODE[value_type][value]
+    # Encoded elements count
+    __COUNT = 1
 
     @classmethod
-    def encode_values(cls, value_type: str, values: typing.List[any]):
+    def create_and_encode_value(cls, value: any) -> str:
+        """
+        Creates an encoded entry for the value if not in the encoder dictionary
+        Returns the encoed value
+        """
+        if value not in list(cls.Encoder["ENCODE"].keys()):
+            encoded = cls.ENCODING_ELEMENT_NAME.format(str(cls.__COUNT))
+            cls.Encoder["ENCODE"][value] = encoded
+            cls.Encoder["DECODE"][encoded] = value
+            cls.__COUNT += 1
+
+        return cls.Encoder["ENCODE"][value]
+
+    @classmethod
+    def encode_value(cls, value: any) -> str:
+        """
+        Tries to encode a value, if the value is not encoded it will raise a ValueError
+        """
+        if value not in list(cls.Encoder["ENCODE"].keys()):
+            raise ValueError(f"Value {value} is not encoded and probably not declared in the model. Check your definitions")
+        return cls.Encoder["ENCODE"][value]
+
+    @classmethod
+    def create_and_encode_values(cls, values: typing.List[any]) -> typing.List[str]:
+        """
+        Encodes a list of values and returns a list of encoded values.
+        """
         encoded_values: typing.List[str] = []
         for value in values:
-            encoded_values.append(cls.encode_value(value_type, value))
+            encoded_values.append(cls.create_and_encode_value(value))
 
         return encoded_values
 
     @classmethod
-    def decode_value(cls, value_type: str, value: str):
-        return cls.DECODE[value_type][value] if value in cls.DECODE[value_type].keys() else value
+    def decode_value(cls, value: str) -> str:
+        """
+        Decodes a values if it is present in the dictionary, otherwise the value is returned
+        """
+        return cls.Encoder["DECODE"][value] if value in cls.Encoder["DECODE"].keys() else value
 
     @classmethod
     def reset(cls):
+        """
+        Resets the current Instance of the Encoder
+        """
         cls.instance = None
