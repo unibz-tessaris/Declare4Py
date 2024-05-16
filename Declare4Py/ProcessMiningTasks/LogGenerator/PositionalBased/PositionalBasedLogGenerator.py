@@ -3,6 +3,7 @@ import os
 import typing
 import warnings
 import math
+from datetime import datetime, timedelta
 from random import randrange
 
 import clingo
@@ -22,8 +23,10 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         self.__PB_Logger = logging.getLogger("Positional Based Log Generator")
 
         self.__use_custom_clingo_config: bool = False
-        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}", "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
-        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "TIME-LIMIT": "120", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.9", "SIGN-DEF": "rnd", "MODE": "optN", "STRATEGY": None, "HEURISTIC": None}
+        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}",
+                                                         "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
+        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "TIME-LIMIT": "120", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.9", "SIGN-DEF": "rnd", "MODE": "optN",
+                                                               "STRATEGY": None, "HEURISTIC": None}
         self.__custom_configuration: typing.Dict[str, str] = self.__default_configuration.copy()
 
         self.__pb_model: PositionalBasedModel = pb_model
@@ -33,7 +36,8 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         self.__negatives_results: typing.Dict = {}
         self.__current_asp_rule: str = ""
 
-        self.__pd_cols: typing.List[str] = ["case:concept:name", "time:timestamp", "concept:name:order", "concept:name:rule", "concept:name:time", "concept:name", "case:label"] + list(pb_model.get_attributes_dict().keys())
+        self.__pd_cols: typing.List[str] = ["case:concept:name", "time:timestamp", "concept:name:order", "concept:name:rule", "concept:name:time", "concept:name", "case:label"] + list(
+            pb_model.get_attributes_dict().keys())
         self.__new_pd_row: typing.Dict[str, typing.Any] = dict(zip(self.__pd_cols, [None for _ in range(len(self.__pd_cols))]))
         self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
 
@@ -101,7 +105,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                 self.__debug_message(f"Clingo Result :{str(res)}")
 
                 if res.unsatisfiable:
-                    warnings.warn(f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model. Check the definition of your constraints')
+                    warnings.warn(f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model model rule {self.__current_asp_rule}. Check the definition of your constraints')
 
     def __parse_results(self, results: typing.Dict, label: str):
 
@@ -138,10 +142,14 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
                 events.sort(key=lambda x: int(x[1]))
 
+                # Randomized start by one hour
+                delta = timedelta(seconds=randrange(0, 3600))
+
                 for activity, pos, time in events:
                     new_row: typing.Dict[str, typing.Any] = self.__new_pd_row.copy()
                     new_row["case:concept:name"] = "case_" + str(trace_index)
                     new_row["concept:name:order"] = "event_" + str(pos)
+                    new_row["time:timestamp"] = datetime.now() + delta + timedelta(seconds=time * self.__pb_model.get_time_unit_in_seconds())
                     new_row["concept:name:rule"] = str(rule)
                     new_row["concept:name:time"] = "time_" + str(time)
                     new_row["concept:name"] = activity
@@ -191,7 +199,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
     def use_custom_clingo_configuration(self,
                                         config: typing.Union[str, None] = None,
-                                        time_limit:  typing.Union[int, None] = None,
+                                        time_limit: typing.Union[int, None] = None,
                                         threads: typing.Union[int, None] = None,
                                         frequency: typing.Union[float, int, None] = None,
                                         sign_def: typing.Union[str, None] = None,
@@ -287,7 +295,6 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
 
 if __name__ == '__main__':
-
     path = "Declare_Tests/"
     no_constraints = "NO_CONSTRAINTS"
     model1 = "model"
@@ -296,5 +303,5 @@ if __name__ == '__main__':
     model1 = PositionalBasedModel(verbose=True).parse_from_file(f"{model_name}.decl")
     # model1.to_asp_file(f"{model_name}.lp", True)
     generator = PositionalBasedLogGenerator(20, 10, 10, model1, True)
-    generator.run(True)
+    generator.run()
     generator.to_csv(model_name + ".csv")

@@ -8,6 +8,7 @@ class DeclareEntity:
     """
     An Abstract DeclareEntity that has to define a to_asp method
     """
+
     @abstractmethod
     def to_declare(self) -> str:
         pass
@@ -36,10 +37,11 @@ class DeclareFunctions:
     DECL_NEG_PAYLOAD = "!" + DECL_PAYLOAD
     DECL_PAYLOAD_ATTRIBUTES = ["Attribute", "Value", "Position"]
     DECL_CONDITIONAL = "conditional"
+    DECL_FUNCTION_PATTERN = r"(!?pos[(][^,]+,\s*(-?\d+|:[^:,]+),\s*(-?\d+|:[^:,]+)[)]|!?payload[(][^,]+,\s*[^,]+,\s*(-?\d+|:[^[,:]+)[)])"
 
     # Defining conditional constraint values
     DECL_CONDITIONAL_OPERATORS = ["==", "!=", ">=", "<=", ">", "<"]
-    DECL_CONDITIONAL_VARIABLE_PATTERN = r"^(:?\w+|\d+.\d+)\s*(==|!=|>=|<=|>|<)\s*(:?\w+|\d+.\d+)$"
+    DECL_CONDITIONAL_VARIABLE_PATTERN = r"(:?\w+|\d+[.\d+]?)\s*(==|!=|>=|<=|>|<)\s*(:?\w+|\d+[.\d+]?)"
 
     # Defining file extension
     DECL_FILE_EXTENSION = ".decl"
@@ -61,7 +63,7 @@ class DeclareFunctions:
 
         return True
 
-    @ classmethod
+    @classmethod
     def parse_activation_line(cls, line: str) -> typing.List[str]:
         """
         Parses the activation line and returns a list of activity names
@@ -177,7 +179,8 @@ class DeclareFunctions:
         Checks if the line is starts with a constraint definition and returns True or False accordingly
         """
         line = line.strip().lower()
-        return (line.startswith(cls.DECL_POSITION) or
+        return (re.match(r"^" + cls.DECL_CONDITIONAL_VARIABLE_PATTERN, line, re.IGNORECASE) is not None or
+                line.startswith(cls.DECL_POSITION) or
                 line.startswith(cls.DECL_NEG_POSITION) or
                 line.startswith(cls.DECL_PAYLOAD) or
                 line.startswith(cls.DECL_NEG_PAYLOAD))
@@ -188,88 +191,67 @@ class DeclareFunctions:
         Parses the constraint line and returns a list of constraints
         """
 
+        # removes spaces and double negations from the string and joins the string into one without spaces
+        # unparsed_constraints = line = "".join(line.replace("!!", "").split())
+        line = line.replace("!!", "")
+        unparsed_constraints = "".join(line.split())
+
         # Initializes the list
         constraints_data: typing.List[typing.Dict[str, str]] = []
 
-        # splits the constraints for the
-        # TODO cosa succede se i conditional constraint si trovano in mezzo? fix
-        for constraint in line.split(")"):
+        # For every declare function found defined in the constraint
+        # Use the regex that recognizes the function and extract the information
+        for declare_constraint in re.findall(cls.DECL_FUNCTION_PATTERN, line, re.IGNORECASE):
+            # Remove the constraint from the unparsed constraint String
+            unparsed_constraints = unparsed_constraints.replace("".join(declare_constraint[0].split()), "")
+            # Detect the type
+            constraint_type, negated = cls.__find_constraint_type(declare_constraint[0])
+            # Extract the values of the constraint and filter them
+            values = cls.__filter_elements(declare_constraint[0].split("(")[1].replace(")", "").split(","))
+            # Append the data found
+            constraints_data.append({"Type": constraint_type, "Negated": negated, "Values": values})
 
-            if len(constraint.strip()) == 0:
-                continue
+        # For every conditional constraint found
+        # Use the regex that recognizes the conditional constraint and extract the information
+        for conditional_constraint in re.findall(cls.DECL_CONDITIONAL_VARIABLE_PATTERN, line, re.IGNORECASE):
+            # Filter the values
+            values = cls.__filter_elements(conditional_constraint)
+            # Remove the constraint from the unparsed constraint String
+            unparsed_constraints = unparsed_constraints.replace("".join(values), "")
+            # Append the data found
+            constraints_data.append({"Type": cls.DECL_CONDITIONAL, "Negated": False, "Values": values})
 
-            constraint = constraint.split("(")
+        # Split and filter the unparsed constraint list in order to check if some constraint where not recognized
+        # If some where not recognized launch a warning
+        unparsed_constraints = cls.__filter_elements(unparsed_constraints.split(","))
+        if len(unparsed_constraints) != 0:
+            warnings.warn(f"\nCouldn't parse some constraints: {unparsed_constraints}. make sure they respect the correct declaration")
 
-            constraint_type, negated = cls.__find_constraint_type(constraint[0])
-
-            if len(constraint) != 2 and constraint_type != cls.DECL_CONDITIONAL:
-                raise ValueError(f"Could not parse constraint '{constraint}'. The only present parenthesis should be the one defined by the function")
-
-            if constraint_type == cls.DECL_POSITION:
-                values = cls.__parse_constraint_values(constraint[1], cls.DECL_POSITION_ATTRIBUTES)
-            elif constraint_type == cls.DECL_PAYLOAD:
-                values = cls.__parse_constraint_values(constraint[1], cls.DECL_PAYLOAD_ATTRIBUTES)
-            else:
-                values = cls.__parse_conditional_constraint(constraint[0])
-
-            if len(values) > 0:
-                constraints_data.append({"Type": constraint_type, "Negated": negated, "Values": values})
-
+        # Return the parsed constraints
         return constraints_data
 
     @classmethod
-    def __parse_constraint_values(cls, values: str, attribute_names: typing.List[str]) -> typing.Dict[str, str]:
-        values = cls.__filter_elements(values.split(","))
-        if len(values) != len(attribute_names):
-            raise ValueError(f"The number of values must be equal to the number of attribute required for the function. Found values: {values}, required attributes: {attribute_names}")
-        return dict(zip(attribute_names, values))
-
-    @classmethod
-    def __parse_conditional_constraint(cls, conditional_constraints: str) -> typing.List[typing.List[str]]:
-
-        conditional_constraints_data: typing.List[typing.List[str]] = []
-        for conditional_constraint in cls.__filter_elements(conditional_constraints.split(",")):
-
-            if not re.match(cls.DECL_CONDITIONAL_VARIABLE_PATTERN, conditional_constraint, re.IGNORECASE):
-                warnings.warn(f"Could not parse constraint {conditional_constraint}, skipped")
-                continue
-
-            for operator in cls.DECL_CONDITIONAL_OPERATORS:
-
-                if conditional_constraint.find(operator) != -1:
-                    values = cls.__filter_elements(conditional_constraint.split(operator))
-                    if len(values) != 2:
-                        raise ValueError(f"Conditional constraint {conditional_constraint} requires a value or a variable followed by a conditional operator, followed by a value or a variable")
-
-                    conditional_constraints_data.append([values[0], operator, values[1]])
-                    break
-            else:
-                warnings.warn(f"Could not parse constraint {conditional_constraint}, skipped")
-
-        return conditional_constraints_data
-
-    @classmethod
-    def __find_constraint_type(cls, constraint_type: str) -> (str, bool):
+    def __find_constraint_type(cls, constraint: str) -> (str, bool):
         """
         Finds the constraint type of given constraint.
         """
 
-        constraint_type = constraint_type.lower()
+        constraint = constraint.lower()
         # !payload(x, x, x)
-        if constraint_type.find(cls.DECL_NEG_PAYLOAD) != -1:
+        if constraint.find(cls.DECL_NEG_PAYLOAD) != -1:
             return cls.DECL_PAYLOAD, True
         # !pos(x, x, x)
-        elif constraint_type.find(cls.DECL_NEG_POSITION) != -1:
+        elif constraint.find(cls.DECL_NEG_POSITION) != -1:
             return cls.DECL_POSITION, True
         # pos(x, x, x)
-        elif constraint_type.find(cls.DECL_POSITION) != -1:
+        elif constraint.find(cls.DECL_POSITION) != -1:
             return cls.DECL_POSITION, False
         # payload(x, x, x)
-        elif constraint_type.find(cls.DECL_PAYLOAD) != -1:
+        elif constraint.find(cls.DECL_PAYLOAD) != -1:
             return cls.DECL_PAYLOAD, False
-        # conditional otherwise: v1 == v2
+        # Else error
         else:
-            return cls.DECL_CONDITIONAL, False
+            raise ValueError("Could not find the constraint type")
 
     @classmethod
     def is_comment_line(cls, line: str) -> bool:
@@ -289,6 +271,9 @@ class DeclareFunctions:
 
 
 if __name__ == "__main__":
+    # print(DeclareFunctions.is_activation_line("ACTIvity ER Registration, Er triage, org:group:,,  ,"))
+    # print(DeclareFunctions.parse_activation_line("ACTIvity ER Registration, Er activity triage, org:group:,,  ,"))
+    # print(DeclareFunctions.parse_constraint_line(":V1==:V2, pos(actv, 1, 1), 1<:V2, 1==:V2, !pos(actv, 12, 12), :V1==e, pos(actv, 13, 3), payload(actv, erer, 1), :V1==:V2"))
+    # print(DeclareFunctions.parse_constraint_line("pos(ER Registration, 1, 1), payload(org:group, 1, :V1), pos(ER Sepsis Triage, 2, 3), payload(org:group, 2, :V2), :V1 == :V2"))
 
-    print(DeclareFunctions.is_activation_line("ACTIvity ER Registration, Er triage, org:group:,,  ,"))
-    print(DeclareFunctions.parse_activation_line("ACTIvity ER Registration, Er activity triage, org:group:,,  ,"))
+    pass

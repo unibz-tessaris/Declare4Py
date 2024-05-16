@@ -361,11 +361,11 @@ class PBConstraint(ASPEntity, DeclareEntity):
 
                 # If it is a pos(x, x, x) constraint
                 if constraint["Type"] == DeclareFunctions.DECL_POSITION:
-                    constraint, encoded_constraint = self.__parse_decl_test_constraint(list(constraint["Values"].values()), "ACTIVITIES")
+                    constraint, encoded_constraint = self.__parse_decl_test_constraint(list(constraint["Values"]), "ACTIVITIES")
 
                 # If it is a payload(x, x, x) constraint
                 elif constraint["Type"] == DeclareFunctions.DECL_PAYLOAD:
-                    constraint, encoded_constraint = self.__parse_decl_test_constraint(list(constraint["Values"].values()), "ATTRIBUTES")
+                    constraint, encoded_constraint = self.__parse_decl_test_constraint(list(constraint["Values"]), "ATTRIBUTES")
 
                 # Else is a conditional constraint ex: v1==v2, v1>v2, etc ...
                 else:
@@ -480,7 +480,7 @@ class PBConstraint(ASPEntity, DeclareEntity):
             else:
                 return var, var, value + " " + op + " " + var, encoded_value + " " + op + " " + var
 
-    def __parse_conditional_constraint(self, values: typing.List[typing.List[any]]) -> (str, str):
+    def __parse_conditional_constraint(self, values: typing.List[str]) -> (str, str):
         """
         Parses the conditional declare constraints defined by the user.
         Ex: :Var1 >= 10 or :Var2 < :Var3 or :Var4 == AA etc ...
@@ -491,13 +491,13 @@ class PBConstraint(ASPEntity, DeclareEntity):
 
         # For each set of conditional constraint parse the 2 variables
         # And append to the correct list the new ASP conditional constraint
-        for var1, op, var2 in values:
-            # parse
-            var1, enc_var1 = self.__parse_variable_value(var1)
-            var2, enc_var2 = self.__parse_variable_value(var2)
-            # append
-            conditional_constraint.append(" ".join([var1, op, var2]))
-            encoded_conditional_constraint.append(" ".join([enc_var1, op, enc_var2]))
+        var1, op, var2 = values
+        # parse
+        var1, enc_var1 = self.__parse_variable_value(var1)
+        var2, enc_var2 = self.__parse_variable_value(var2)
+        # append
+        conditional_constraint.append(" ".join([var1, op, var2]))
+        encoded_conditional_constraint.append(" ".join([enc_var1, op, enc_var2]))
 
         # Return a string of the not encoded constraints and another string of the encoded constraints both joined by a comma
         return ", ".join(conditional_constraint), ", ".join(encoded_conditional_constraint)
@@ -614,7 +614,16 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
     """
 
     # Constructor
-    def __init__(self, positional_based_time_start: int = 0, positional_based_time_end: int = 100, verbose: bool = False):
+    def __init__(self, positional_based_time_start: int = 0, positional_based_time_end: int = 100, time_unit_in_seconds: int = 300, verbose: bool = False):
+        """
+        Constructor of the Positional Based Model
+
+        Parameters:
+            positional_based_time_start: int = minimum value that events can have
+            positional_based_time_end: int = maximum value that events can have
+            time_unit_in_seconds: int = Converts time positional_based_time in seconds using the ratio: 1 positional_based_time == time_unit in seconds
+        """
+
         super().__init__()
 
         # Instantiates the debugging variables
@@ -631,8 +640,11 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
         self.__precision_attributes: typing.Dict[str, Attribute] = {}
         self.__constraints: typing.List[PBConstraint] = []
 
-        # Sets the range of time in which the ASP model will operate
-        self.__positional_based_time_range: range = range(positional_based_time_start, positional_based_time_end)
+        # Sets the range of time in which the ASP model will operate and the time unit and second ratio
+        self.__positional_based_time_range: typing.Union[range, None] = None
+        self.set_positional_based_time_range(positional_based_time_start, positional_based_time_end)
+        self.__time_unit_in_seconds: typing.Union[int, None] = None
+        self.set_time_unit_in_seconds(time_unit_in_seconds)
 
     def parse_from_file(self, model_path: str, **kwargs) -> typing_extensions.Self:
         """
@@ -1022,6 +1034,53 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
         Returns the parsed model given as an input
         """
         return self.__parsed_model
+
+    def set_positional_based_time_range(self, positional_based_time_start: int = 0, positional_based_time_end: int = 100):
+        """
+        Sets the range of time in which the traces will be generated
+        """
+
+        # Checks for non integer instances
+        if not isinstance(positional_based_time_start, int) or not isinstance(positional_based_time_end, int):
+            raise TypeError("Positional Based Time Start or End must be an integer")
+
+        # Checking negative values
+        if positional_based_time_start < 0:
+            positional_based_time_start = abs(positional_based_time_start)
+            warnings.warn("Positional based time start must be greater than zero. Applying absolute value")
+        if positional_based_time_end < 0:
+            positional_based_time_end = abs(positional_based_time_end)
+            warnings.warn("Positional based time end must be greater than zero. Applying absolute value")
+
+        # Invert values if the start is bigger than the end
+        if positional_based_time_start > positional_based_time_end:
+            positional_based_time_start, positional_based_time_end = positional_based_time_end, positional_based_time_start
+
+        # Sets the range
+        self.__positional_based_time_range = range(positional_based_time_start, positional_based_time_end)
+
+    def set_time_unit_in_seconds(self, time_unit_in_seconds: int):
+        """
+        Sets the conversion ratio of the time unit in seconds
+        """
+
+        # Checks for non integer instances
+        if not isinstance(time_unit_in_seconds, int):
+            raise TypeError("Time unit in seconds must be an integer")
+
+        # Checking negative values
+        if time_unit_in_seconds < 0:
+            time_unit_in_seconds = abs(time_unit_in_seconds)
+            warnings.warn("Time unit in seconds must be greater than zero. Applying absolute value")
+
+        # Sets the value
+        self.__time_unit_in_seconds = time_unit_in_seconds
+
+    def get_time_unit_in_seconds(self) -> int:
+        """
+        Returns the time unit in seconds conversion
+        """
+        return self.__time_unit_in_seconds
 
     def set_verbose(self, verbose: bool = False):
         """
