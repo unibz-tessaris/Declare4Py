@@ -2,6 +2,7 @@ from abc import abstractmethod
 import typing
 import re
 import warnings
+from Declare4Py.ProcessMiningTasks.LogGenerator.PositionalBased.PositionalBasedUtils.ASPUtils import ASPFunctions
 
 
 class DeclareEntity:
@@ -19,7 +20,7 @@ class DeclareFunctions:
     DeclareFunctions defines functions and constants for DECLARE
     """
 
-    # Defining functions
+    # Defining decl functions
     DECL_ACTIVITY = "activity"
     DECL_BIND = "bind"
 
@@ -31,17 +32,125 @@ class DeclareFunctions:
 
     # Defining constraints functions
     DECL_POSITION = "pos"
-    DECL_NEG_POSITION = "!" + DECL_POSITION
-    DECL_POSITION_ATTRIBUTES = ["Activity", "Position", "Time"]
+    DECL_ABSOLUTE_POSITION = "absolute_pos"
     DECL_PAYLOAD = "payload"
-    DECL_NEG_PAYLOAD = "!" + DECL_PAYLOAD
-    DECL_PAYLOAD_ATTRIBUTES = ["Attribute", "Value", "Position"]
+    DECL_ABSOLUTE_PAYLOAD = "absolute_payload"
+    DECL_PAYLOAD_RANGE = "payload_range"
     DECL_CONDITIONAL = "conditional"
-    DECL_FUNCTION_PATTERN = r"(!?pos[(][^,]+,\s*(-?\d+|:[^:,]+),\s*(-?\d+|:[^:,]+)[)]|!?payload[(][^,]+,\s*[^,]+,\s*(-?\d+|:[^[,:]+)[)])"
+
+    # Defining the order of importance for the constraint function search during parsing
+    DECL_CONSTRAINT_FUNCTIONS = [
+        DECL_ABSOLUTE_POSITION,
+        DECL_POSITION,
+        DECL_ABSOLUTE_PAYLOAD,
+        DECL_PAYLOAD_RANGE,
+        DECL_PAYLOAD,
+        DECL_CONDITIONAL
+    ]
+
+    # Defining Functions arguments types
+    DECL_INT_ARG = "int"
+    DECL_FLOAT_ARG = "float"
+    DECL_INT_OR_FLOAT_ARG = "int or float"
+    DECL_ANY_ARG = "any"
+    DECL_ENCODE_ARG = "encode"
+
+    # Defining function input arguments types
+    DECL_POSITION_ARGS_TYPE = DECL_NEG_POSITION_ARGS_TYPE = [DECL_ENCODE_ARG, DECL_INT_ARG, DECL_INT_ARG]
+    DECL_PAYLOAD_ARGS_TYPE = DECL_NEG_PAYLOAD_ARGS_TYPE = [DECL_ENCODE_ARG, DECL_ANY_ARG, DECL_INT_ARG]
+    DECL_PAYLOAD_RANGE_ARGS_TYPE = [DECL_ENCODE_ARG, DECL_INT_OR_FLOAT_ARG, DECL_INT_OR_FLOAT_ARG, DECL_INT_ARG]
+    DECL_ABSOLUTE_POSITION_ARGS_TYPE = [DECL_ENCODE_ARG, DECL_INT_ARG, DECL_INT_ARG]
+    DECL_ABSOLUTE_PAYLOAD_ARGS_TYPE = [DECL_ENCODE_ARG, DECL_ANY_ARG]
+
+    # Defining constraint regex pattern
+    DECL_POSITION_PATTERN = r"!?pos[(][^,]+,[^,]+,[^,]+[)]"
+    DECL_ABSOLUTE_POSITION_PATTERN = r"absolute_pos[(][^,]+,[^,]+,[^,]+[)]"
+    DECL_PAYLOAD_PATTERN = r"!?payload[(][^,]+,[^,]+,[^,]+[)]"
+    DECL_PAYLOAD_RANGE_PATTERN = r"payload_range[(][^,]+,[^,]+,[^,]+,[^,]+[)]"
+    DECL_ABSOLUTE_PAYLOAD_PATTERN = r"absolute_payload[(][^,]+,[^,]+[)]"
+    DECL_CONDITIONAL_VARIABLE_PATTERN = r"(\w[\w.]+|:?\w+)\s*(([+]|-)\s*(\w[\w.]+|:?\w+))?\s*(==|!=|>=|<=|>|<)\s*(\w[\w.]+|:?\w+)\s*(([+]|-)\s*(\w[\w.]+|:?\w+))?"
+
+    # Defining the order of importance for the constraint pattern, Otherwise some pattern might find themselves in other patterns
+    DECL_CONSTRAINT_PATTERNS = [
+        DECL_ABSOLUTE_POSITION_PATTERN,
+        DECL_POSITION_PATTERN,
+        DECL_ABSOLUTE_PAYLOAD_PATTERN,
+        DECL_PAYLOAD_RANGE_PATTERN,
+        DECL_PAYLOAD_PATTERN,
+        DECL_CONDITIONAL_VARIABLE_PATTERN
+    ]
+
+    DECL_CONSTRAINT_FUNCTIONS_DICT = {
+        DECL_POSITION: {
+            "Type": DECL_POSITION,
+            "Negated": False,
+            "ArgsType": DECL_POSITION_ARGS_TYPE.copy(),
+            "Pattern": DECL_POSITION_PATTERN,
+            "ASPFunction": ASPFunctions.ASP_TIMED_EVENT,
+            "ASPFormat": ASPFunctions.ASP_TIME_EVENT_FORMAT,
+            "AbsoluteRule": False,
+            "ASPRule": None,
+            "ASPRuleFormat": None
+        },
+        DECL_ABSOLUTE_POSITION: {
+            "Type": DECL_ABSOLUTE_POSITION,
+            "Negated": False,
+            "ArgsType": DECL_ABSOLUTE_POSITION_ARGS_TYPE.copy(),
+            "Pattern": DECL_ABSOLUTE_POSITION_PATTERN,
+            "ASPFunction": ASPFunctions.ASP_TIMED_EVENT,
+            "ASPFormat": {"2": ASPFunctions.ASP_TIME_EVENT_FORMAT.format("{}", "{}", "_"), "3": ASPFunctions.ASP_TIME_EVENT_FORMAT},
+            "AbsoluteRule": True,
+            "ASPRule": {"2": ASPFunctions.ASP_FIXED_EVENT, "3": ASPFunctions.ASP_FIXED_TIME_EVENT},
+            "ASPRuleFormat": {"2": ASPFunctions.ASP_FIXED_EVENT_FORMAT, "3": ASPFunctions.ASP_FIXED_TIME_EVENT_FORMAT}
+        },
+        DECL_PAYLOAD: {
+            "Type": DECL_PAYLOAD,
+            "Negated": False,
+            "ArgsType": DECL_PAYLOAD_ARGS_TYPE.copy(),
+            "Pattern": DECL_PAYLOAD_PATTERN,
+            "ASPFunction": ASPFunctions.ASP_ASSIGNED_VALUE,
+            "ASPFormat": ASPFunctions.ASP_ASSIGNED_VALUE_FORMAT,
+            "AbsoluteRule": False,
+            "ASPRule": None,
+            "ASPRuleFormat": None
+        },
+        DECL_ABSOLUTE_PAYLOAD: {
+            "Type": DECL_ABSOLUTE_PAYLOAD,
+            "Negated": False,
+            "ArgsType": DECL_ABSOLUTE_PAYLOAD_ARGS_TYPE.copy(),
+            "Pattern": DECL_ABSOLUTE_PAYLOAD_PATTERN,
+            "ASPFunction": ASPFunctions.ASP_ASSIGNED_VALUE,
+            "ASPFormat": ASPFunctions.ASP_ASSIGNED_VALUE_FORMAT.format("{}", "{}", "_"),
+            "AbsoluteRule": True,
+            "ASPRule": ASPFunctions.ASP_FIXED_PAYLOAD,
+            "ASPRuleFormat": ASPFunctions.ASP_FIXED_PAYLOAD_FORMAT
+        },
+        DECL_PAYLOAD_RANGE: {
+            "Type": DECL_PAYLOAD_RANGE,
+            "Negated": False,
+            "ArgsType": DECL_PAYLOAD_RANGE_ARGS_TYPE.copy(),
+            "Pattern": DECL_PAYLOAD_RANGE_PATTERN,
+            "ASPFunction": ASPFunctions.ASP_ASSIGNED_VALUE,
+            "ASPFormat": ASPFunctions.ASP_ASSIGNED_VALUE_RANGE_FORMAT,
+            "AbsoluteRule": False,
+            "ASPRule": None,
+            "ASPRuleFormat": None
+        },
+        DECL_CONDITIONAL: {
+            "Type": DECL_CONDITIONAL,
+            "Negated": False,
+            "ArgsType": None,
+            "Pattern": DECL_CONDITIONAL_VARIABLE_PATTERN,
+            "ASPFunction": None,
+            "ASPFormat": None,
+            "AbsoluteRule": False,
+            "ASPRule": None,
+            "ASPRuleFormat": None
+        },
+    }
 
     # Defining conditional constraint values
     DECL_CONDITIONAL_OPERATORS = ["==", "!=", ">=", "<=", ">", "<"]
-    DECL_CONDITIONAL_VARIABLE_PATTERN = r"(:?\w+|\d+[.\d+]?)\s*(==|!=|>=|<=|>|<)\s*(:?\w+|\d+[.\d+]?)"
 
     # Defining file extension
     DECL_FILE_EXTENSION = ".decl"
@@ -174,22 +283,22 @@ class DeclareFunctions:
         return cls.__filter_elements(attributes), attribute_type, cls.__filter_elements(values)
 
     @classmethod
-    def is_constraint_line(cls, line: str) -> bool:
+    def has_constraints_in_line(cls, line: str) -> bool:
         """
         Checks if the line is starts with a constraint definition and returns True or False accordingly
         """
-        line = line.strip().lower()
-        return (re.match(r"^" + cls.DECL_CONDITIONAL_VARIABLE_PATTERN, line, re.IGNORECASE) is not None or
-                line.startswith(cls.DECL_POSITION) or
-                line.startswith(cls.DECL_NEG_POSITION) or
-                line.startswith(cls.DECL_PAYLOAD) or
-                line.startswith(cls.DECL_NEG_PAYLOAD))
+        for pattern in cls.DECL_CONSTRAINT_PATTERNS:
+            if re.search(pattern, line, re.IGNORECASE) is not None:
+                return True
+
+        return False
 
     @classmethod
     def parse_constraint_line(cls, line: str) -> typing.List[typing.Dict[str, any]]:
         """
         Parses the constraint line and returns a list of constraints
         """
+        #TODO RICOOMENTARE
 
         # removes spaces and double negations from the string and joins the string into one without spaces
         # unparsed_constraints = line = "".join(line.replace("!!", "").split())
@@ -199,30 +308,51 @@ class DeclareFunctions:
         # Initializes the list
         constraints_data: typing.List[typing.Dict[str, str]] = []
 
-        # For every declare function found defined in the constraint
-        # Use the regex that recognizes the function and extract the information
-        for declare_constraint in re.findall(cls.DECL_FUNCTION_PATTERN, line, re.IGNORECASE):
-            # Remove the constraint from the unparsed constraint String
-            unparsed_constraints = unparsed_constraints.replace("".join(declare_constraint[0].split()), "")
-            # Detect the type
-            constraint_type, negated = cls.__find_constraint_type(declare_constraint[0])
-            # Extract the values of the constraint and filter them
-            values = cls.__filter_elements(declare_constraint[0].split("(")[1].replace(")", "").split(","))
-            # Append the data found
-            constraints_data.append({"Type": constraint_type, "Negated": negated, "Values": values})
+        for decl_function in cls.DECL_CONSTRAINT_FUNCTIONS:
+
+            if decl_function == cls.DECL_CONDITIONAL:
+                continue
+
+            pattern = cls.DECL_CONSTRAINT_FUNCTIONS_DICT[decl_function]["Pattern"]
+            # For every declare function found defined in the constraint
+            # Use the regex that recognizes the function and extract the information
+            for declare_constraint in re.findall(pattern, line, re.IGNORECASE):
+
+                function_dict: typing.Dict[str, any] = dict(cls.DECL_CONSTRAINT_FUNCTIONS_DICT[decl_function])
+                function_dict["ArgsType"] = function_dict["ArgsType"].copy()
+                function_dict["Negated"] = declare_constraint.startswith("!")
+
+                # Remove the constraint from the unparsed constraint String
+                unparsed_constraints = unparsed_constraints.replace("".join(declare_constraint.split()), "", 1)
+                # Extract the values of the constraint and filter them
+                values = cls.__filter_elements(declare_constraint.split("(")[1].replace(")", "").split(","))
+
+                if function_dict["AbsoluteRule"]:
+                    cls.__parse_absolute_rule_dict(function_dict, values)
+
+                function_dict["Values"] = values
+                # Append the data found
+                constraints_data.append(function_dict)
 
         # For every conditional constraint found
         # Use the regex that recognizes the conditional constraint and extract the information
         for conditional_constraint in re.findall(cls.DECL_CONDITIONAL_VARIABLE_PATTERN, line, re.IGNORECASE):
+
+            function_dict = dict(cls.DECL_CONSTRAINT_FUNCTIONS_DICT[cls.DECL_CONDITIONAL])
+
             # Filter the values
             values = cls.__filter_elements(conditional_constraint)
+            values = cls.__filter_conditional_constraint_arguments(values)
             # Remove the constraint from the unparsed constraint String
-            unparsed_constraints = unparsed_constraints.replace("".join(values), "")
+            unparsed_constraints = unparsed_constraints.replace("".join("".join(values).split()), "", 1)
+
+            function_dict["Values"] = values
+
             # Append the data found
-            constraints_data.append({"Type": cls.DECL_CONDITIONAL, "Negated": False, "Values": values})
+            constraints_data.append(function_dict)
 
         # Split and filter the unparsed constraint list in order to check if some constraint where not recognized
-        # If some where not recognized launch a warning
+        # If somewhere not recognized launch a warning
         unparsed_constraints = cls.__filter_elements(unparsed_constraints.split(","))
         if len(unparsed_constraints) != 0:
             warnings.warn(f"\nCouldn't parse some constraints: {unparsed_constraints}. make sure they respect the correct declaration")
@@ -231,27 +361,41 @@ class DeclareFunctions:
         return constraints_data
 
     @classmethod
-    def __find_constraint_type(cls, constraint: str) -> (str, bool):
-        """
-        Finds the constraint type of given constraint.
-        """
+    def __parse_absolute_rule_dict(cls,  function_dict: typing.Dict[str, any], values: typing.List[str]):
 
-        constraint = constraint.lower()
-        # !payload(x, x, x)
-        if constraint.find(cls.DECL_NEG_PAYLOAD) != -1:
-            return cls.DECL_PAYLOAD, True
-        # !pos(x, x, x)
-        elif constraint.find(cls.DECL_NEG_POSITION) != -1:
-            return cls.DECL_POSITION, True
-        # pos(x, x, x)
-        elif constraint.find(cls.DECL_POSITION) != -1:
-            return cls.DECL_POSITION, False
-        # payload(x, x, x)
-        elif constraint.find(cls.DECL_PAYLOAD) != -1:
-            return cls.DECL_PAYLOAD, False
-        # Else error
-        else:
-            raise ValueError("Could not find the constraint type")
+        if function_dict["Type"] == cls.DECL_ABSOLUTE_POSITION:
+            if values[2] == "_":
+                values.pop(2)
+                function_dict["ArgsType"].pop(2)
+
+            num_args = str(len(values))
+            function_dict["ASPFormat"] = function_dict["ASPFormat"][num_args]
+            function_dict["ASPRule"] = function_dict["ASPRule"][num_args]
+            function_dict["ASPRuleFormat"] = function_dict["ASPRuleFormat"][num_args]
+
+
+    # TODO Comment Code ? Migliorare? Sistemare?
+    @classmethod
+    def __filter_conditional_constraint_arguments(cls, elements: typing.List[str]) -> typing.List[str]:
+
+        if len(elements) < 3:
+            raise ValueError(f"Conditional Constraint must have at least 3 arguments. Found {elements}")
+
+        if len(elements) == 3:
+            return elements
+
+        index_to_remove = []
+        for index, el in enumerate(elements):
+            if el.startswith("+") and el != "+":
+                index_to_remove.append(index)
+            if el.startswith("-") and el != "-":
+                index_to_remove.append(index)
+
+        index_to_remove.reverse()
+        for index in index_to_remove:
+            elements.pop(index)
+
+        return elements
 
     @classmethod
     def is_comment_line(cls, line: str) -> bool:
@@ -273,7 +417,9 @@ class DeclareFunctions:
 if __name__ == "__main__":
     # print(DeclareFunctions.is_activation_line("ACTIvity ER Registration, Er triage, org:group:,,  ,"))
     # print(DeclareFunctions.parse_activation_line("ACTIvity ER Registration, Er activity triage, org:group:,,  ,"))
-    # print(DeclareFunctions.parse_constraint_line(":V1==:V2, pos(actv, 1, 1), 1<:V2, 1==:V2, !pos(actv, 12, 12), :V1==e, pos(actv, 13, 3), payload(actv, erer, 1), :V1==:V2"))
+    # print(DeclareFunctions.has_constraints_in_line("pos(1,2,3), payload(1,2,3)"))
+    import pprint as p
+    p.pprint(DeclareFunctions.parse_constraint_line("absolute_pos(Er Triage, 2, _), absolute_payload(org:group, 1), !payload(org:group, 1, :V1), pos(ER Sepsis Triage, 2, _), :V2 + 1< :V2, 1==:V2 + 10, :V1 + 10 == 30 + :V2, 1-:V1 ==:V2"))
     # print(DeclareFunctions.parse_constraint_line("pos(ER Registration, 1, 1), payload(org:group, 1, :V1), pos(ER Sepsis Triage, 2, 3), payload(org:group, 2, :V2), :V1 == :V2"))
 
     pass
