@@ -4,15 +4,27 @@ import typing
 import warnings
 import math
 from datetime import datetime, timedelta
-from random import randrange
+from random import randrange, randint
 
 import clingo
+from clingo.script import Script, register_script
 import pandas as pd
 
 from Declare4Py.ProcessMiningTasks.AbstractLogGenerator import AbstractLogGenerator
 from Declare4Py.ProcessMiningTasks.LogGenerator.PositionalBased.PositionalBasedModel import PositionalBasedModel
 from Declare4Py.ProcessMiningTasks.LogGenerator.PositionalBased.PositionalBasedUtils.ASPUtils import ASPFunctions
 from Declare4Py.ProcessMiningTasks.LogGenerator.PositionalBased.PositionalBasedUtils.PBEncoder import Encoder
+
+
+class ClingoPythonRange(Script):
+    def execute(self, location, code):
+        exec(code, self.__dict__, self.__dict__)
+
+    def call(self, location, name, arguments):
+        return getattr(self, name)(*arguments)
+
+    def callable(self, name):
+        return name in self.__dict__ and callable(self.__dict__[name])
 
 
 class PositionalBasedLogGenerator(AbstractLogGenerator):
@@ -23,10 +35,9 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         self.__PB_Logger = logging.getLogger("Positional Based Log Generator")
 
         self.__use_custom_clingo_config: bool = False
-        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}",
-                                                         "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
-        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "TIME-LIMIT": "120", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.9", "SIGN-DEF": "rnd", "MODE": "optN",
-                                                               "STRATEGY": None, "HEURISTIC": None}
+        # "TIME-LIMIT": "--time-limit={}",
+        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}", "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
+        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "TIME-LIMIT": "120", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.9", "SIGN-DEF": "asp", "MODE": "optN", "STRATEGY": None, "HEURISTIC": None}
         self.__custom_configuration: typing.Dict[str, str] = self.__default_configuration.copy()
 
         self.__pb_model: PositionalBasedModel = pb_model
@@ -41,7 +52,9 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         self.__new_pd_row: typing.Dict[str, typing.Any] = dict(zip(self.__pd_cols, [None for _ in range(len(self.__pd_cols))]))
         self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
 
-    def run(self, generate_negatives_traces: bool = False, append_results: bool = False):
+        register_script(ASPFunctions.ASP_PYTHON_SCRIPT_NAME, ClingoPythonRange())
+
+    def run(self, equal_rule_split: bool = True, generate_negatives_traces: bool = False, append_results: bool = False):
 
         if not append_results:
             self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
@@ -52,22 +65,39 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         clingo_configuration: typing.List[str] = self.__prepare_clingo_configuration()
 
         self.__generate_positives = True
-        self.__run_clingo_per_trace_set(self.__pb_model.to_asp_with_single_constraints(True), clingo_configuration)
+
+        if equal_rule_split:
+            asp = self.__pb_model.to_asp_with_single_constraints(encode=True)
+        else:
+            asp = [self.__pb_model.to_asp(encode=True)]
+
+        self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, "Positives")
         self.__parse_results(self.__positive_results, "Positive")
 
         if generate_negatives_traces:
             self.__generate_positives = False
-            self.__run_clingo_per_trace_set(self.__pb_model.to_asp_with_single_constraints(True, True), clingo_configuration, "Negatives")
+
+            if equal_rule_split:
+                asp = self.__pb_model.to_asp_with_single_constraints(encode=True, generate_negatives=True)
+            else:
+                asp = [self.__pb_model.to_asp(encode=True, generate_negatives=True)]
+
+            self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, "Negatives")
             self.__parse_results(self.__negatives_results, "Negative")
 
-    def __run_clingo_per_trace_set(self, asp_list: typing.List[str], clingo_configuration: typing.List[str], trace_type: str = "Positives"):
+    def __run_clingo_per_trace_set(self, asp_list: typing.List[str], clingo_configuration: typing.List[str], equal_rule_split: bool, trace_type: str = "Positives"):
 
         for index, asp in enumerate(asp_list):
 
             if trace_type == "Positives":
-                self.__current_asp_rule = "Rule_" + str(index + 1)
+                self.__current_asp_rule = "Rule_"
             else:
-                self.__current_asp_rule = "Not_Rule_" + str(index + 1)
+                self.__current_asp_rule = "Not_Rule_"
+
+            if equal_rule_split:
+                self.__current_asp_rule += str(index + 1)
+            else:
+                self.__current_asp_rule += "?"
 
             for num_events, num_traces in self.compute_distribution(math.ceil(self.log_length / len(asp_list))).items():
 
@@ -77,6 +107,11 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                     f"p={int(num_events)}",
                     f"{int(num_traces)}",
                     f"--seed={randrange(0, 2 ** 30 - 1)}",
+                    "--shuffle=1",
+                    "--project"
+                ]
+
+                """
                     "--share=auto",
                     "--distribute=conflict,global,4",
                     "--integrate=gp",
@@ -85,15 +120,15 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                     "--del-init=3.0",
                     "--shuffle=1",
                     "--project",
-                ]
+                """
 
                 # Appends the options of our configurations
                 arguments += clingo_configuration
 
-                # Sets up clingo
                 ctl = clingo.Control(arguments)
                 ctl.add(asp)
-                ctl.ground([("base", [])], context=self)
+                ctl.add('base', [], ASPFunctions.ASP_PYTHON_RANGE_SCRIPT)
+                ctl.ground([('base', [])])
 
                 self.__debug_message(f"Total traces to generate and events: Traces:{num_traces}, Events: {num_events}")
 
@@ -102,7 +137,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                     handle.cancel()
                     res = handle.get()
 
-                self.__debug_message(f"Clingo Result :{str(res)}")
+                self.__debug_message(f" Clingo Result :{str(res)}")
 
                 if res.unsatisfiable:
                     warnings.warn(f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model model rule {self.__current_asp_rule}. Check the definition of your constraints')
@@ -112,14 +147,15 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         if results is None or len(results) == 0:
             return
 
+        case_index = 0
         for rule, results in results.items():
             for trace_index, trace in enumerate(results):
-
+                case_index += 1
                 events: typing.List[typing.Any] = []
                 values: typing.List[typing.Any] = []
 
                 for function in trace:
-                    if function.name == ASPFunctions.ASP_TIMED_EVENT_NAME:
+                    if function.name == ASPFunctions.ASP_TIMED_EVENT:
 
                         activity = Encoder().decode_value(function.arguments[0].name)
                         pos = function.arguments[1].number
@@ -127,7 +163,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
                         events.append([activity, pos, time])
 
-                    elif function.name == ASPFunctions.ASP_ASSIGNED_VALUE_NAME:
+                    elif function.name == ASPFunctions.ASP_ASSIGNED_VALUE:
 
                         attribute = Encoder().decode_value(function.arguments[0].name)
                         try:
@@ -143,11 +179,11 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                 events.sort(key=lambda x: int(x[1]))
 
                 # Randomized start by one hour
-                delta = timedelta(seconds=randrange(0, 3600))
+                delta = timedelta(seconds=randrange(0, 3599), milliseconds=randrange(0, 99999))
 
                 for activity, pos, time in events:
                     new_row: typing.Dict[str, typing.Any] = self.__new_pd_row.copy()
-                    new_row["case:concept:name"] = "case_" + str(trace_index)
+                    new_row["case:concept:name"] = "case_" + str(case_index)
                     new_row["concept:name:order"] = "event_" + str(pos)
                     new_row["time:timestamp"] = datetime.now() + delta + timedelta(seconds=time * self.__pb_model.get_time_unit_in_seconds())
                     new_row["concept:name:rule"] = str(rule)
@@ -214,6 +250,8 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         Parameters
             config:
                 Clingo configuration
+            time_limit:
+                Maximum running time in seconds for clingo
             threads:
                 Amount of Threads to be used
             frequency:
@@ -295,13 +333,11 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
 
 if __name__ == '__main__':
-    path = "Declare_Tests/"
-    no_constraints = "NO_CONSTRAINTS"
-    model1 = "model"
-    model_name = path + model1
+    model_name = "experimental_model"
 
-    model1 = PositionalBasedModel(verbose=True).parse_from_file(f"{model_name}.decl")
-    # model1.to_asp_file(f"{model_name}.lp", True)
-    generator = PositionalBasedLogGenerator(20, 10, 10, model1, True)
-    generator.run()
-    generator.to_csv(model_name + ".csv")
+    model1 = PositionalBasedModel(verbose=True).parse_from_file(f"DeclareFiles/{model_name}.decl")
+    model1.to_asp_file(f"ASPFiles/{model_name}.lp")
+    model1.to_asp_file(f"ASPFiles/{model_name}_enc.lp", True)
+    generator = PositionalBasedLogGenerator(10, 20, 20, model1, True)
+    generator.run(generate_negatives_traces=True)
+    generator.to_csv(f"LogResults/{model_name}.csv")
