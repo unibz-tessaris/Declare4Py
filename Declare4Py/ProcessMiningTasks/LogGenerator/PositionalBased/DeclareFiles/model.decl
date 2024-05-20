@@ -24,7 +24,7 @@ activity Return ER
 bind Return ER: org:group
 activity Admission IC
 bind Admission IC: org:group
-CRP: float between 5.0 and 573.0
+CRP: float between 5.0 and 573.00
 InfectionSuspected: true, false
 org:group: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y
 DiagnosticBlood: true, false
@@ -55,8 +55,7 @@ DiagnosticECG: true, false
 
 # pos(activity, pos, tempo), payload(attribute, valore, pos)
 
-!pos(ER Triage, 1), payload(org:group, 1, !A), payload(Leucocytes, 2, 34<=)
-pos(ER Registration, 1), payload(org:group, 1, :V1), pos(ER Sepsis Triage, 2), payload(org:group, 2, :V2), V1 == V2
-pos(ER Registration, 1), pos(ER Triage, 2), payload(org:group, 1, B), payload(org:group, 1, B)
-pos(ER Triage, 1), payload(org:group, 1, A), pos(ER Registration, 2), payload(org:group, 2, A)
-pos(ER Triage, :P1), payload(org:group, :P1, :V1), payload(org:group, :P2, :V2), V1 == V2, P1 < P2
+pos(ER Registration, _, 1), payload(org:group, :V1, :P1), pos(ER Sepsis Triage, 2, 3), payload(org:group, :V2, :P2), :V1 == :V2, :P1 == 1, :P2 == :P1 + 1
+pos(ER Registration, 1, 1), pos(ER Triage, 2, 4), payload(org:group, B, 1), payload(org:group, F, 2)
+pos(ER Triage, 1, 1), payload(org:group, A, 1), pos(ER Registration, 2, 5), payload(org:group, A, 2)
+pos(ER Triage, :P1, 1), payload(org:group, :V1, :P1), payload(org:group, :V2, :P2), :V1 == :V2, :P1 < :P2
