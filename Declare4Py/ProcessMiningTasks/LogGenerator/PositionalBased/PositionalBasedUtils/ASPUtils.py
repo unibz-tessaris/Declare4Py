@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from clingo.script import Script
 
 
 class ASPFunctions:
@@ -64,6 +65,18 @@ pos(1..p).
 #show timed_event/3.
 #show assigned_value/3.
     """
+
+
+class ASPClingoScript(Script):
+    def execute(self, location, code):
+        exec(code, self.__dict__, self.__dict__)
+
+    def call(self, location, name, arguments):
+        return getattr(self, name)(*arguments)
+
+    def callable(self, name):
+        return name in self.__dict__ and callable(self.__dict__[name])
+
 
 class ASPEntity:
     """

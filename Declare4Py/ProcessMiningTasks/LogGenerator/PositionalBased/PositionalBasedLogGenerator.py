@@ -4,27 +4,16 @@ import typing
 import warnings
 import math
 from datetime import datetime, timedelta
-from random import randrange, randint
+from random import randrange
 
 import clingo
-from clingo.script import Script, register_script
+from clingo.script import register_script
 import pandas as pd
 
 from Declare4Py.ProcessMiningTasks.AbstractLogGenerator import AbstractLogGenerator
 from Declare4Py.ProcessMiningTasks.LogGenerator.PositionalBased.PositionalBasedModel import PositionalBasedModel
-from Declare4Py.ProcessMiningTasks.LogGenerator.PositionalBased.PositionalBasedUtils.ASPUtils import ASPFunctions
+from Declare4Py.ProcessMiningTasks.LogGenerator.PositionalBased.PositionalBasedUtils.ASPUtils import ASPFunctions, ASPClingoScript
 from Declare4Py.ProcessMiningTasks.LogGenerator.PositionalBased.PositionalBasedUtils.PBEncoder import Encoder
-
-
-class ClingoPythonRange(Script):
-    def execute(self, location, code):
-        exec(code, self.__dict__, self.__dict__)
-
-    def call(self, location, name, arguments):
-        return getattr(self, name)(*arguments)
-
-    def callable(self, name):
-        return name in self.__dict__ and callable(self.__dict__[name])
 
 
 class PositionalBasedLogGenerator(AbstractLogGenerator):
@@ -52,7 +41,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         self.__new_pd_row: typing.Dict[str, typing.Any] = dict(zip(self.__pd_cols, [None for _ in range(len(self.__pd_cols))]))
         self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
 
-        register_script(ASPFunctions.ASP_PYTHON_SCRIPT_NAME, ClingoPythonRange())
+        register_script(ASPFunctions.ASP_PYTHON_SCRIPT_NAME, ASPClingoScript())
 
     def run(self, equal_rule_split: bool = True, generate_negatives_traces: bool = False, append_results: bool = False):
 
@@ -338,6 +327,6 @@ if __name__ == '__main__':
     model1 = PositionalBasedModel(verbose=True).parse_from_file(f"DeclareFiles/{model_name}.decl")
     model1.to_asp_file(f"ASPFiles/{model_name}.lp")
     model1.to_asp_file(f"ASPFiles/{model_name}_enc.lp", True)
-    generator = PositionalBasedLogGenerator(10, 20, 20, model1, True)
+    generator = PositionalBasedLogGenerator(1000, 20, 20, model1, True)
     generator.run(generate_negatives_traces=True)
     generator.to_csv(f"LogResults/{model_name}.csv")
