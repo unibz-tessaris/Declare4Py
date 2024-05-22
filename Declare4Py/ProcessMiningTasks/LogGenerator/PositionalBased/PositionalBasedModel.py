@@ -520,6 +520,9 @@ class PBConstraint(ASPEntity, DeclareEntity):
         return " ".join(conditional_constraint), " ".join(encoded_conditional_constraint)
 
     def __parse_variable_value(self, value: str, value_type: str = DeclareFunctions.DECL_ANY_ARG) -> (str, str):
+        """
+        Parses the value of a variable. Values can be Variables, Integers, Floats or constants
+        """
 
         # Checks if the value is a variable
         if value.startswith(":"):
