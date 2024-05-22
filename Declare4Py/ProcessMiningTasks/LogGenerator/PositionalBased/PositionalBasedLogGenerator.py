@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import typing
 import warnings
 import math
@@ -17,77 +18,124 @@ from Declare4Py.ProcessMiningTasks.LogGenerator.PositionalBased.PositionalBasedU
 
 
 class PositionalBasedLogGenerator(AbstractLogGenerator):
+    """
+    The Positional Based Log Generator represents the class that generates positional based logs given a positional based model
+    """
 
+    # Constructor
     def __init__(self, total_traces: int, min_events: int, max_events: int, pb_model: PositionalBasedModel, verbose: bool = False):
+        # Initializes the superclass
         super().__init__(total_traces, min_events, max_events, pb_model, None, verbose)
 
+        # Initializes the logger
         self.__PB_Logger = logging.getLogger("Positional Based Log Generator")
 
+        # Initializes clingo configuration information
         self.__use_custom_clingo_config: bool = False
-        # "TIME-LIMIT": "--time-limit={}",
         self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}", "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
         self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "TIME-LIMIT": "120", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.9", "SIGN-DEF": "asp", "MODE": "optN", "STRATEGY": None, "HEURISTIC": None}
         self.__custom_configuration: typing.Dict[str, str] = self.__default_configuration.copy()
 
+        # sets the positional based model
         self.__pb_model: PositionalBasedModel = pb_model
 
+        # Initializes the results dictionaries and correlated information
         self.__generate_positives: bool = True
         self.__positive_results: typing.Dict = {}
         self.__negatives_results: typing.Dict = {}
         self.__current_asp_rule: str = ""
 
-        self.__pd_cols: typing.List[str] = ["case:concept:name", "time:timestamp", "concept:name:order", "concept:name:rule", "concept:name:time", "concept:name", "case:label"] + list(
-            pb_model.get_attributes_dict().keys())
-        self.__new_pd_row: typing.Dict[str, typing.Any] = dict(zip(self.__pd_cols, [None for _ in range(len(self.__pd_cols))]))
+        # Initializes the pandas dataframe with the results
+        self.__pd_cols: typing.List[str] = ["case:concept:name", "time:timestamp", "concept:name:order", "concept:name:rule", "concept:name:time", "concept:name", "case:label"] + list(pb_model.get_attributes_dict().keys())
         self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
 
+        # Registers the script for solving range problems to the clingo library in order to use the function during the runtime of clingo
         register_script(ASPFunctions.ASP_PYTHON_SCRIPT_NAME, ASPClingoScript())
 
     def run(self, equal_rule_split: bool = True, generate_negatives_traces: bool = False, append_results: bool = False):
+        """
+        Method that generates positional based logs:
 
+        Parameters
+            equal_rule_split: bool = If True the generation will not be random and each rule will appear in a uniform manner
+            generate_negatives_traces: bool = If True generates also the negative logs
+            append_results: bool = If True appends the new log results to the existing logs
+        """
+
+        # Checks if the result must be appended, otherwise resets the dataframe
         if not append_results:
             self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
 
+        # Resets the results dicts
         self.__positive_results = {}
         self.__negatives_results = {}
 
+        # Prepares the clingo configuration
         clingo_configuration: typing.List[str] = self.__prepare_clingo_configuration()
 
+        # Sets the current generation logs
         self.__generate_positives = True
 
-        if equal_rule_split:
-            asp = self.__pb_model.to_asp_with_single_constraints(encode=True)
-        else:
-            asp = [self.__pb_model.to_asp(encode=True)]
+        # Prepares from the model the ASP model
+        asp, equal_rule_split = self.__prepare_asp_models(equal_rule_split)
 
+        # Runs clingo and parses the results for the positive traces
         self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, "Positives")
         self.__parse_results(self.__positive_results, "Positive")
 
+        # If the generator must solve also the negative traces
         if generate_negatives_traces:
+            # Sets the current generation logs
             self.__generate_positives = False
 
-            if equal_rule_split:
-                asp = self.__pb_model.to_asp_with_single_constraints(encode=True, generate_negatives=True)
-            else:
-                asp = [self.__pb_model.to_asp(encode=True, generate_negatives=True)]
+            # Prepares from the model the ASP model
+            asp, equal_rule_split = self.__prepare_asp_models(equal_rule_split, True)
 
+            # Runs clingo and parses the results for the negative traces
             self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, "Negatives")
             self.__parse_results(self.__negatives_results, "Negative")
 
-    def __run_clingo_per_trace_set(self, asp_list: typing.List[str], clingo_configuration: typing.List[str], equal_rule_split: bool, trace_type: str = "Positives"):
+    def __prepare_asp_models(self, equal_rule_split: bool, generate_negatives: bool = False):
+        """
+        Prepares the list of models for the generation
+        """
+        # Prepares the normal model
+        asp = [self.__pb_model.to_asp(encode=True)]
 
+        # If the user wants a uniform generation
+        if equal_rule_split:
+            # Generates the asp model for each constraint
+            asp_models = self.__pb_model.to_asp_with_single_constraints(encode=True, generate_negatives=generate_negatives)
+            # If the asp model doesn't have constraints use the normal model
+            # Otherwise replace the normal model with the list of models with 1 constraint each
+            if len(asp_models) == 0:
+                equal_rule_split = False
+            else:
+                asp = asp_models
+
+        # Return the models and the equal split rule for the solver
+        return asp, equal_rule_split
+
+    def __run_clingo_per_trace_set(self, asp_list: typing.List[str], clingo_configuration: typing.List[str], equal_rule_split: bool, trace_type: str = "Positives"):
+        """
+        Runs clingo for each set traces
+        """
+
+        # For every asp model
         for index, asp in enumerate(asp_list):
 
+            # Set the current ASP rule
             if trace_type == "Positives":
                 self.__current_asp_rule = "Rule_"
             else:
                 self.__current_asp_rule = "Not_Rule_"
-
+            # Set the current ASP rule
             if equal_rule_split:
                 self.__current_asp_rule += str(index + 1)
             else:
                 self.__current_asp_rule += "?"
 
+            # For every number of events in the numer of traces generates a uniform set of trace
             for num_events, num_traces in self.compute_distribution(math.ceil(self.log_length / len(asp_list))).items():
 
                 # Defines some important parameters for clingo
@@ -100,108 +148,185 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                     "--project"
                 ]
 
-                """
-                    "--share=auto",
-                    "--distribute=conflict,global,4",
-                    "--integrate=gp",
-                    "--enum-mode=auto",
-                    "--deletion=basic,75,activity",
-                    "--del-init=3.0",
-                    "--shuffle=1",
-                    "--project",
-                """
-
                 # Appends the options of our configurations
                 arguments += clingo_configuration
-
+                # Adds the arguments to clingo
                 ctl = clingo.Control(arguments)
                 ctl.add(asp)
+                # Inserts the function for the range in clingo
                 ctl.add('base', [], ASPFunctions.ASP_PYTHON_RANGE_SCRIPT)
                 ctl.ground([('base', [])])
 
+                # Signals the user for the start of the process
                 self.__debug_message(f"Total traces to generate and events: Traces:{num_traces}, Events: {num_events}")
 
+                # Not sure if it works as intended
+                # Should stop the clingo after x seconds
+                # Starts the solving process
                 with ctl.solve(on_model=self.__handle_clingo_result, async_=True) as handle:
                     handle.wait(self.__get_clingo_time_limit())
                     handle.cancel()
                     res = handle.get()
 
+                # Print results
                 self.__debug_message(f" Clingo Result :{str(res)}")
-
+                # Raise a Warning if UNSAT
                 if res.unsatisfiable:
                     warnings.warn(f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model model rule {self.__current_asp_rule}. Check the definition of your constraints')
 
     def __parse_results(self, results: typing.Dict, label: str):
 
+        """
+        Parses the result generated by clingo
+        """
+
+        # If no results are found return
         if results is None or len(results) == 0:
             return
 
+        # Create a new list of results
+        new_pd: typing.List[typing.Dict] = []
+
+        # Initializes the minimum value of seconds and the maximum value of seconds to which 1 unit of Positional based time corresponds
+        min_seconds, max_seconds = self.__pb_model.get_time_unit_in_seconds_range()
+
+        # Index case
         case_index = 0
+
+        # For each rule extract the results
         for rule, results in results.items():
+            # Enumerate through the results
             for trace_index, trace in enumerate(results):
+                # Initializes the events and values list
                 case_index += 1
                 events: typing.List[typing.Any] = []
                 values: typing.List[typing.Any] = []
 
+                # For each function in the trace
                 for function in trace:
-                    if function.name == ASPFunctions.ASP_TIMED_EVENT:
 
+                    # If the function is "timed_event"
+                    if function.name == ASPFunctions.ASP_TIMED_EVENT:
+                        # Decode the activity
                         activity = Encoder().decode_value(function.arguments[0].name)
+                        # Extract position and time
                         pos = function.arguments[1].number
                         time = function.arguments[2].number
-
+                        # Save event
                         events.append([activity, pos, time])
 
+                    # If the function is "assign_value"
                     elif function.name == ASPFunctions.ASP_ASSIGNED_VALUE:
 
+                        # Decode the attribute
                         attribute = Encoder().decode_value(function.arguments[0].name)
+
+                        # Try parsing the value of the attribute
                         try:
                             value = Encoder().decode_value(function.arguments[1].name)
                         except RuntimeError:
                             value = self.__pb_model.apply_precision(attribute, function.arguments[1].number)
-                        pos = function.arguments[2].number
 
+                        # Parse the position
+                        pos = function.arguments[2].number
+                        # Save the attribute
                         values.append([attribute, value, pos])
                     else:
                         self.__debug_message(f"Couldn't parse clingo function {function}")
 
+                # Sorts the events by position
                 events.sort(key=lambda x: int(x[1]))
 
-                # Randomized start by one hour
+                # Randomized start time by one hour
                 delta = timedelta(seconds=randrange(0, 3599), milliseconds=randrange(0, 99999))
 
+                # For each activity in the events
                 for activity, pos, time in events:
-                    new_row: typing.Dict[str, typing.Any] = self.__new_pd_row.copy()
+
+                    # Initialize a new row
+                    new_row: typing.Dict[str, typing.Any] = dict(zip(self.__pd_cols, [None for _ in range(len(self.__pd_cols))]))
+
+                    # Initialize case information
                     new_row["case:concept:name"] = "case_" + str(case_index)
                     new_row["concept:name:order"] = "event_" + str(pos)
-                    new_row["time:timestamp"] = datetime.now() + delta + timedelta(seconds=time * self.__pb_model.get_time_unit_in_seconds())
+
+                    # Calculate progressing random time
+                    new_row["time:timestamp"] = datetime.now() + delta + timedelta(seconds=time * random.randint(min_seconds, max_seconds))
+
+                    # Initialize case information
                     new_row["concept:name:rule"] = str(rule)
                     new_row["concept:name:time"] = "time_" + str(time)
+
+                    # Initialize event information
                     new_row["concept:name"] = activity
                     new_row["case:label"] = label
 
+                    # Assign each attribute where pos equals the position of the event to the new row
                     for attribute, value, _ in filter(lambda x: pos == int(x[2]), values):
                         new_row[attribute] = value
-                    self.__pd_results = pd.concat([self.__pd_results, pd.DataFrame([new_row])], ignore_index=True)
+
+                    # Append the new row
+                    new_pd.append(new_row)
+
+        # Store the new results in the dataframe
+        self.__pd_results = pd.concat([self.__pd_results, pd.DataFrame(new_pd)], ignore_index=True)
+
+    def apply_noise(self, positive_noise_percentage: int = 0, negative_noise_percentage: int = 0):
+
+        if not isinstance(positive_noise_percentage, int) or not isinstance(negative_noise_percentage, int):
+            raise TypeError("Argument 'positive_noise_percentage' or 'negative_noise_percentage' must be an integer")
+
+        for label, percentage in {"Positive": positive_noise_percentage, "Negative": negative_noise_percentage}.items():
+
+            # Fixes user input percentages
+            if percentage < 0:
+                percentage = 0
+            # If noise is 0 return
+            if percentage == 0:
+                return
+            # Fixes user input percentages
+            if percentage > 100:
+                percentage = 100
+
+            label_count = self.__pd_results['case:label'].value_counts()[label]
+            sample_count = label_count / 100 * percentage
+
 
     def to_csv(self, csv_path: str):
+        """
+        Export to csv file the current results
+        """
         self.__pd_results.to_csv(csv_path)
 
     def __handle_clingo_result(self, output: clingo.solving.Model):
-        """A callback method which is given to the clingo """
+        """
+        A callback method which is given to the clingo
+        """
+
         symbols = output.symbols(shown=True)
         self.__debug_message(f" Traces generated :{symbols}")
+        # Checks if it is generating positive traces
         if self.__generate_positives:
+            # Checks if the current rule is in the keys of the result dict. If not creates the entry
             if self.__current_asp_rule not in self.__positive_results.keys():
                 self.__positive_results[self.__current_asp_rule] = []
+            # Appends the result
             self.__positive_results[self.__current_asp_rule].append(symbols)
+
+        # Otherwise is generating negatives
         else:
+            # Checks if the current rule is in the keys of the result dict. If not creates the entry
             if self.__current_asp_rule not in self.__negatives_results.keys():
                 self.__negatives_results[self.__current_asp_rule] = []
+            # Appends the result
             self.__negatives_results[self.__current_asp_rule].append(symbols)
 
     def __prepare_clingo_configuration(self) -> typing.List[str]:
+        """
+        Prepares the clingo configuration
+        """
 
+        # Selects the correct configuration
         if self.__use_custom_clingo_config:
             config = self.__custom_configuration
         else:
@@ -211,13 +336,18 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         # Based on the current clingo configuration used by the generator
         configuration: typing.List = []
 
+        # Prepares the configuration
         for key, value in config.items():
             if value is not None and key in self.__clingo_commands.keys():
                 configuration.append(self.__clingo_commands[key].format(value))
 
+        # Returns the configuration
         return configuration
 
     def __get_clingo_time_limit(self) -> int:
+        """
+        Returns the clingo time limit for solving a problem
+        """
         if self.__use_custom_clingo_config:
             return int(self.__custom_configuration["TIME-LIMIT"])
         return int(self.__default_configuration["TIME-LIMIT"])
@@ -304,12 +434,19 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
             return self.__default_configuration
 
     def set_positional_based_model(self, pb_model: PositionalBasedModel):
+        """
+        Changes the Positional Based Model
+        """
+
+        # Changes the model and some information needs to be recalculated
         self.__pb_model = pb_model
         self.__pd_cols: typing.List[str] = ["case:concept:name", "time:timestamp", "concept:name:order", "concept:name", "case:label"] + list(pb_model.get_attributes_dict().keys())
-        self.__new_pd_row: typing.Dict[str, typing.Any] = dict(zip(self.__pd_cols, [None for _ in range(len(self.__pd_cols))]))
         self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
 
     def get_positional_based_model(self) -> PositionalBasedModel:
+        """
+        Returns the Positional Based Model
+        """
         return self.__pb_model
 
     def __debug_message(self, msg: any):
@@ -322,11 +459,13 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
 
 if __name__ == '__main__':
+    """
     model_name = "experimental_model"
 
     model1 = PositionalBasedModel(verbose=True).parse_from_file(f"DeclareFiles/{model_name}.decl")
     model1.to_asp_file(f"ASPFiles/{model_name}.lp")
     model1.to_asp_file(f"ASPFiles/{model_name}_enc.lp", True)
-    generator = PositionalBasedLogGenerator(1000, 20, 20, model1, True)
+    generator = PositionalBasedLogGenerator(40, 20, 20, model1, True)
     generator.run(generate_negatives_traces=True)
     generator.to_csv(f"LogResults/{model_name}.csv")
+    """
