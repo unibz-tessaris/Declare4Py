@@ -19,7 +19,9 @@ class ASPFunctions:
     ASP_FIXED_TIME_EVENT = "fixed_timed_event_rule"
     ASP_FIXED_PAYLOAD = "fixed_payload_rule"
 
+    # Defines Clingo Script information
     ASP_PYTHON_SCRIPT_NAME = "clingo_python_range_script"
+
     # Define Python range script
     ASP_PYTHON_RANGE_SCRIPT = f"""
 #script ({ASP_PYTHON_SCRIPT_NAME})
@@ -68,6 +70,10 @@ pos(1..p).
 
 
 class ASPClingoScript(Script):
+    """
+    Defines the generic class for clingo scripts
+    """
+
     def execute(self, location, code):
         exec(code, self.__dict__, self.__dict__)
 
