@@ -12,30 +12,84 @@ resource: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X
 # Età paziente == 30
 
 absolute_pos(terapia_A, 2, 2), absolute_pos(terapia_B, 5, 5),  pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), absolute_payload(age, 30), payload_range(valore, 5.0, 10.0, 1), payload_range(valore, 15.0, 40.0, 3),  payload_range(valore, 50.0, 70.0, 6), payload_range(valore, 50.0, 70.0, 9), payload_range(valore, 50.0, 70.0, 11), payload_range(valore, 50.0, 70.0, 15), payload_range(valore, 30.0, 40.0, 17), payload_range(valore, 5.0, 15.0, 19)
-# 1: 5.0, 10.0
-# 3: 15.0, 40.0
-# 6: 50.0, 70.0
-# 9: 50.0, 70.0
-# 11: 50.0, 70.0
-# 15: 50.0, 70.0
-# 17: 30.0, 40.0
-# 19: 5.0, 15.0
-
 
 # terapia_A e terapia_B NON vengono eseguite
 # Ci sono regole su posizione analisi_sangue e relativo valore (cresce e rimane stabile)
 # Età paziente == 60
-!pos(terapia_A, _, _), !pos(terapia_B, _, _), pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), payload_range(valore, 2.0, 8.0, 1) payload_range(valore, 10.0, 35.0, 3), payload_range(valore, 50.0, 70.0, 6), payload_range(valore, 50.0, 70.0, 9), payload_range(valore, 50.0, 70.0, 11), payload_range(valore, 50.0, 70.0, 15), payload_range(valore, 50.0, 70.0, 17), payload_range(valore, 50.0, 70.0, 19), absolute_payload(age, 60)
+!pos(terapia_A, _, _), !pos(terapia_B, _, _), pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), payload_range(valore, 5.0, 8.0, 1) payload_range(valore, 10.0, 35.0, 3), payload_range(valore, 50.0, 70.0, 6), payload_range(valore, 50.0, 70.0, 9), payload_range(valore, 50.0, 70.0, 11), payload_range(valore, 50.0, 70.0, 15), payload_range(valore, 50.0, 70.0, 17), payload_range(valore, 50.0, 70.0, 19), absolute_payload(age, 60)
 
-# 1: 2.0, 8.0
-# 3: 10.0, 35.0
-# 6: 50.0, 70.0
-# 9: 50.0, 70.0
-# 11: 50.0, 70.0
-# 15: 50.0, 70.0
-# 17: 50.0, 70.0
-# 19: 50.0, 70.0
 
+# NUOVE FUNZIONI
+
+# ----------------------PAYLOAD----------------------
+
+# payload(attributo a, valore v, posizione p) -> l'attributo a in posizione p deve avere valore v
+# payload(attributo a, !valore v, posizione p) -> l'attributo a in posizione p NON deve avere valore v -> puo avere qualsiasi altro valore di v
+
+# Attributi necessari: a, v
+# p puo essere omesso con _ -> se p viene omesso clingo trovera un solo attributo dei tanti eventi con il seguente valore
+
+# attributo a: puo essere sostituito con una variabile :VAR, non supporta operatori condizionali se non "!=" e non puo essere empty "_"
+# valore v: puo essere sostituito con una variabile :VAR, supporta operatori condizionali [">=", ">, "<=", "<", "==", "!="]
+# posizione p: intero,  puo essere sostituito con una variabile :VAR, supporta operatori condizionali [">=", ">, "<=", "<", "==", "!="] e puo essere empty "_"
+
+# (NOTA: se si usano ">=", ">, "<=", "<" e' meglio usare la funzione range, perche clingo non supporta troppe condizioni su domini di valori)
+
+# ----------------PAYLOAD-RANGE----------------------
+
+# payload_range(attributo a, int min, int max, posizione p) l'attributo a in posizione p avra' valore in range(min, max):
+
+# Attributi necessari: a
+
+# attributo a: puo essere sostituito con una variabile :VAR, non supporta operatori condizionali se non "!=" e non puo essere empty "_"
+
+# possibili valori di min e max.
+# let a, b, min, max, x be integers or floats and x in [a,b] then
+# min e max presenti
+# min e max -> a <= min <= x <= max <= b, x in [min, max]
+# max omesso
+# min e _ -> a <= min <= x <= max == b, x in [min, b]
+# min omesso
+# _ e max -> a == min <= x <= max <= b, x in [a, max]
+# Non deve essere possibile omettere entrambi -> da contollare con python
+
+# Min e max non possono essere variabili, non supportano operatori condizionali e solo 1 dei due puo essere emtpy alla volta
+
+# posizione p: intero,  puo essere sostituito con una variabile :VAR, supporta operatori condizionali [">=", ">, "<=", "<", "==", "!="] e puo essere empty "_"
+# p puo essere omesso con _ -> se p viene omesso clingo trovera un solo attributo dei tanti eventi con il seguente valore
+
+# ----------------ABSOLUTE-PAYLOAD----------------------
+
+# absolute_payload(attribute a, value v) for every attribute a the value must be v
+
+# Attributi necessari: a, v
+
+# attributo a: puo essere sostituito con una variabile :VAR, non supporta operatori condizionali e non puo essere empty "_"
+# valore v: puo essere sostituito con una variabile :VAR, non supporta operatori condizionali e non puo essere empty "_"
+
+# ----------------ABSOLUTE-POS----------------------
+
+# absolute_pos(activity a, position p, time t)
+
+# Attributi necessari: a, p ; t integer o _
+# attivita' a si trovera in posizione p a tempo t e non potra trovarsi in nessun altro posto o tempo
+# attivita' a si trovera in posizione p a qualsiasi tempo se t = _ e non potra trovarsi in nessun altro posto
+
+# attivita' a: puo essere sostituito con una variabile :VAR, non supporta operatori condizionali e non puo essere empty _
+# posizione p: intero, puo essere sostituito con una variabile :VAR, non supporta operatori condizionali e non puo essere empty _
+# tempo t: intero, puo essere sostituito con una variabile :VAR, non supporta operatori condizionali e puo essere empty _
+
+# -----------------------POS--------------------------
+
+# pos(activity a, position p, time t)
+
+# attivita' a: puo essere sostituito con una variabile :VAR, non supporta operatori condizionali se non "!=" e non puo essere empty _
+# posizione p: intero,  puo essere sostituito con una variabile :VAR, supporta operatori condizionali [">=", ">, "<=", "<", "==", "!="] e puo essere empty "_"
+# tempo t: intero,  puo essere sostituito con una variabile :VAR, supporta operatori condizionali [">=", ">, "<=", "<", "==", "!="] e puo essere empty "_"
+
+# Attributi presenti: a ; p e t = _ -> in una posizione p ad un tempo t ci sara' a
+# Attributi presenti: a, p; t = _ -> in un tempo t ci sara' a in posizione p
+# Attributi presenti: a, p, t -> a sara' in posizione p a tempo t
 
 
 
