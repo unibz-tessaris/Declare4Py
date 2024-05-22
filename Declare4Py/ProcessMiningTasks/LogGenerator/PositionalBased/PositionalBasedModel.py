@@ -95,10 +95,19 @@ class Attribute(ASPEntity, DeclareEntity):
             # Sets the type
             self.__type = Attribute.INTEGER_RANGE
 
+            # Parses the values to floats in order to check also if these 2 values are indeed integers
+            # Otherwise it will raise an error
+            min_int = int(attribute_values[0])
+            max_int = int(attribute_values[1])
+
+            # Checks if the values are inverted
+            if min_int > max_int:
+                min_int, max_int = max_int, min_int
+
             # Parses the values to ints in order to check also if these 2 values are indeed ints
             # Otherwise it will raise an error
-            self.__values.append(int(attribute_values[0]))
-            self.__values.append(int(attribute_values[1]))
+            self.__values.append(min_int)
+            self.__values.append(max_int)
 
         else:
             # Otherwise the Attribute is an Enumeration and the values are directly stored
@@ -146,11 +155,17 @@ class Attribute(ASPEntity, DeclareEntity):
         """
         return self.__precision
 
-    def apply_precision(self, value: int) -> float:
+    def apply_precision(self, value: typing.Union[int, str]) -> float:
         """
-        Given an integer value returns the corresponding value with the applied precision
+        Given an integer value returns the corresponding value float with the applied precision
         """
-        return value / 10 ** self.__precision
+        return int(value) / 10 ** self.__precision
+
+    def remove_precision(self, value: typing.Union[float, str]) -> int:
+        """
+        Given a float value returns the corresponding value integer with the removed precision
+        """
+        return int(float(value) * 10 ** self.__precision)
 
     def to_asp(self, encoded: bool = False) -> str:
         """
@@ -319,14 +334,6 @@ class Activity(ASPEntity, DeclareEntity):
             "attributes": attributes
         }
 
-class PBConstraintController(ASPEntity, DeclareEntity):
-
-    def to_asp(self, *kwargs) -> str:
-        pass
-
-    def to_declare(self) -> str:
-        pass
-
 
 class PBConstraint(ASPEntity, DeclareEntity):
     """
@@ -334,8 +341,11 @@ class PBConstraint(ASPEntity, DeclareEntity):
     """
 
     # Constructor
-    def __init__(self, name: str, constraint: str):
+    def __init__(self, name: str, model_attributes: typing.Dict[str, Attribute], constraint: str):
         self.__name = f"C{name}"
+
+        # Saves the model Attributes for later usage:
+        self.__model_attributes: typing.Dict[str, Attribute] = model_attributes
 
         # Saves the Declare Constraint
         self.__DECL_constraint: str = constraint
@@ -356,64 +366,79 @@ class PBConstraint(ASPEntity, DeclareEntity):
         # Parses the Constraint
         self.__parse_constraint(constraint)
 
-    # TODO Comment Code
     def __parse_constraint(self, constraints: str):
         """
-        Parses the constraint string using a DECLARE FUNCTION. The function then returns a list dictionaries.
-        Each dictionary contains a constraint that can be of type: pos (positional), payload or conditional.
+        Parses the constraint string using a DECLARE FUNCTION. The function returns a list of dictionaries.
+        Each dictionary contains a constraint with his correlated information.
         Each Constraint is then parsed to the correct encoded and non ASP declaration.
         """
 
-        for constraint in DeclareFunctions.parse_constraint_line(constraints):
+        # For each constraint in the line
+        for constraint in DeclareFunctions.parse_constraint_line(constraints, self.__model_attributes):
 
+            # If the constraint is conditional: requires a different parsing function
             if constraint["Type"] == DeclareFunctions.DECL_CONDITIONAL:
                 cond_const, encoded_cond_const = self.__parse_conditional_constraint(constraint["Values"])
                 self.__ASP_constraints.append(cond_const)
                 self.__ASP_encoded_constraints.append(encoded_cond_const)
                 continue
 
+            # Otherwise each function is parsed using the same method
+            # Initializes the list of constraint and encoded constraint and of arguments and encoded arguments
             constraints_list: typing.List[str] = []
             encoded_constraints_list: typing.List[str] = []
-
-            neg = "not " if constraint["Negated"] else ""
-            asp_format_function = constraint["ASPFormat"]
-
             format_args: typing.List[str] = []
             format_encoded_args: typing.List[str] = []
 
-            try:
+            # Initializes the negation of the constraint
+            neg = "not " if constraint["Negated"] else ""
+            # Extract the ASP function of the constraint
+            asp_format_function = constraint["ASPFormat"]
 
-                for value, value_type in zip(constraint["Values"], constraint["ArgsType"]):
-                    value, encoded_value, const, encoded_const = self.__parse_function_value(value, value_type)
+            # Extracts the arguments type
+            args_type: typing.List[DeclareFunctions.DeclAttributeType] = constraint.pop("ArgsType")
+            try:
+                # For each value in the constraint together with his type
+                for value, decl_attr in zip(constraint["Values"], args_type):
+                    # Parse the value and the type
+                    value, encoded_value, const, encoded_const = self.__parse_function_value(value, decl_attr)
+                    # Store each result in the corresponding list
                     format_args.append(value)
                     format_encoded_args.append(encoded_value)
                     constraints_list.append(const)
                     encoded_constraints_list.append(encoded_const)
 
+                # Add to the constraints the ASP function
                 self.__ASP_constraints.append(neg + asp_format_function.format(*format_args))
                 self.__ASP_encoded_constraints.append(neg + asp_format_function.format(*format_encoded_args))
+                # Add to the constraints the extra constraints
                 self.__ASP_constraints += self.__filter_elements(constraints_list)
                 self.__ASP_encoded_constraints += self.__filter_elements(encoded_constraints_list)
 
+                # If the constraint has an absolute rule
+                if constraint["AbsoluteRule"]:
+
+                    # A new rule name is generated
+                    rule = self.__generate_new_rule_name()
+
+                    # The name of the absolute rule is extracted toghether with the asp format of the rule
+                    rule_name = constraint["ASPRule"]
+                    asp_function = constraint["ASPRuleFormat"]
+
+                    # The absolute rule is formated with the values and becomes unique thanks to the new generated rule name
+                    # Then both Encoded and not encoded rules are stored
+                    self.__absolute_rules.append(rule + "_" + asp_function.format(*format_args))
+                    self.__encoded_absolute_rules.append(rule + "_" + asp_function.format(*format_encoded_args))
+
+                    # Sequentially the constraint of the absolute rule must be added to the constraint list
+                    self.__ASP_constraints.append("not " + rule + "_" + rule_name)
+                    self.__ASP_encoded_constraints.append("not " + rule + "_" + rule_name)
+
                 # Catch any errors and raise them above with extra message
-            except ValueError as er:
-                raise ValueError(f"Error in the constraint with the following values: {constraint}: " + str(er))
-            except IndexError as ie:
-                raise ValueError(f"IndexError in the constraint with the following values: {constraint}: " + str(ie))
+            except (ValueError, IndexError, RuntimeError) as error:
+                raise error.__new__(error.__class__, f"{type(error).__name__} in the constraint with the following values: {constraint} and Attributes: {[args.to_dict() for args in args_type]}\n{type(error).__name__}: " + str(error))
 
-            if constraint["AbsoluteRule"]:
-                rule = self.__generate_new_rule_name()
-
-                rule_name = constraint["ASPRule"]
-                asp_function = constraint["ASPRuleFormat"]
-
-                self.__absolute_rules.append(rule + "_" + asp_function.format(*format_args))
-                self.__encoded_absolute_rules.append(rule + "_" + asp_function.format(*format_encoded_args))
-
-                self.__ASP_constraints.append("not " + rule + "_" + rule_name)
-                self.__ASP_encoded_constraints.append("not " + rule + "_" + rule_name)
-
-    def __parse_function_value(self, original_value: str, value_type: str = DeclareFunctions.DECL_ANY_ARG) -> (str, str, str, str):
+    def __parse_function_value(self, value: str, attr_type: DeclareFunctions.DeclAttributeType) -> (str, str, str, str):
         """
         Parses the values of the arguments of a function. Arguments can be integers, floats, user variables or strings of already encoded values.
         To the following arguments a conditional condition can be appended at the start of the string or at the end of the string
@@ -427,27 +452,28 @@ class PBConstraint(ASPEntity, DeclareEntity):
         """
 
         # Checks if the original value is empty and returns it in case it is
-        if original_value == "_":
-            return original_value, original_value, "", ""
+        if attr_type.can_be_empty and value == "_":
+            return value, value, "", ""
 
-        # First check if the arguments value has a conditional operator in front or at the end
+        # First checks if the value can have a  conditional operator in front or at the end
         # If it has the operator, it is stored for later since it will be used for creating the additional ASP constraint
         op = None
-        for operator in DeclareFunctions.DECL_CONDITIONAL_OPERATORS:
-            # If the value is found the operator is removed from the string and the loop will be aborted
-            if original_value.startswith(operator) or original_value.endswith(operator):
-                value = original_value.replace(operator, "")
-                op = operator
-                break
-        else:
-            value = original_value
+        # Defines if the operator is found at the start or at the end
+        op_at_start: bool = False
 
-        # Attributes or Activities cannot have conditional operator, the only operators available are "==" or "!="
-        if value_type == DeclareFunctions.DECL_ENCODE_ARG and op is not None and op not in ["!=", "=="]:
-            raise ValueError("Attribute or activities cannot have conditional operators in front or at the end of them. The only operators allowed are '==' or '!='")
+        # If the operators are allowed then
+        if attr_type.can_have_op:
+            # Search for operator presence
+            for operator in DeclareFunctions.DECL_CONDITIONAL_OPERATORS:
+                # If the value is found the operator is removed from the string and the loop will be aborted
+                if value.startswith(operator) or value.endswith(operator):
+                    op_at_start = value.startswith(operator)
+                    value = value.replace(operator, "")
+                    op = operator
+                    break
 
         # The value and the encoded values are then calculated using parsing
-        value, encoded_value = self.__parse_variable_value(value, value_type)
+        value, encoded_value = self.__parse_variable_value(value, attr_type.decl_type)
 
         # At this point if the conditional operator was not found then the function does not have additional constraints
         if op is None:
@@ -459,7 +485,7 @@ class PBConstraint(ASPEntity, DeclareEntity):
             var = self.__generate_new_variable_name()
             # Based on where the conditional operator was, the constraint is created
             # Ex: function(>=10) becomes function(VAR), VAR>=10 or  function(10>=) becomes function(VAR), 10>=VAR
-            if original_value.startswith(op):
+            if op_at_start:
                 return var, var, var + " " + op + " " + value, var + " " + op + " " + encoded_value
             else:
                 return var, var, value + " " + op + " " + var, encoded_value + " " + op + " " + var
@@ -493,29 +519,6 @@ class PBConstraint(ASPEntity, DeclareEntity):
         # Return a string of the not encoded constraints and another string of the encoded constraints both joined by spaces
         return " ".join(conditional_constraint), " ".join(encoded_conditional_constraint)
 
-    @staticmethod
-    def __parse_int(value: str) -> (str, str):
-        if int(value) < 0:
-            raise ValueError(f"Value {value} must be positive integer")
-        value = encoded_value = str(int(value))
-        return value, encoded_value
-
-    @staticmethod
-    def __parse_float(value: str) -> (str, str):
-        if float(value) < 0:
-            raise ValueError(f"Value {value} must be positive float")
-        precision = len(value.split(".")[1])
-        value = encoded_value = str(int(float(value) * 10 ** precision))
-        return value, encoded_value
-
-    def __parse_int_or_float(self, value: str) -> (str, str):
-        # Tries to parse the value by checking if it is a float or an int
-        # If it doesn't contain a . then it is not a float and parses to int otherwise parses to float
-        # If any exception is raised during the operations then it is a value, and it is returned encoded and non
-        if value.find(".") == -1:
-            return self.__parse_int(value)
-        return self.__parse_float(value)
-
     def __parse_variable_value(self, value: str, value_type: str = DeclareFunctions.DECL_ANY_ARG) -> (str, str):
 
         # Checks if the value is a variable
@@ -526,13 +529,21 @@ class PBConstraint(ASPEntity, DeclareEntity):
         # Parses to int the value if it expects an int or floats or any
         elif value_type == DeclareFunctions.DECL_INT_OR_FLOAT_ARG or value_type == DeclareFunctions.DECL_ANY_ARG:
             try:
-                value, encoded_value = self.__parse_int_or_float(value)
+                # Tries to parse the value by checking if it is a float or an int
+                # If it doesn't contain a . then it is not a float and parses to int otherwise parses to float
+                # If any exception is raised during the operations then it is a value, and it is returned encoded and non
+                if value.find(".") == -1:
+                    value, encoded_value = self.__parse_int(value)
+                else:
+                    value, encoded_value = self.__parse_float(value)
             except ValueError as er:
                 # If an exception is raised encode the value if the type is any
-                # Raises an exception if the value was not encoded before. If this happens the value that the program wants to encode was not declared in the model and hence does not exist
+                # Raises an exception if the value was not encoded before.
+                # If this happens the value that the program wants to encode was not declared in the model and hence does not exist
                 if value_type == DeclareFunctions.DECL_ANY_ARG:
                     encoded_value = Encoder().encode_value(value)
                     # encoded_value = Encoder().create_and_encode_value(value)
+                # Otherwise raise the exception
                 else:
                     raise er
         # Parses to int the value if it expects an int
@@ -550,10 +561,37 @@ class PBConstraint(ASPEntity, DeclareEntity):
             # encoded_value = Encoder().create_and_encode_value(value)
 
         else:
-            raise ValueError(f"Unrecognized value type: {value_type}")
+            raise RuntimeError(f"Unrecognized value type: {value_type}")
 
         # Returns the value and its encoding value
         return value, encoded_value
+
+    @staticmethod
+    def __parse_int(value: str) -> (str, str):
+        """
+        Parses a string to integer.
+        Will raise an error if the value is not an integer or positive.
+
+        Returns the normal value followed by the encoded value. (which is the same in this case)
+        """
+        if int(value) < 0:
+            raise ValueError(f"Value {value} must be positive integer")
+        value = str(int(value))
+        return value, value
+
+    @staticmethod
+    def __parse_float(value: str) -> (str, str):
+        """
+        Parses a string to float and applies the precision in order to transform the float into a string.
+        Will raise an error if the value is not an integer or positive.
+
+        Returns the normal value followed by the encoded value. (which is the same in this case)
+        """
+        if float(value) < 0:
+            raise ValueError(f"Value {value} must be positive float")
+        precision = len(value.split(".")[1])
+        value = str(int(float(value) * 10 ** precision))
+        return value, value
 
     def __generate_new_variable_name(self) -> str:
         """
@@ -641,15 +679,30 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
     Represents the Positional Based Model. This Entity is created based on The ENTIRE DECLARE MODEL. It can be converted in ASP.
     """
 
+    # Defines constants for time units
+
+    POSITIONAL_TIME_START: int = 1
+    POSITIONAL_TIME_END: int = 100
+
+    TIME_UNIT_IN_SECONDS_RANGE_MIN: int = 240
+    TIME_UNIT_IN_SECONDS_RANGE_MAX: int = 300
+
     # Constructor
-    def __init__(self, positional_based_time_start: int = 1, positional_based_time_end: int = 100, time_unit_in_seconds: int = 300, verbose: bool = False):
+    def __init__(self,
+                 positional_time_start: int = POSITIONAL_TIME_START,
+                 positional_time_end: int = TIME_UNIT_IN_SECONDS_RANGE_MAX,
+                 time_unit_in_seconds_min: int = TIME_UNIT_IN_SECONDS_RANGE_MIN,
+                 time_unit_in_seconds_max: int = TIME_UNIT_IN_SECONDS_RANGE_MAX,
+                 verbose: bool = False):
         """
         Constructor of the Positional Based Model
 
         Parameters:
-            positional_based_time_start: int = minimum value that events can have
-            positional_based_time_end: int = maximum value that events can have
-            time_unit_in_seconds: int = Converts time positional_based_time in seconds using the ratio: 1 positional_based_time == time_unit in seconds
+            positional_time_start: int = Minimum ASP time value that events can have
+            positional_time_end: int = Maximum ASP time value that events can have
+            time_unit_in_seconds_min: int = Minimum value in seconds to which 1 ASP time unit corresponds
+            time_unit_in_seconds_max: int = Maximum value in seconds to which 1 ASP time unit corresponds
+            verbose: bool = Indicates if the user wants to see debugging information
         """
 
         super().__init__()
@@ -670,9 +723,9 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
 
         # Sets the range of time in which the ASP model will operate and the time unit and second ratio
         self.__positional_based_time_range: typing.Union[(int, int), None] = None
-        self.set_positional_based_time_range(positional_based_time_start, positional_based_time_end)
-        self.__time_unit_in_seconds: typing.Union[int, None] = None
-        self.set_time_unit_in_seconds(time_unit_in_seconds)
+        self.set_positional_based_time_range(positional_time_start, positional_time_end)
+        self.__time_unit_in_seconds_range: typing.Union[(int, int), None] = None
+        self.set_time_unit_in_seconds_range(time_unit_in_seconds_min, time_unit_in_seconds_max)
 
     def parse_from_file(self, model_path: str, **kwargs) -> typing_extensions.Self:
         """
@@ -711,8 +764,8 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
                     # Parse the line
                     self.__debug_message(f"Parsing line {index + 1} of model: {line}")
                     self.__parse_line(line)
-            except ValueError as er:
-                raise ValueError(f"Line {index + 1} of model: " + str(er))
+            except (ValueError, IndexError, RuntimeError) as error:
+                raise error.__new__(error.__class__, f"Line {index + 1} of model: " + str(error))
 
         # Once the whole model is parsed then an Integrity check is done
         self.__integrity_check()
@@ -782,7 +835,7 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
         # If the line is a Constraint line
         elif DeclareFunctions.has_constraints_in_line(line):
             # A new constraint will be created and appended to the constraints list
-            self.__constraints.append(PBConstraint(str(len(self.__constraints) + 1), line))
+            self.__constraints.append(PBConstraint(str(len(self.__constraints) + 1), self.__attributes, line))
 
         # If the line wasn't recognized is then skipped
         else:
@@ -943,25 +996,27 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
         # Generates the ASP strings for the activities and attributes together with the ASP encoding
         asp = self.to_asp_without_constraints(encode)
 
-        # Appends to the String each constraint
-        for constraint in self.__constraints:
-            asp += constraint.to_asp(encode) + "\n"
+        # Appends to the String each constraint if there are
+        if len(self.__constraints) > 0:
+            for constraint in self.__constraints:
+                asp += constraint.to_asp(encode) + "\n"
 
-        # Decides which rule to append in order to generate positives or negatives traces
-        if generate_negatives:
-            asp += ":- " + ASPFunctions.ASP_CONSTRAINT_RULE + ".\n"
-        else:
-            asp += ":- not " + ASPFunctions.ASP_CONSTRAINT_RULE + ".\n"
+            # Decides which rule to append in order to generate positives or negatives traces
+            if generate_negatives:
+                asp += ":- " + ASPFunctions.ASP_CONSTRAINT_RULE + ".\n"
+            else:
+                asp += ":- not " + ASPFunctions.ASP_CONSTRAINT_RULE + ".\n"
 
         # Returns the ASP String
         return asp
+
     def to_asp_without_constraints(self, encode: bool = False) -> str:
         """
         Returns the model as an ASP String without constrains attached.
         """
 
         # Appends the time range rule together with the ASP ENCODING
-        asp = ASPFunctions.ASP_TIME_RANGE_FORMAT.format(int(self.__positional_based_time_range[0]), int(self.__positional_based_time_range[1])) + "\n"
+        asp = ASPFunctions.ASP_TIME_RANGE_FORMAT.format(self.__positional_based_time_range[0], self.__positional_based_time_range[1]) + "\n"
         asp += ASPFunctions.ASP_ENCODING + "\n\n"
 
         # Appends to the String each activity to ASP
@@ -985,7 +1040,8 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
 
         # If no constraints are found then the current ASP model is returned
         if len(self.__constraints) == 0:
-            return [asp]
+            warnings.warn("The model does not have constraints, using unconstrained model")
+            return []
 
         # Otherwise a list is created and for each constraint a different ASP encoding string of the model is created
         asp_list: typing.List[str] = []
@@ -1062,52 +1118,48 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
         """
         return self.__parsed_model
 
-    def set_positional_based_time_range(self, positional_based_time_start: int = 1, positional_based_time_end: int = 100):
+    def set_positional_based_time_range(self, positional_time_start: int = POSITIONAL_TIME_START, positional_time_end: int = POSITIONAL_TIME_END):
+        """
+        Sets the positional based time range of the model
+        """
+        self.__positional_based_time_range = tuple(self.__set_and_check_range("Positional Based Time Range", positional_time_start, positional_time_end))
+
+    def set_time_unit_in_seconds_range(self, time_unit_in_seconds_min: TIME_UNIT_IN_SECONDS_RANGE_MIN, time_unit_in_seconds_max: TIME_UNIT_IN_SECONDS_RANGE_MAX):
+        """
+        Sets the time unit in seconds range of the model
+        """
+        self.__time_unit_in_seconds_range = tuple(self.__set_and_check_range("Time Unit in Seconds Range", time_unit_in_seconds_min, time_unit_in_seconds_max))
+
+    @staticmethod
+    def __set_and_check_range(name: str, start_or_min: int, end_or_max: int):
         """
         Sets the range of time in which the traces will be generated
         """
 
         # Checks for non integer instances
-        if not isinstance(positional_based_time_start, int) or not isinstance(positional_based_time_end, int):
-            raise TypeError("Positional Based Time Start or End must be an integer")
+        if not isinstance(start_or_min, int) or not isinstance(end_or_max, int):
+            raise TypeError(f"{name} values must be an integer")
 
         # Checking negative values
-        if positional_based_time_start <= 0:
-            positional_based_time_start = abs(positional_based_time_start)
-            warnings.warn("Positional based time start must be greater than zero. Applying absolute value")
-        if positional_based_time_end <= 0:
-            positional_based_time_end = abs(positional_based_time_end)
-            warnings.warn("Positional based time end must be greater than zero. Applying absolute value")
+        if start_or_min <= 0:
+            start_or_min = abs(start_or_min)
+            warnings.warn(f"{name} min or start must be greater than zero. Applying absolute value")
+        if end_or_max <= 0:
+            end_or_max = abs(end_or_max)
+            warnings.warn(f"{name} max or end must be greater than zero. Applying absolute value")
 
         # Invert values if the start is bigger than the end
-        if positional_based_time_start > positional_based_time_end:
-            positional_based_time_start, positional_based_time_end = positional_based_time_end, positional_based_time_start
+        if start_or_min > end_or_max:
+            start_or_min, end_or_max = end_or_max, start_or_min
 
         # Sets the range
-        self.__positional_based_time_range = (positional_based_time_start, positional_based_time_end)
+        return start_or_min, end_or_max
 
-    def set_time_unit_in_seconds(self, time_unit_in_seconds: int):
-        """
-        Sets the conversion ratio of the time unit in seconds
-        """
-
-        # Checks for non integer instances
-        if not isinstance(time_unit_in_seconds, int):
-            raise TypeError("Time unit in seconds must be an integer")
-
-        # Checking negative values
-        if time_unit_in_seconds < 0:
-            time_unit_in_seconds = abs(time_unit_in_seconds)
-            warnings.warn("Time unit in seconds must be greater than zero. Applying absolute value")
-
-        # Sets the value
-        self.__time_unit_in_seconds = time_unit_in_seconds
-
-    def get_time_unit_in_seconds(self) -> int:
+    def get_time_unit_in_seconds_range(self) -> (int, int):
         """
         Returns the time unit in seconds conversion
         """
-        return self.__time_unit_in_seconds
+        return self.__time_unit_in_seconds_range
 
     def set_verbose(self, verbose: bool = False):
         """
@@ -1124,13 +1176,14 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
 
 
 if __name__ == "__main__":
-
-    constraint_value = "payload_range(valore, 200, 300, 6), payload_range(valore, 200, 300, _) ,pos(ER Registration, >= 1, ==10), absolute_payload(age, 30), absolute_pos(ER Registration, 2, _), absolute_pos(ER Registration, 3, 10), pos(ER Registration, 1, 10), payload(org:group, !=1, :V1), :V1 <= aA"
-    const: PBConstraint = PBConstraint("1", constraint_value)
+    """
+    constraint_value1 = "payload_range(valore, 200, 300, 6), payload_range(valore, 200, 300, _) ,pos(ER Registration, >= 1, ==10), absolute_payload(age, 30), absolute_pos(ER Registration, 2, _), absolute_pos(ER Registration, 3, 10), pos(ER Registration, 1, 10), payload(org:group, !=1, :V1), :V1 <= aA"
+    constraint_value2 = "payload_range(valore, 200, 300, 6)"
+    const: PBConstraint = PBConstraint("1", constraint_value2)
     print(const.to_declare())
     print(const.to_asp())
     print(const.to_asp(True))
-
+    """
     """
     # const: PBConstraint = PBConstraint("1", "pos(ER Registration, >= 1, ==10), payload(org:group, !=1, :V1), !pos(!=ER Sepsis Triage, 2, <=30), !payload(org:group, 2.00 <=, :V2), :V1 == aA, 1 == :V2") pos(:V2, 1, 1), pos(ER Triage, 2, 4), payload(:V1, B, 1), payload(:V1, F, 2)
     const: PBConstraint = PBConstraint("1", "pos(1, 2, 10), pos(:V1, 1, 10), pos(!= ER Registration, 1, 10), pos(ER Registration, >= 1, 10  ==), pos(:V1, >1, 10<), pos(!=ER Registration, <1, !=10)")
@@ -1143,8 +1196,8 @@ if __name__ == "__main__":
     print(const.to_asp(True))
     """
 
-    # model1 = PositionalBasedModel(True).parse_from_file("ASPFiles/model.decl")
-    # model1.to_asp_file("ASPFiles/model_asp1")
+    # model1 = PositionalBasedModel(True).parse_from_file("DeclareFiles/payload_range_test.decl")
+    # model1.to_asp_file("ASPFiles/payload_range_test.lp")
 
     # model2 = PositionalBasedModel(True).parse_from_file("model_simplified.decl")
     # model2 = PositionalBasedModel(True).parse_from_file("model_simplified.decl").to_asp()
