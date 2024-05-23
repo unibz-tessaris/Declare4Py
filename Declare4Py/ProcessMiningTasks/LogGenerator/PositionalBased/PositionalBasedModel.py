@@ -693,7 +693,7 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
     # Constructor
     def __init__(self,
                  positional_time_start: int = POSITIONAL_TIME_START,
-                 positional_time_end: int = TIME_UNIT_IN_SECONDS_RANGE_MAX,
+                 positional_time_end: int = POSITIONAL_TIME_END,
                  time_unit_in_seconds_min: int = TIME_UNIT_IN_SECONDS_RANGE_MIN,
                  time_unit_in_seconds_max: int = TIME_UNIT_IN_SECONDS_RANGE_MAX,
                  verbose: bool = False):
