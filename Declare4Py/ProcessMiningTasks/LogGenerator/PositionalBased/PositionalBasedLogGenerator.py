@@ -32,8 +32,10 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
         # Initializes clingo configuration information
         self.__use_custom_clingo_config: bool = False
-        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}", "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
-        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "TIME-LIMIT": "120", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.9", "SIGN-DEF": "asp", "MODE": "optN", "STRATEGY": None, "HEURISTIC": None}
+        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}",
+                                                         "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
+        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "TIME-LIMIT": "120", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.9", "SIGN-DEF": "asp", "MODE": "optN",
+                                                               "STRATEGY": None, "HEURISTIC": None}
         self.__custom_configuration: typing.Dict[str, str] = self.__default_configuration.copy()
 
         # sets the positional based model
@@ -46,13 +48,16 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         self.__current_asp_rule: str = ""
 
         # Initializes the pandas dataframe with the results
-        self.__pd_cols: typing.List[str] = ["case:concept:name", "time:timestamp", "concept:name:order", "concept:name:rule", "concept:name:time", "concept:name", "case:label"] + list(pb_model.get_attributes_dict().keys())
+        self.__pd_cols: typing.List[str] = ["case:concept:name", "time:timestamp", "concept:name:order", "concept:name:rule", "concept:name:time", "concept:name", "case:label"] + list(
+            pb_model.get_attributes_dict().keys())
         self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
+        # Counts the number of traces currently in the dataframe
+        self.__case_index: int = 0
 
         # Registers the script for solving range problems to the clingo library in order to use the function during the runtime of clingo
         register_script(ASPFunctions.ASP_PYTHON_SCRIPT_NAME, ASPClingoScript())
 
-    def run(self, equal_rule_split: bool = True, generate_negatives_traces: bool = False, append_results: bool = False):
+    def run(self, equal_rule_split: bool = True, generate_negatives_traces: bool = False, positive_noise_percentage: int = 0, negative_noise_percentage: int = 0, append_results: bool = False):
         """
         Method that generates positional based logs:
 
@@ -65,6 +70,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         # Checks if the result must be appended, otherwise resets the dataframe
         if not append_results:
             self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
+            self.__case_index: int = 0
 
         # Resets the results dicts
         self.__positive_results = {}
@@ -81,7 +87,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
         # Runs clingo and parses the results for the positive traces
         self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, "Positives")
-        self.__parse_results(self.__positive_results, "Positive")
+        self.__parse_results(self.__positive_results, "Positive", positive_noise_percentage)
 
         # If the generator must solve also the negative traces
         if generate_negatives_traces:
@@ -93,7 +99,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
             # Runs clingo and parses the results for the negative traces
             self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, "Negatives")
-            self.__parse_results(self.__negatives_results, "Negative")
+            self.__parse_results(self.__negatives_results, "Negative", negative_noise_percentage)
 
     def __prepare_asp_models(self, equal_rule_split: bool, generate_negatives: bool = False):
         """
@@ -172,38 +178,45 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                 self.__debug_message(f" Clingo Result :{str(res)}")
                 # Raise a Warning if UNSAT
                 if res.unsatisfiable:
-                    warnings.warn(f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model model rule {self.__current_asp_rule}. Check the definition of your constraints')
+                    warnings.warn(
+                        f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model model rule {self.__current_asp_rule}. Check the definition of your constraints')
 
-    def __parse_results(self, results: typing.Dict, label: str):
+    def __parse_results(self, results: typing.Dict, label: str, noise_percentage: int = 0):
 
         """
         Parses the result generated by clingo
         """
 
+        self.__debug_message(f"Starting parsing of {label} results")
+
         # If no results are found return
         if results is None or len(results) == 0:
             return
 
-        # Create a new list of results
-        new_pd: typing.List[typing.Dict] = []
+        # Prepare noise
+        noise_percentage = self.__prepare_noise_percentage(noise_percentage)
+
+        # Create a new entry for the pandas df
+        new_df: typing.List = []
 
         # Initializes the minimum value of seconds and the maximum value of seconds to which 1 unit of Positional based time corresponds
         min_seconds, max_seconds = self.__pb_model.get_time_unit_in_seconds_range()
 
-        # Index case
-        case_index = 0
-
         # For each rule extract the results
-        for rule, results in results.items():
+        for rule, trace in results.items():
+
+            # Stores all the formatted trace events after parsing
+            formatted_traces: typing.List = []
+
             # Enumerate through the results
-            for trace_index, trace in enumerate(results):
+            for trace_index, trace_functions in enumerate(trace):
                 # Initializes the events and values list
-                case_index += 1
+                self.__case_index += 1
                 events: typing.List[typing.Any] = []
                 values: typing.List[typing.Any] = []
 
                 # For each function in the trace
-                for function in trace:
+                for function in trace_functions:
 
                     # If the function is "timed_event"
                     if function.name == ASPFunctions.ASP_TIMED_EVENT:
@@ -240,57 +253,85 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                 # Randomized start time by one hour
                 delta = timedelta(seconds=randrange(0, 3599), milliseconds=randrange(0, 99999))
 
+                # prepares a list of all the events in a trace
+                trace_events: typing.List = []
+
                 # For each activity in the events
                 for activity, pos, time in events:
 
-                    # Initialize a new row
-                    new_row: typing.Dict[str, typing.Any] = dict(zip(self.__pd_cols, [None for _ in range(len(self.__pd_cols))]))
+                    # Initialize a new event
+                    event: typing.Dict[str, typing.Any] = dict(zip(self.__pd_cols, [None for _ in range(len(self.__pd_cols))]))
 
                     # Initialize case information
-                    new_row["case:concept:name"] = "case_" + str(case_index)
-                    new_row["concept:name:order"] = "event_" + str(pos)
+                    event["case:concept:name"] = "case_" + str(self.__case_index)
+                    event["concept:name:order"] = "event_" + str(pos)
 
                     # Calculate progressing random time
-                    new_row["time:timestamp"] = datetime.now() + delta + timedelta(seconds=time * random.randint(min_seconds, max_seconds))
+                    event["time:timestamp"] = datetime.now() + delta + timedelta(seconds=time * random.randint(min_seconds, max_seconds))
 
                     # Initialize case information
-                    new_row["concept:name:rule"] = str(rule)
-                    new_row["concept:name:time"] = "time_" + str(time)
+                    event["concept:name:rule"] = str(rule)
+                    event["concept:name:time"] = "time_" + str(time)
 
                     # Initialize event information
-                    new_row["concept:name"] = activity
-                    new_row["case:label"] = label
+                    event["concept:name"] = activity
+                    event["case:label"] = label
 
                     # Assign each attribute where pos equals the position of the event to the new row
                     for attribute, value, _ in filter(lambda x: pos == int(x[2]), values):
-                        new_row[attribute] = value
+                        event[attribute] = value
 
-                    # Append the new row
-                    new_pd.append(new_row)
+                    # Append the new event to the trace
+                    trace_events.append(event)
+
+                # Appends a formatted traces to the list of formatted traces
+                formatted_traces.append(trace_events)
+
+            # Apply noise
+            if noise_percentage > 0:
+                self.__debug_message(f"Applying noise percentage {noise_percentage} to the parsed results of rule: {str(rule)}")
+                # Counts how many traces are formated
+                traces_count = len(formatted_traces)
+
+                # Creates an array of index to pick from in order to apply the noise
+                # When an index is picked is then removed from the list, meaning that that index has already noise applied
+                # Hence will not be selected during a later iteration for the application of the noise
+                noise_index_list: typing.List[int] = [i for i in range(traces_count)]
+
+                # For the number of traces to apply the noise
+                for _ in range(math.ceil(traces_count / 100 * noise_percentage)):
+                    # Extract a random index from the index list in range(0, len(noise_index_list) -1)
+                    # Once extracted the len(noise_index_list) will diminish in size
+                    trace_with_noise_index = noise_index_list.pop(random.randint(0, len(noise_index_list) - 1))
+
+                    # Pop from the traces list the traces that hase noise
+                    trace_with_noise = formatted_traces.pop(trace_with_noise_index)
+
+                    # Apply the noise == label inversion to each event in the trace
+                    for event in trace_with_noise:
+                        event["case:label"] = "Positive" if event["case:label"] == "Negative" else "Negative"
+
+                    # Reinsert the trace in the correct position
+                    formatted_traces.insert(trace_with_noise_index, trace_with_noise)
+
+            # Append to the new Dataframe the flattened list of lists: list of traces = [trace_1, ..., trace_n] and each trace_i = [event_1, ..., event_n]
+            new_df += [events for trace in formatted_traces for events in trace]
 
         # Store the new results in the dataframe
-        self.__pd_results = pd.concat([self.__pd_results, pd.DataFrame(new_pd)], ignore_index=True)
+        self.__pd_results = pd.concat([self.__pd_results, pd.DataFrame(new_df)], ignore_index=True)
+        self.__debug_message(f"Completed parsing of {label} results")
 
-    def apply_noise(self, positive_noise_percentage: int = 0, negative_noise_percentage: int = 0):
+    @staticmethod
+    def __prepare_noise_percentage(noise_percentage: int = 0):
+        """
+        Fixes user input percentages
+        """
+        if not isinstance(noise_percentage, int) or noise_percentage < 0:
+            noise_percentage = 0
+        if noise_percentage > 100:
+            noise_percentage = 100
 
-        if not isinstance(positive_noise_percentage, int) or not isinstance(negative_noise_percentage, int):
-            raise TypeError("Argument 'positive_noise_percentage' or 'negative_noise_percentage' must be an integer")
-
-        for label, percentage in {"Positive": positive_noise_percentage, "Negative": negative_noise_percentage}.items():
-
-            # Fixes user input percentages
-            if percentage < 0:
-                percentage = 0
-            # If noise is 0 return
-            if percentage == 0:
-                return
-            # Fixes user input percentages
-            if percentage > 100:
-                percentage = 100
-
-            label_count = self.__pd_results['case:label'].value_counts()[label]
-            sample_count = label_count / 100 * percentage
-
+        return noise_percentage
 
     def to_csv(self, csv_path: str):
         """
@@ -442,6 +483,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         self.__pb_model = pb_model
         self.__pd_cols: typing.List[str] = ["case:concept:name", "time:timestamp", "concept:name:order", "concept:name", "case:label"] + list(pb_model.get_attributes_dict().keys())
         self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
+        self.__case_index: int = 0
 
     def get_positional_based_model(self) -> PositionalBasedModel:
         """
@@ -459,13 +501,11 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
 
 if __name__ == '__main__':
-    """
     model_name = "experimental_model"
 
     model1 = PositionalBasedModel(verbose=True).parse_from_file(f"DeclareFiles/{model_name}.decl")
     model1.to_asp_file(f"ASPFiles/{model_name}.lp")
     model1.to_asp_file(f"ASPFiles/{model_name}_enc.lp", True)
     generator = PositionalBasedLogGenerator(40, 20, 20, model1, True)
-    generator.run(generate_negatives_traces=True)
+    generator.run(generate_negatives_traces=True, positive_noise_percentage=10, negative_noise_percentage=10)
     generator.to_csv(f"LogResults/{model_name}.csv")
-    """
