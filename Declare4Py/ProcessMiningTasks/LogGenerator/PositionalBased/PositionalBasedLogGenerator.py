@@ -157,7 +157,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                     "--project"
                 ]"""
 
-                for _ in range(num_traces):
+                for num_trace in range(num_traces):
 
                     arguments: typing.List = [
                         "-c",
@@ -178,7 +178,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                     ctl.ground([('base', [])])
 
                     # Signals the user for the start of the process
-                    self.__debug_message(f"Total traces to generate and events: Traces:{num_traces}, Events: {num_events}")
+                    self.__debug_message(f"Total traces to generate and events: Traces:{num_trace}, Events: {num_events}")
 
                     # Not sure if it works as intended
                     # Should stop the clingo after x seconds
