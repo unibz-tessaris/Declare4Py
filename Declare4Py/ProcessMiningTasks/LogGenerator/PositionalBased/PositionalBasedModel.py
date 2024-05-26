@@ -951,8 +951,50 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
             model_path: Path in which the file will be created
             asp_file: bool, default True, creates the asp file
             encode: bool, default True, creates the ASP encoded file
+            negative_traces: bool, default False, creates the ASP negative traces file
         """
         self.__export_file(model_path, self.to_asp(encode, negative_traces), ASPFunctions.ASP_FILE_EXTENSION)
+
+    def to_asp_file_without_constraints(self, model_path: str, encode: bool = False):
+        """
+        Exports the current model to ASP without constraints
+
+        Parameters
+            model_path: Path in which the file will be created
+            asp_file: bool, default True, creates the asp file
+            encode: bool, default True, creates the ASP encoded file
+        """
+        self.__export_file(model_path, self.to_asp_without_constraints(encode), ASPFunctions.ASP_FILE_EXTENSION)
+
+    def to_one_asp_file_per_constraints(self, model_path: str, encode: bool = False, generate_also_negatives: bool = False):
+        """
+        Exports the current model to ASP for each constraint
+
+        Parameters
+            model_path: Path in which the file will be created
+            asp_file: bool, default True, creates the asp file
+            encode: bool, default True, creates the ASP encoded file
+            negative_traces: bool, default False, creates the ASP negative traces file
+        """
+        # Removes the file extension
+        if model_path.endswith(".lp"):
+            model_path = model_path[:-3]
+
+        # Generate files for each positive constraint
+        asp_models = self.to_asp_with_single_constraints(encode)
+
+        if len(asp_models) > 0:
+            for index, asp in enumerate(asp_models):
+                self.__export_file(model_path + f"_pos_const_{index}", asp, ASPFunctions.ASP_FILE_EXTENSION)
+
+        # Generate files for each negative constraint
+        if generate_also_negatives:
+
+            asp_models = self.to_asp_with_single_constraints(encode, True)
+
+            if len(asp_models) > 0:
+                for index, asp in enumerate(asp_models):
+                    self.__export_file(model_path + f"_neg_const_{index}", asp, ASPFunctions.ASP_FILE_EXTENSION)
 
     def to_decl_file(self, model_path: str, parsed_model: bool = False):
         """
@@ -1127,7 +1169,7 @@ class PositionalBasedModel(ProcessModel, ASPEntity, DeclareEntity):
         """
         self.__positional_based_time_range = tuple(self.__set_and_check_range("Positional Based Time Range", positional_time_start, positional_time_end))
 
-    def set_time_unit_in_seconds_range(self, time_unit_in_seconds_min: TIME_UNIT_IN_SECONDS_RANGE_MIN, time_unit_in_seconds_max: TIME_UNIT_IN_SECONDS_RANGE_MAX):
+    def set_time_unit_in_seconds_range(self, time_unit_in_seconds_min: int = TIME_UNIT_IN_SECONDS_RANGE_MIN, time_unit_in_seconds_max: int = TIME_UNIT_IN_SECONDS_RANGE_MAX):
         """
         Sets the time unit in seconds range of the model
         """
