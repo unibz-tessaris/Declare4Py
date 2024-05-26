@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from random import randrange
 
 import clingo
+import pm4py
 from clingo.script import register_script
 import pandas as pd
 
@@ -32,10 +33,10 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
         # Initializes clingo configuration information
         self.__use_custom_clingo_config: bool = False
-        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},split", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}",
+        self.__clingo_commands: typing.Dict[str, str] = {"CONFIG": "--configuration={}", "THREADS": "--parallel-mode={},compete", "FREQUENCY": "--rand-freq={}", "SIGN-DEF": "--sign-def={}",
                                                          "MODE": "--opt-mode={}", "STRATEGY": "--opt-strategy={}", "HEURISTIC": "--heuristic={}"}
-        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "tweety", "TIME-LIMIT": "120", "THREADS": str(os.cpu_count()), "FREQUENCY": "0.9", "SIGN-DEF": "asp", "MODE": "optN",
-                                                               "STRATEGY": None, "HEURISTIC": None}
+        self.__default_configuration: typing.Dict[str, str] = {"CONFIG": "jumpy", "TIME-LIMIT": "120", "THREADS": str(os.cpu_count()), "FREQUENCY": "1", "SIGN-DEF": "rnd", "MODE": "optN",
+                                                               "STRATEGY": "bb", "HEURISTIC": "Vsids"}
         self.__custom_configuration: typing.Dict[str, str] = self.__default_configuration.copy()
 
         # sets the positional based model
@@ -145,41 +146,55 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
             for num_events, num_traces in self.compute_distribution(math.ceil(self.log_length / len(asp_list))).items():
 
                 # Defines some important parameters for clingo
-                arguments: typing.List = [
+                """arguments: typing.List = [
                     "-c",
                     f"p={int(num_events)}",
                     f"{int(num_traces)}",
                     f"--seed={randrange(0, 2 ** 30 - 1)}",
                     "--shuffle=1",
+                    "--restart-on-model",
+                    "--del-on-restart=100",
                     "--project"
-                ]
+                ]"""
 
-                # Appends the options of our configurations
-                arguments += clingo_configuration
-                # Adds the arguments to clingo
-                ctl = clingo.Control(arguments)
-                ctl.add(asp)
-                # Inserts the function for the range in clingo
-                ctl.add('base', [], ASPFunctions.ASP_PYTHON_RANGE_SCRIPT)
-                ctl.ground([('base', [])])
+                for _ in range(num_traces):
 
-                # Signals the user for the start of the process
-                self.__debug_message(f"Total traces to generate and events: Traces:{num_traces}, Events: {num_events}")
+                    arguments: typing.List = [
+                        "-c",
+                        f"p={int(num_events)}",
+                        f"1",
+                        f"--seed={randrange(0, 2 ** 30 - 1)}",
+                        "--project"
+                    ]
 
-                # Not sure if it works as intended
-                # Should stop the clingo after x seconds
-                # Starts the solving process
-                with ctl.solve(on_model=self.__handle_clingo_result, async_=True) as handle:
-                    handle.wait(self.__get_clingo_time_limit())
-                    handle.cancel()
-                    res = handle.get()
+                    # Appends the options of our configurations
+                    arguments += clingo_configuration
 
-                # Print results
-                self.__debug_message(f" Clingo Result :{str(res)}")
-                # Raise a Warning if UNSAT
-                if res.unsatisfiable:
-                    warnings.warn(
-                        f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model model rule {self.__current_asp_rule}. Check the definition of your constraints')
+                    # Adds the arguments to clingo
+                    ctl = clingo.Control(arguments)
+                    ctl.add(asp)
+                    # Inserts the function for the range in clingo
+                    ctl.add('base', [], ASPFunctions.ASP_PYTHON_RANGE_SCRIPT)
+                    ctl.ground([('base', [])])
+
+                    # Signals the user for the start of the process
+                    self.__debug_message(f"Total traces to generate and events: Traces:{num_traces}, Events: {num_events}")
+
+                    # Not sure if it works as intended
+                    # Should stop the clingo after x seconds
+                    # Starts the solving process
+                    # res = ctl.solve(on_model=self.__handle_clingo_result)
+                    with ctl.solve(on_model=self.__handle_clingo_result, async_=True) as handle:
+                        handle.wait(self.__get_clingo_time_limit())
+                        handle.cancel()
+                        res = handle.get()
+
+                    # Print results
+                    self.__debug_message(f" Clingo Result :{str(res)}")
+                    # Raise a Warning if UNSAT
+                    if res.unsatisfiable:
+                        warnings.warn(
+                            f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model model rule {self.__current_asp_rule}. Check the definition of your constraints')
 
     def __parse_results(self, results: typing.Dict, label: str, noise_percentage: int = 0):
 
@@ -250,14 +265,19 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                 # Sorts the events by position
                 events.sort(key=lambda x: int(x[1]))
 
-                # Randomized start time by one hour
-                delta = timedelta(seconds=randrange(0, 3599), milliseconds=randrange(0, 99999))
-
                 # prepares a list of all the events in a trace
                 trace_events: typing.List = []
 
+                # Randomized start time by one hour
+                time_delta: int = 0
+                datetime_delta = datetime.now() + timedelta(seconds=randrange(0, 3599), milliseconds=randrange(0, 99999))
+
                 # For each activity in the events
                 for activity, pos, time in events:
+
+                    # Calculates the time delta to add for the next event
+                    time_delta = time - time_delta
+                    datetime_delta += timedelta(seconds=sum([random.randint(min_seconds, max_seconds) for _ in range(time_delta)]))
 
                     # Initialize a new event
                     event: typing.Dict[str, typing.Any] = dict(zip(self.__pd_cols, [None for _ in range(len(self.__pd_cols))]))
@@ -266,8 +286,8 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
                     event["case:concept:name"] = "case_" + str(self.__case_index)
                     event["concept:name:order"] = "event_" + str(pos)
 
-                    # Calculate progressing random time
-                    event["time:timestamp"] = datetime.now() + delta + timedelta(seconds=time * random.randint(min_seconds, max_seconds))
+                    # Assign and format the datetime of the event
+                    event["time:timestamp"] = datetime_delta.strftime("%Y-%m-%d %H:%M:%S")
 
                     # Initialize case information
                     event["concept:name:rule"] = str(rule)
@@ -333,12 +353,6 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
         return noise_percentage
 
-    def to_csv(self, csv_path: str):
-        """
-        Export to csv file the current results
-        """
-        self.__pd_results.to_csv(csv_path)
-
     def __handle_clingo_result(self, output: clingo.solving.Model):
         """
         A callback method which is given to the clingo
@@ -392,6 +406,27 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         if self.__use_custom_clingo_config:
             return int(self.__custom_configuration["TIME-LIMIT"])
         return int(self.__default_configuration["TIME-LIMIT"])
+
+    def to_csv(self, csv_path: str):
+        """
+        Export to csv file the current results
+        """
+        if not csv_path.endswith(".csv"):
+            csv_path += ".csv"
+
+        self.__pd_results.to_csv(csv_path)
+
+    def to_xes(self, xes_path: str):
+        """
+        Export to xes file the current results
+        """
+        if not xes_path.endswith(".xes"):
+            xes_path += ".xes"
+
+        event_log = pm4py.format_dataframe(self.__pd_results, case_id="case:concept:name", activity_key="concept:name", timestamp_key="time:timestamp")
+        pm4py.write_xes(event_log, xes_path)
+
+
 
     def use_custom_clingo_configuration(self,
                                         config: typing.Union[str, None] = None,
@@ -491,6 +526,12 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         """
         return self.__pb_model
 
+    def get_results_as_dataframe(self) -> pd.DataFrame:
+        """
+        Returns the Result Dataframe
+        """
+        return self.__pd_results
+
     def __debug_message(self, msg: any):
         """
         Used for debugging purposes, If verbose is True, the message is printed.
@@ -503,9 +544,10 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 if __name__ == '__main__':
     model_name = "experimental_model"
 
-    model1 = PositionalBasedModel(verbose=True).parse_from_file(f"DeclareFiles/{model_name}.decl")
+    model1 = PositionalBasedModel(positional_time_end=20, verbose=True).parse_from_file(f"DeclareFiles/{model_name}.decl")
     model1.to_asp_file(f"ASPFiles/{model_name}.lp")
     model1.to_asp_file(f"ASPFiles/{model_name}_enc.lp", True)
-    generator = PositionalBasedLogGenerator(40, 20, 20, model1, True)
+    generator = PositionalBasedLogGenerator(50, 20, 20, model1, True)
     generator.run(generate_negatives_traces=True, positive_noise_percentage=10, negative_noise_percentage=10)
     generator.to_csv(f"LogResults/{model_name}.csv")
+    generator.to_xes(f"LogResults/{model_name}.xes")

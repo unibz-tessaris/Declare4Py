@@ -28,9 +28,9 @@ class ASPFunctions:
 from clingo.symbol import Number
 import random
 def range(min_val, max_val):
-      return Number(random.randint(min_val.number, max_val.number))
+    return Number(random.randint(min_val.number, max_val.number))
 #end.
-    """
+"""
 
     ASP_PYTHON_RANGE_FUNCTION_FORMAT = "@range({},{})"
 
