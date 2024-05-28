@@ -58,14 +58,17 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         # Registers the script for solving range problems to the clingo library in order to use the function during the runtime of clingo
         register_script(ASPFunctions.ASP_PYTHON_SCRIPT_NAME, ASPClingoScript())
 
-    def run(self, equal_rule_split: bool = True, generate_negatives_traces: bool = False, positive_noise_percentage: int = 0, negative_noise_percentage: int = 0, append_results: bool = False):
+    def run(self, equal_rule_split: bool = True, high_variability: bool = True, generate_negatives_traces: bool = False, positive_noise_percentage: int = 0, negative_noise_percentage: int = 0, append_results: bool = False):
         """
         Method that generates positional based logs:
 
         Parameters
             equal_rule_split: bool = If True the generation will not be random and each rule will appear in a uniform manner
+            high_variability: bool = If True Generates the traces singularly otherwise generates the traces together with low variability
             generate_negatives_traces: bool = If True generates also the negative logs
             append_results: bool = If True appends the new log results to the existing logs
+            positive_noise_percentage: int = Indicates the noise in the positive traces
+            negative_noise_percentage: int = Indicates the noise in the negative traces
         """
 
         # Checks if the result must be appended, otherwise resets the dataframe
@@ -87,7 +90,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         asp, equal_rule_split = self.__prepare_asp_models(equal_rule_split)
 
         # Runs clingo and parses the results for the positive traces
-        self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, "Positives")
+        self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, high_variability, "Positives")
         self.__parse_results(self.__positive_results, "Positive", positive_noise_percentage)
 
         # If the generator must solve also the negative traces
@@ -99,7 +102,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
             asp, equal_rule_split = self.__prepare_asp_models(equal_rule_split, True)
 
             # Runs clingo and parses the results for the negative traces
-            self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, "Negatives")
+            self.__run_clingo_per_trace_set(asp, clingo_configuration, equal_rule_split, high_variability, "Negatives")
             self.__parse_results(self.__negatives_results, "Negative", negative_noise_percentage)
 
     def __prepare_asp_models(self, equal_rule_split: bool, generate_negatives: bool = False):
@@ -123,7 +126,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         # Return the models and the equal split rule for the solver
         return asp, equal_rule_split
 
-    def __run_clingo_per_trace_set(self, asp_list: typing.List[str], clingo_configuration: typing.List[str], equal_rule_split: bool, trace_type: str = "Positives"):
+    def __run_clingo_per_trace_set(self, asp_list: typing.List[str], clingo_configuration: typing.List[str], equal_rule_split: bool, high_variability: bool = True, trace_type: str = "Positives"):
         """
         Runs clingo for each set traces
         """
@@ -145,56 +148,54 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
             # For every number of events in the numer of traces generates a uniform set of trace
             for num_events, num_traces in self.compute_distribution(math.ceil(self.log_length / len(asp_list))).items():
 
-                # Defines some important parameters for clingo
-                """arguments: typing.List = [
-                    "-c",
-                    f"p={int(num_events)}",
-                    f"{int(num_traces)}",
-                    f"--seed={randrange(0, 2 ** 30 - 1)}",
-                    "--shuffle=1",
-                    "--restart-on-model",
-                    "--del-on-restart=100",
-                    "--project"
-                ]"""
-
-                for num_trace in range(num_traces):
-
-                    arguments: typing.List = [
-                        "-c",
-                        f"p={int(num_events)}",
-                        f"1",
-                        f"--seed={randrange(0, 2 ** 30 - 1)}",
-                        "--project"
-                    ]
-
-                    # Appends the options of our configurations
-                    arguments += clingo_configuration
-
-                    # Adds the arguments to clingo
-                    ctl = clingo.Control(arguments)
-                    ctl.add(asp)
-                    # Inserts the function for the range in clingo
-                    ctl.add('base', [], ASPFunctions.ASP_PYTHON_RANGE_SCRIPT)
-                    ctl.ground([('base', [])])
-
+                if high_variability:
+                    for num_trace in range(num_traces):
+                        # Signals the user for the start of the process
+                        self.__debug_message(f"Generating trace number {num_traces} with Events: {num_events}")
+                        self.__run_clingo(asp, clingo_configuration, num_events, 1, num_trace, trace_type)
+                else:
                     # Signals the user for the start of the process
-                    self.__debug_message(f"Total traces to generate and events: Traces:{num_trace}, Events: {num_events}")
+                    self.__debug_message(f"Generating {num_traces} traces with Events: {num_events}")
+                    self.__run_clingo(asp, clingo_configuration, num_events, num_traces, num_traces, trace_type)
 
-                    # Not sure if it works as intended
-                    # Should stop the clingo after x seconds
-                    # Starts the solving process
-                    # res = ctl.solve(on_model=self.__handle_clingo_result)
-                    with ctl.solve(on_model=self.__handle_clingo_result, async_=True) as handle:
-                        handle.wait(self.__get_clingo_time_limit())
-                        handle.cancel()
-                        res = handle.get()
+    def __run_clingo(self, asp: str, clingo_configuration: typing.List[str], num_events: int, traces_to_generate: int, num_traces: int, trace_type: str = "Positives"):
+        """
+        Runs clingo for one or more traces
+        """
 
-                    # Print results
-                    self.__debug_message(f" Clingo Result :{str(res)}")
-                    # Raise a Warning if UNSAT
-                    if res.unsatisfiable:
-                        warnings.warn(
-                            f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model model rule {self.__current_asp_rule}. Check the definition of your constraints')
+        arguments: typing.List = [
+            "-c",
+            f"p={int(num_events)}",
+            f"{traces_to_generate}",
+            f"--seed={randrange(0, 2 ** 30 - 1)}",
+            "--project"
+        ]
+
+        # Appends the options of our configurations
+        arguments += clingo_configuration
+
+        # Adds the arguments to clingo
+        ctl = clingo.Control(arguments)
+        ctl.add(asp)
+        # Inserts the function for the range in clingo
+        ctl.add('base', [], ASPFunctions.ASP_PYTHON_RANGE_SCRIPT)
+        ctl.ground([('base', [])])
+
+        # Not sure if it works as intended
+        # Should stop the clingo after x seconds
+        # Starts the solving process
+        # res = ctl.solve(on_model=self.__handle_clingo_result)
+        with ctl.solve(on_model=self.__handle_clingo_result, async_=True) as handle:
+            handle.wait(self.__get_clingo_time_limit())
+            handle.cancel()
+            res = handle.get()
+
+        # Print results
+        self.__debug_message(f" Clingo Result :{str(res)}")
+        # Raise a Warning if UNSAT
+        if res.unsatisfiable:
+            warnings.warn(
+                f'WARNING: Cannot generate {num_traces} {trace_type} trace/s exactly with {num_events} events with this Declare model model rule {self.__current_asp_rule}. Check the definition of your constraints')
 
     def __parse_results(self, results: typing.Dict, label: str, noise_percentage: int = 0):
 
@@ -425,8 +426,6 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
 
         event_log = pm4py.format_dataframe(self.__pd_results, case_id="case:concept:name", activity_key="concept:name", timestamp_key="time:timestamp")
         pm4py.write_xes(event_log, xes_path)
-
-
 
     def use_custom_clingo_configuration(self,
                                         config: typing.Union[str, None] = None,
