@@ -519,6 +519,24 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         self.__pd_results: pd.DataFrame = pd.DataFrame(columns=self.__pd_cols)
         self.__case_index: int = 0
 
+    def set_positional_based_time_range(self, positional_time_start: int = PositionalBasedModel.POSITIONAL_TIME_START, positional_time_end: int = PositionalBasedModel.POSITIONAL_TIME_END):
+        """
+        Sets the positional based time range of the model
+        """
+        self.__pb_model.set_positional_based_time_range(positional_time_start, positional_time_end)
+
+    def set_time_unit_in_seconds_range(self, time_unit_in_seconds_min: int = PositionalBasedModel.TIME_UNIT_IN_SECONDS_RANGE_MIN, time_unit_in_seconds_max: int = PositionalBasedModel.TIME_UNIT_IN_SECONDS_RANGE_MAX):
+        """
+        Sets the time unit in seconds range of the model
+        """
+        self.__pb_model.set_positional_based_time_range(time_unit_in_seconds_min, time_unit_in_seconds_max)
+
+    def get_time_unit_in_seconds_range(self) -> (int, int):
+        """
+        Returns the time unit in seconds conversion
+        """
+        return self.__pb_model.get_time_unit_in_seconds_range()
+
     def get_positional_based_model(self) -> PositionalBasedModel:
         """
         Returns the Positional Based Model

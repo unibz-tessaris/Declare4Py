@@ -98,7 +98,7 @@ class DeclareFunctions:
     DECL_ENCODE_ARG = "encode"
 
     # The following declaration initializes each argument type of each function argument
-    # function = [arg1, ..., argn]
+    # function = [arg_1, ..., arg_n]
 
     # Function pos; Arguments type information:
     DECL_POSITION_ARGS_TYPE = [
@@ -510,7 +510,7 @@ class DeclareFunctions:
         if function_dict["Type"] == cls.DECL_ABSOLUTE_POSITION:
 
             # If the last value is empty then select the function with 2 arguments
-            # Otherwise the function with 3 argumetns will be selected
+            # Otherwise the function with 3 arguments will be selected
             if values[2] == "_":
                 # Remove last value and argtype
                 values.pop(2)
@@ -647,9 +647,10 @@ class DeclareFunctions:
         return list(filter(lambda el: len(el) > 0, map(lambda el: el.strip(), elements)))
 
 
+"""
 if __name__ == "__main__":
-    # print(DeclareFunctions.is_activation_line("ACTIvity ER Registration, Er triage, org:group:,,  ,"))
-    # print(DeclareFunctions.parse_activation_line("ACTIvity ER Registration, Er activity triage, org:group:,,  ,"))
+    # print(DeclareFunctions.is_activation_line("activity ER Registration, Er triage, org:group:,,  ,"))
+    # print(DeclareFunctions.parse_activation_line("activity ER Registration, Er activity triage, org:group:,,  ,"))
     # print(DeclareFunctions.has_constraints_in_line("pos(1,2,3), payload(1,2,3)"))
     # import pprint as p
 
@@ -657,3 +658,4 @@ if __name__ == "__main__":
     # print(DeclareFunctions.parse_constraint_line("pos(ER Registration, 1, 1), payload(org:group, 1, :V1), pos(ER Sepsis Triage, 2, 3), payload(org:group, 2, :V2), :V1 == :V2"))
 
     pass
+"""
