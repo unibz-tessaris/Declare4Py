@@ -17,6 +17,8 @@ class ASPFunctions:
     ASP_ASSIGNED_VALUE = "assigned_value"
     ASP_FIXED_EVENT = "fixed_event_rule"
     ASP_FIXED_TIME_EVENT = "fixed_timed_event_rule"
+    ASP_BOUNDED_EVENT = "bounded_event_rule"
+    ASP_BOUNDED_TIME_EVENT = "bounded_timed_event_rule"
     ASP_FIXED_PAYLOAD = "fixed_payload_rule"
 
     # Defines Clingo Script information
@@ -35,17 +37,51 @@ def range(min_val, max_val):
     ASP_PYTHON_RANGE_FUNCTION_FORMAT = "@range({},{})"
 
     # Defines the ASP String Parsing functions
-    ASP_ACTIVITY_FORMAT = "activity({})"
-    ASP_HAS_ATTRIBUTE_FORMAT = "has_attribute({}, {})"
-    ASP_ATTRIBUTE_VALUE_FORMAT = "attribute_value({}, {})"
-    ASP_ATTRIBUTE_RANGE_FORMAT = "attribute_value({}, {}..{})"
-    ASP_TIME_RANGE_FORMAT = "time({}..{})."
-    ASP_TIME_EVENT_FORMAT = "timed_event({}, {}, {})"
-    ASP_ASSIGNED_VALUE_FORMAT = "assigned_value({}, {}, {})"
-    ASP_ASSIGNED_VALUE_RANGE_FORMAT = "assigned_value({}, " + ASP_PYTHON_RANGE_FUNCTION_FORMAT + ", {})"
-    ASP_FIXED_EVENT_FORMAT = "fixed_event_rule :- timed_event({}, POS, _), POS != {}"
-    ASP_FIXED_TIME_EVENT_FORMAT = "fixed_timed_event_rule :- timed_event({}, POS, TIME), POS != {}, TIME != {}"
-    ASP_FIXED_PAYLOAD_FORMAT = "fixed_payload_rule :- assigned_value({}, ATTR_VALUE, _), ATTR_VALUE != {}"
+
+    # activity({})
+    ASP_ACTIVITY_FORMAT = ASP_ACTIVITY + "({})"
+
+    # has_attribute({}, {})
+    ASP_HAS_ATTRIBUTE_FORMAT = ASP_HAS_ATTRIBUTE + "({}, {})"
+
+    # attribute_value({}, {})
+    ASP_ATTRIBUTE_VALUE_FORMAT = ASP_ATTRIBUTE_VALUE + "({}, {})"
+
+    # attribute_value({}, {}..{})
+    ASP_ATTRIBUTE_RANGE_FORMAT = ASP_ATTRIBUTE_VALUE + "({}, {}..{})"
+
+    # time({}..{}).
+    ASP_TIME_RANGE_FORMAT = ASP_TIME_RANGE + "({}..{})."
+
+    # timed_event({}, {}, {})
+    ASP_TIME_EVENT_FORMAT = ASP_TIMED_EVENT + "({}, {}, {})"
+
+    # assigned_value({}, {}, {})
+    ASP_ASSIGNED_VALUE_FORMAT = ASP_ASSIGNED_VALUE + "({}, {}, {})"
+
+    # assigned_value({}, @range({}.{}), {})
+    ASP_ASSIGNED_VALUE_RANGE_FORMAT = ASP_ASSIGNED_VALUE + "({}, " + ASP_PYTHON_RANGE_FUNCTION_FORMAT + ", {})"
+
+    # fixed_event_rule :- timed_event({}, POS, _), POS != {}"
+    ASP_FIXED_EVENT_FORMAT = ASP_FIXED_EVENT + " :- " + ASP_TIMED_EVENT + "({}, POS, _), POS != {}"
+
+    # fixed_timed_event_rule :- timed_event({}, POS, TIME), POS != {}, TIME != {}
+    ASP_FIXED_TIME_EVENT_FORMAT = ASP_FIXED_TIME_EVENT + " :- " + ASP_TIMED_EVENT + "({}, POS, TIME), POS != {}, TIME != {}"
+
+    # bounded_event_rule :- timed_event({}, POS, _), POS >= {}
+    ASP_BOUNDED_ABOVE_EVENT_FORMAT = ASP_BOUNDED_EVENT + " :- " + ASP_TIMED_EVENT + "({}, POS, _), POS >= {}"
+
+    # bounded_timed_event_rule :- timed_event({}, POS, TIME), POS >= {}, TIME >= {}
+    ASP_BOUNDED_ABOVE_TIME_EVENT_FORMAT = ASP_BOUNDED_TIME_EVENT + " :- " + ASP_TIMED_EVENT + "({}, POS, TIME), POS >= {}, TIME >= {}"
+
+    # bounded_event_rule :- timed_event({}, POS, _), POS <= {}
+    ASP_BOUNDED_BELOW_EVENT_FORMAT = ASP_BOUNDED_EVENT + " :- " + ASP_TIMED_EVENT + "({}, POS, _), POS <= {}"
+
+    # bounded_timed_event_rule :- timed_event({}, POS, TIME), POS <=> {}, TIME <=> {}
+    ASP_BOUNDED_BELOW_TIME_EVENT_FORMAT = ASP_BOUNDED_TIME_EVENT + " :- " + ASP_TIMED_EVENT + "({}, POS, TIME), POS <= {}, TIME <= {}"
+
+    # fixed_payload_rule :- assigned_value({}, ATTR_VALUE, _), ATTR_VALUE != {}
+    ASP_FIXED_PAYLOAD_FORMAT = ASP_FIXED_PAYLOAD + " :- " + ASP_ASSIGNED_VALUE + "({}, ATTR_VALUE, _), ATTR_VALUE != {}"
 
     # File extension
     ASP_FILE_EXTENSION = ".lp"

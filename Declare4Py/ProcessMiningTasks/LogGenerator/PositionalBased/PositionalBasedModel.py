@@ -398,6 +398,7 @@ class PBConstraint(ASPEntity, DeclareEntity):
             # Extracts the arguments type
             args_type: typing.List[DeclareFunctions.DeclAttributeType] = constraint.pop("ArgsType")
             try:
+
                 # For each value in the constraint together with his type
                 for value, decl_attr in zip(constraint["Values"], args_type):
                     # Parse the value and the type
@@ -408,12 +409,14 @@ class PBConstraint(ASPEntity, DeclareEntity):
                     constraints_list.append(const)
                     encoded_constraints_list.append(encoded_const)
 
-                # Add to the constraints the ASP function
-                self.__ASP_constraints.append(neg + asp_format_function.format(*format_args))
-                self.__ASP_encoded_constraints.append(neg + asp_format_function.format(*format_encoded_args))
-                # Add to the constraints the extra constraints
-                self.__ASP_constraints += self.__filter_elements(constraints_list)
-                self.__ASP_encoded_constraints += self.__filter_elements(encoded_constraints_list)
+                # if the function has an ASP formatted option then format
+                if asp_format_function is not None:
+                    # Add to the constraints the ASP function
+                    self.__ASP_constraints.append(neg + asp_format_function.format(*format_args))
+                    self.__ASP_encoded_constraints.append(neg + asp_format_function.format(*format_encoded_args))
+                    # Add to the constraints the extra constraints
+                    self.__ASP_constraints += self.__filter_elements(constraints_list)
+                    self.__ASP_encoded_constraints += self.__filter_elements(encoded_constraints_list)
 
                 # If the constraint has an absolute rule
                 if constraint["AbsoluteRule"]:

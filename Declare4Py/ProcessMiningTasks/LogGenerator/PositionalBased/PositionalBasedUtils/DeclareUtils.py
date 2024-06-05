@@ -38,9 +38,13 @@ class DeclareFunctions:
     DECL_ABSOLUTE_PAYLOAD = "absolute_payload"
     DECL_PAYLOAD_RANGE = "payload_range"
     DECL_CONDITIONAL = "conditional"
+    DECL_BOUND_POS_ABOVE = "pos_not_greater_than"
+    DECL_BOUND_POS_BELOW = "pos_not_lower_than"
 
     # Defining the order of importance for the constraint function search during parsing
     DECL_CONSTRAINT_FUNCTIONS = [
+        DECL_BOUND_POS_ABOVE,
+        DECL_BOUND_POS_BELOW,
         DECL_ABSOLUTE_POSITION,
         DECL_POSITION,
         DECL_ABSOLUTE_PAYLOAD,
@@ -130,6 +134,12 @@ class DeclareFunctions:
         DeclAttributeType("Attribute", DECL_ENCODE_ARG, can_have_op=False, can_be_empty=False),
         DeclAttributeType("Value", DECL_ANY_ARG, can_have_op=False, can_be_empty=False)
     ]
+    # Function pos_not_greater_than and pos_not_lower_than; Arguments type information:
+    DECL_BOUND_THAN_ARGS_TYPE = [
+        DeclAttributeType("Activity", DECL_ENCODE_ARG, can_have_op=False, can_be_empty=False),
+        DeclAttributeType("Position", DECL_INT_ARG, can_have_op=False, can_be_empty=False),
+        DeclAttributeType("Time", DECL_INT_ARG, can_have_op=False)
+    ]
 
     # Defining constraint regex pattern
     DECL_POSITION_PATTERN = r"!?pos[(][^,]+,[^,]+,[^,]+[)]"
@@ -137,11 +147,15 @@ class DeclareFunctions:
     DECL_PAYLOAD_PATTERN = r"!?payload[(][^,]+,[^,]+,[^,]+[)]"
     DECL_PAYLOAD_RANGE_PATTERN = r"payload_range[(][^,]+,[^,]+,[^,]+,[^,]+[)]"
     DECL_ABSOLUTE_PAYLOAD_PATTERN = r"absolute_payload[(][^,]+,[^,]+[)]"
+    DECL_POSITION_BOUNDED_ABOVE_PATTERN = r"pos_not_greater_than[(][^,]+,[^,]+,[^,]+[)]"
+    DECL_POSITION_BOUNDED_BELOW_PATTERN = r"pos_not_lower_than[(][^,]+,[^,]+,[^,]+[)]"
     DECL_CONDITIONAL_VARIABLE_PATTERN = r"(\w[\w.]+|:?\w+)\s*(([+]|-)\s*(\w[\w.]+|:?\w+))?\s*(==|!=|>=|<=|>|<)\s*(\w[\w.]+|:?\w+)\s*(([+]|-)\s*(\w[\w.]+|:?\w+))?"
     DECL_INTEGER_OR_FLOAT_PATTERN = r"\d+(.\d+)?"
 
     # Defining the order of importance for the constraint pattern, Otherwise some pattern might find themselves in other patterns
     DECL_CONSTRAINT_PATTERNS = [
+        DECL_POSITION_BOUNDED_ABOVE_PATTERN,
+        DECL_POSITION_BOUNDED_BELOW_PATTERN,
         DECL_ABSOLUTE_POSITION_PATTERN,
         DECL_POSITION_PATTERN,
         DECL_ABSOLUTE_PAYLOAD_PATTERN,
@@ -196,6 +210,30 @@ class DeclareFunctions:
             "ASPRule": {"2": ASPFunctions.ASP_FIXED_EVENT, "3": ASPFunctions.ASP_FIXED_TIME_EVENT},
             "ASPRuleFormat": {"2": ASPFunctions.ASP_FIXED_EVENT_FORMAT, "3": ASPFunctions.ASP_FIXED_TIME_EVENT_FORMAT}
         },
+        # Function pos_not_greater_than
+        DECL_BOUND_POS_ABOVE: {
+            "Type": DECL_BOUND_POS_ABOVE,
+            "Negated": False,
+            "ArgsType": DECL_BOUND_THAN_ARGS_TYPE.copy(),
+            "Pattern": DECL_POSITION_BOUNDED_ABOVE_PATTERN,
+            "ASPFunction": None,
+            "ASPFormat": {"2": None, "3": None},
+            "AbsoluteRule": True,
+            "ASPRule": {"2": ASPFunctions.ASP_BOUNDED_EVENT, "3": ASPFunctions.ASP_BOUNDED_TIME_EVENT},
+            "ASPRuleFormat": {"2": ASPFunctions.ASP_BOUNDED_ABOVE_EVENT_FORMAT, "3": ASPFunctions.ASP_BOUNDED_ABOVE_TIME_EVENT_FORMAT}
+        },
+        # Function pos_not_lower_than
+        DECL_BOUND_POS_BELOW: {
+            "Type": DECL_BOUND_POS_BELOW,
+            "Negated": False,
+            "ArgsType": DECL_BOUND_THAN_ARGS_TYPE.copy(),
+            "Pattern": DECL_POSITION_BOUNDED_BELOW_PATTERN,
+            "ASPFunction": None,
+            "ASPFormat": {"2": None, "3": None},
+            "AbsoluteRule": True,
+            "ASPRule": {"2": ASPFunctions.ASP_BOUNDED_EVENT, "3": ASPFunctions.ASP_BOUNDED_TIME_EVENT},
+            "ASPRuleFormat": {"2": ASPFunctions.ASP_BOUNDED_BELOW_EVENT_FORMAT, "3": ASPFunctions.ASP_BOUNDED_BELOW_TIME_EVENT_FORMAT}
+        },
         # Function payload
         DECL_PAYLOAD: {
             "Type": DECL_PAYLOAD,
@@ -245,6 +283,8 @@ class DeclareFunctions:
             "ASPRuleFormat": None
         },
     }
+
+    LIST_OF_FUNCTION_WITH_ARGS_OVERLOAD = [DECL_ABSOLUTE_POSITION, DECL_BOUND_POS_ABOVE, DECL_BOUND_POS_BELOW]
 
     # Defining file extension
     DECL_FILE_EXTENSION = ".decl"
@@ -506,8 +546,8 @@ class DeclareFunctions:
         Parses additional conditional declarations for specific functions
         """
 
-        # Selection of the overloaded ASP rule for the absolute_pos function
-        if function_dict["Type"] == cls.DECL_ABSOLUTE_POSITION:
+        # Selection of the overloaded ASP rule if the function has overload
+        if function_dict["Type"] in cls.LIST_OF_FUNCTION_WITH_ARGS_OVERLOAD:
 
             # If the last value is empty then select the function with 2 arguments
             # Otherwise the function with 3 arguments will be selected
