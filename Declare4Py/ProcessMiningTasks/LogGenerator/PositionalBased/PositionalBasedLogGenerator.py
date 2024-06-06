@@ -58,7 +58,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
         # Registers the script for solving range problems to the clingo library in order to use the function during the runtime of clingo
         register_script(ASPFunctions.ASP_PYTHON_SCRIPT_NAME, ASPClingoScript())
 
-    def run(self, equal_rule_split: bool = True, high_variability: bool = True, generate_negatives_traces: bool = False, positive_noise_percentage: int = 0, negative_noise_percentage: int = 0, append_results: bool = False):
+    def run(self, equal_rule_split: bool = True, high_variability: bool = False, generate_negatives_traces: bool = False, positive_noise_percentage: int = 0, negative_noise_percentage: int = 0, append_results: bool = False):
         """
         Method that generates positional based logs:
 
