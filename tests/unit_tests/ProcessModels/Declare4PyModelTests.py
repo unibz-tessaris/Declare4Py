@@ -1,4 +1,4 @@
-from Declare4Py.ProcessModels.Declare4PyModel import *
+from Declare4Py.ProcessModels.DeclareModel import *
 
 """
 Test suite for the class Declare4PyModel.DeclareToken 

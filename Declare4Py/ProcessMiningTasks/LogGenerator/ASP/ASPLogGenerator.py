@@ -28,7 +28,6 @@ from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPTranslator.ASPModel impor
 from Declare4Py.ProcessModels.DeclareModel import DeclareModel
 from Declare4Py.ProcessModels.DeclareModel import DeclareParsedDataModel
 from Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
-from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
 from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttr
 
 
@@ -541,11 +540,11 @@ class AspGenerator(AbstractLogGenerator):
         if is_number:
             if res_name_decoded in attr_list:
                 attr = attr_list[res_name_decoded]
-                if attr.value_type != DeclareModelAttributeType.ENUMERATION:
+                if attr.value_type != DeclareModelAttr.ENUMERATION:
                     num = res_value_decoded
-                    if attr.value_type == DeclareModelAttributeType.FLOAT_RANGE:
+                    if attr.value_type == DeclareModelAttr.FLOAT_RANGE:
                         num = int(res_value_decoded) / 10**attr.attr_value.precision
-                    elif attr.value_type == DeclareModelAttributeType.INTEGER_RANGE:
+                    elif attr.value_type == DeclareModelAttr.INTEGER_RANGE:
                         num = int(res_value_decoded)
                     res_value_decoded = num
         if isinstance(res_value_decoded, str):

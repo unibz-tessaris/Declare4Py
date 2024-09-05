@@ -3,7 +3,7 @@ from __future__ import annotations
 from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPTranslator.ConstraintResolver import DeclareModelConditionResolver2ASP
 
 #TODO change imports
-from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
+# from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
 from Declare4Py.ProcessModels.DeclareModel import DeclareModelEvent
 from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttr
 from Declare4Py.ProcessModels.DeclareModel import DeclareModel
@@ -71,7 +71,8 @@ class ASPModel:
         """
         attr_name = attr.attr_name.get_encoded_name() if self.encode_decl_model_values else attr.attr_name.get_name()
         attr_val_typ = attr.attr_value.attribute_value_type
-        if attr_val_typ is not DeclareModelAttributeType.ENUMERATION:
+        # cambiato DeclareModelAttributeType -> DeclareModelAttr
+        if attr_val_typ is not DeclareModelAttr.ENUMERATION:
             frm, til = attr.attr_value.get_precisioned_value()
             self.add_attribute_value_to_list(f'value({attr_name}, {frm}..{til}).')
         else:
