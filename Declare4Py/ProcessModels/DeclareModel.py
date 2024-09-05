@@ -8,6 +8,7 @@ from enum import Enum
 from Declare4Py.ProcessModels.LTLModel import LTLModel
 
 
+#ok
 class DeclareModelTemplate(str, Enum):
     """ Enum class containing the metadata for each Constraint Template supported
 
@@ -211,11 +212,13 @@ class DeclareModelTemplate(str, Enum):
         return "\"" + str(self.__str__()) + "\""
 
 
+#ok
 class DeclareModelConditionParserUtility:
     """
     Class to support backward-compatibility to some older code. It contains two methods which parse and evaluate
      declare model conditions.
     """
+
     def __init__(self):
         super().__init__()
 
@@ -340,218 +343,12 @@ class DeclareModelConditionParserUtility:
             raise SyntaxError
 
 
-class DeclareModelAttributeType(str, Enum):
-    """An Enum class that specifies types of attributes of the Declare model
-    """
-    INTEGER = "integer"
-    FLOAT = "float"
-    INTEGER_RANGE = "integer_range"
-    FLOAT_RANGE = "float_range"
-    ENUMERATION = "enumeration"
-
-    def __str__(self):
-        return self.value
-
-    def __repr__(self):
-        return "\"" + self.__str__() + "\""
-
-
-class DeclareModelCoderSingletonMeta(type):
-    """
-        DeclareModelCoderSingletonMeta is a custom metaclass that implements the singleton pattern in Python.
-        A metaclass is a special kind of class that defines the behavior of other classes. In the case of DeclareModelCoderSingletonMeta,
-        it implements the __call__ method, which is called whenever an instance of the class is created.
-        The __call__ method checks if an instance of the class has already been created, and if not, creates a new
-        instance and stores it in a class-level dictionary _instances. If an instance has already been created,
-        it simply returns the existing instance.
-        To use the DeclareModelCoderSingletonMeta class, specify it as the metaclass for the class you want to make a singleton. For example:
-            class Singleton(metaclass=DeclareModelCoderSingletonMeta):
-                pass
-        Now, every time you create an instance of the Singleton class, you will always get the same instance,
-         regardless of how many times you create it. This ensures that the singleton pattern is maintained.
-    """
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        """
-         This method is called whenever an instance of the class is created.
-         It checks if an instance of the class has already been created, and if not,
-         creates a new instance and stores it in a class-level dictionary _instances.
-         If an instance has already been created, it simply returns the existing instance.
-       """
-        if cls not in cls._instances:
-            cls._instances[cls] = super().__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-
-class DeclareModelCoderSingleton(metaclass=DeclareModelCoderSingletonMeta):
-    """ A singleton class which encodes and decodes the given values. It contains the information of encoded values
-     during its lifecycle, so, it can decode the values back.
-    """
-    def __init__(self):
-        self.encoded_values: dict[str, str] = {}
-        self._inverse_encoded_values_store: dict[str, str] = {}
-        self.event_nm_idx: int = 0
-        self.event_vl_idx: int = 0
-        self.attr_nm_idx: int = 0
-        self.attr_vl_idx: int = 0
-        self.other_counter: int = 0
-
-    def encode_value(self, val2encode: str, val_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]) -> str:
-        """
-        Encode the given value
-        Parameters
-        ----------
-        val2encode: str
-            value to encode
-        val_type: str, optional
-            type of value it is. Ie. the value can be the name of activity, attribute or its values(enumeration).
-
-        Returns
-        -------
-
-        """
-        if not isinstance(val2encode, str):
-            return val2encode
-        if val2encode.isnumeric():
-            return val2encode
-        val2encode = val2encode.strip()
-        if val2encode in self.encoded_values:
-            return val2encode
-        if val2encode in self._inverse_encoded_values_store:
-            return self._inverse_encoded_values_store[val2encode]
-
-        encoded_val = ""
-        if val_type == "event_name":
-            encoded_val = f"evt_name_{self.event_nm_idx}"
-            self.event_nm_idx = self.event_nm_idx + 1
-        elif val_type == "event_value":
-            encoded_val = f"evt_val_{self.event_vl_idx}"
-            self.event_vl_idx = self.event_vl_idx + 1
-        elif val_type == "attr_name":
-            encoded_val = f"attr_name_{self.attr_nm_idx}"
-            self.attr_nm_idx = self.attr_nm_idx + 1
-        elif val_type == "attr_val":
-            encoded_val = f"attr_value_{self.attr_vl_idx}"
-            self.attr_vl_idx = self.attr_vl_idx + 1
-        else:
-            encoded_val = f"other_{self.other_counter}"
-            self.other_counter = self.other_counter + 1
-
-        # s = val2encode[0]
-        # nm = val2encode
-        # if s.isupper():
-        #     nm = "l" + nm[1:]
-        # nm = nm.replace(":", "__")
-        # nm = nm.replace(",", "cOmMa")
-        # nm = nm.replace(".", "dOt")
-        # nm = nm.replace(" ", "___")
-        # nm = nm.replace("?", "qUeStIoNMaRk")
-        # nm = nm.replace("=", "eQualsSigN")
-        # encoded_val = nm
-
-        self.encoded_values[encoded_val] = val2encode
-        self._inverse_encoded_values_store[val2encode] = encoded_val
-        return encoded_val
-
-    def decode_value(self, s: str) -> str:
-
-
-        """
-        Decode the given value if it finds in the encoded_values list.
-        Parameters
-        ----------
-        s: str
-            a string value to decode.
-
-        Returns
-        -------
-        str
-        """
-
-        if not isinstance(s, str):
-            return s
-        if s.isnumeric():
-            return s
-        s = s.strip()
-        if s in self.encoded_values:
-            return self.encoded_values[s]
-
-        if s in self._inverse_encoded_values_store:
-            return self._inverse_encoded_values_store[s]
-        raise ValueError(f"Unable to decode value {s}.")
-
-
-class DeclareModelToken(ABC):
-    """A Data model that represent each word of declare model as token."""
-    def __init__(self, token: str, token_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]):
-        self.encoder = DeclareModelCoderSingleton()
-        self.value = token
-        self.token_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"] = token_type
-
-    def get_name(self) -> str:
-        """Returns the name of the token"""
-        return self.value
-
-    def set_name(self, value) -> None:
-        self.value = value
-
-    def get_encoded_name(self) -> str:
-        """Returns the encoded values of token.
-        Returns
-        -------
-        str
-        """
-        if self.value.lower() == "activity" and self.token_type == "event_name":
-            return "activity"
-        return self.encoder.encode_value(self.get_name(), self.token_type)
-
-    def to_dict(self) -> dict:
-        """ Returns the dict which represents the object itself. This is for generating the JSON object"""
-        return {
-            "name": self.get_name(),
-            "encoded_name": self.get_encoded_name(),
-        }
-
-
-class DeclareModelEventName(DeclareModelToken):
-    """
-    A class representing an event name in a Declare Model, inheriting from DeclareModelToken.
-    Event name: activity(EventName). Eventname could be anything like: driving_test, ER_triage etc
-    """
-    def __init__(self, name: str):
-        """
-        Initializes a DeclareModelEventName instance with the provided name.
-
-        Parameters
-        ----------
-        name: str
-            The name of the event.
-        """
-        super().__init__(name, "event_value")
-
-
-class DeclareModelEventType(DeclareModelToken):
-    """
-    A class representing an event type in a Declare Model, inheriting from DeclareModelToken.
-    Event type: activity, action etc
-    """
-    def __init__(self, name: str):
-        """
-        Initializes a DeclareModelEventType instance with the provided name of the Event.
-
-        Parameters
-        ----------
-        name: str
-            The name of the event.
-        """
-        super().__init__(name, "event_name")
-
-
+#ok
 class DeclareModelEvent:
     """
     A class representing an event in a Declare Model, containing the event name, event type, and attributes.
     """
+
     def __init__(self, name: str, event_type: str):
         """
         Initializes a DeclareModelEvent instance with the provided name and event type.
@@ -563,8 +360,8 @@ class DeclareModelEvent:
         event_type: str
             The event type, e.g., in activity(actName), activity is the event type.
         """
-        self.event_name = DeclareModelEventName(name)
-        self.event_type = DeclareModelEventType(event_type)
+        self.event_name = DeclareModelToken(name, "event_value")
+        self.event_type = DeclareModelToken(event_type, "event_name")
         self.attributes: dict[str, DeclareModelAttr] = {}
 
     def set_bound_attributes(self, attrs_list: [DeclareModelAttr]) -> None:
@@ -580,7 +377,6 @@ class DeclareModelEvent:
         for i in attrs_list:
             attrModel: DeclareModelAttr = i
             self.attributes[attrModel.attr_name] = attrModel
-            j = j + 1
 
     def set_bound_attribute(self, attr: DeclareModelAttr) -> None:
         """
@@ -623,27 +419,159 @@ class DeclareModelEvent:
         }
 
 
-class DeclareModelAttrName(DeclareModelToken, ABC):
+#vedere se funziona
+class DeclareModelEncoder:
+    """ A singleton class which encodes and decodes the given values. It contains the information of encoded values
+     during its lifecycle, so, it can decode the values back.
     """
-    A class representing an attribute name in a Declare Model, inheriting from DeclareModelToken.
-    """
-    def __init__(self, name: str):
-        """
-        Initializes a DeclareModelEventName instance with the provided name.
 
+    instance = None
+
+    # Constructor
+    def __new__(cls):
+        """
+        A singleton class which encodes and decodes the given values. It contains the information of encoded values
+        during its lifecycle, so, it can decode the values back.
+        """
+        if cls.instance is None:
+            cls.instance = super(DeclareModelEncoder, cls).__new__(cls)
+        return cls.instance
+
+    encoded_values: dict[str, str] = {}
+    _inverse_encoded_values_store: dict[str, str] = {}
+    event_nm_idx: int = 0
+    event_vl_idx: int = 0
+    attr_nm_idx: int = 0
+    attr_vl_idx: int = 0
+    other_counter: int = 0
+
+    @classmethod
+    def encode_value(cls, val2encode: str, val_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]) -> str:
+        """
+        Encode the given value
         Parameters
         ----------
-        name: str
-            The name of the event.
+        val2encode: str
+            value to encode
+        val_type: str, optional
+            type of value it is. Ie. the value can be the name of activity, attribute or its values(enumeration).
+
+        Returns
+        -------
+
         """
-        super().__init__(name, "attr_name")
+        if not isinstance(val2encode, str):
+            return val2encode
+        if val2encode.isnumeric():
+            return val2encode
+        val2encode = val2encode.strip()
+        if val2encode in cls.encoded_values:
+            return val2encode
+        if val2encode in cls._inverse_encoded_values_store:
+            return cls._inverse_encoded_values_store[val2encode]
+
+        encoded_val = ""
+        if val_type == "event_name":
+            encoded_val = f"evt_name_{cls.event_nm_idx}"
+            cls.event_nm_idx = cls.event_nm_idx + 1
+        elif val_type == "event_value":
+            encoded_val = f"evt_val_{cls.event_vl_idx}"
+            cls.event_vl_idx = cls.event_vl_idx + 1
+        elif val_type == "attr_name":
+            encoded_val = f"attr_name_{cls.attr_nm_idx}"
+            cls.attr_nm_idx = cls.attr_nm_idx + 1
+        elif val_type == "attr_val":
+            encoded_val = f"attr_value_{cls.attr_vl_idx}"
+            cls.attr_vl_idx = cls.attr_vl_idx + 1
+        else:
+            encoded_val = f"other_{cls.other_counter}"
+            cls.other_counter = cls.other_counter + 1
+
+        cls.encoded_values[encoded_val] = val2encode
+        cls._inverse_encoded_values_store[val2encode] = encoded_val
+        return encoded_val
+
+    @classmethod
+    def decode_value(cls, s: str) -> str:
+
+        """
+        Decode the given value if it finds in the encoded_values list.
+        Parameters
+        ----------
+        s: str
+            a string value to decode.
+
+        Returns
+        -------
+        str
+        """
+
+        if not isinstance(s, str):
+            return s
+        if s.isnumeric():
+            return s
+        s = s.strip()
+        if s in cls.encoded_values:
+            return cls.encoded_values[s]
+
+        if s in cls._inverse_encoded_values_store:
+            return cls._inverse_encoded_values_store[s]
+        raise ValueError(f"Unable to decode value {s}.")
+
+    @classmethod
+    def to_dict(cls) -> dict:
+        return {
+            "event_nm_idx": cls.event_nm_idx,
+            "event_vl_idx": cls.event_vl_idx,
+            "attr_nm_idx": cls.attr_nm_idx,
+            "attr_vl_idx": cls.attr_vl_idx,
+            "other_counter": cls.other_counter,
+            "encoded_values": cls.encoded_values,
+            "inverse_encoded_values": cls._inverse_encoded_values_store
+        }
 
 
+#ok
+class DeclareModelToken(ABC):
+    """A Data model that represent each word of declare model as token."""
+
+    def __init__(self, token: str, token_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"]):
+        self.encoder = DeclareModelEncoder()
+        self.value = token
+        self.token_type: typing.Literal["event_name", "event_value", "attr_name", "attr_val"] = token_type
+
+    def get_name(self) -> str:
+        """Returns the name of the token"""
+        return self.value
+
+    def set_name(self, value) -> None:
+        self.value = value
+
+    def get_encoded_name(self) -> str:
+        """Returns the encoded values of token.
+        Returns
+        -------
+        str
+        """
+        if self.value.lower() == "activity" and self.token_type == "event_name":
+            return "activity"
+        return self.encoder.encode_value(self.get_name(), self.token_type)
+
+    def to_dict(self) -> dict:
+        """ Returns the dict which represents the object itself. This is for generating the JSON object"""
+        return {
+            "name": self.get_name(),
+            "encoded_name": self.get_encoded_name(),
+        }
+
+
+#ok
 class DeclareModelAttrValue(DeclareModelToken, ABC):
     """
     A class representing a Declare Model Attribute Value, which can be one of three types: enumeration, float range, or integer range.
     """
-    def __init__(self, value: str, value_type: DeclareModelAttributeType):
+
+    def __init__(self, value: str, value_type: str):
         """
         Initializes a DeclareModelAttrValue instance with the provided value and value type.
 
@@ -669,15 +597,15 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
         if self.value_original is None:
             return
         pattern = re.compile(r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)")
-        if self.attribute_value_type == DeclareModelAttributeType.FLOAT_RANGE:
+        if self.attribute_value_type == DeclareModelAttr.FLOAT_RANGE:
             matches = pattern.findall(self.value_original)
             self.value = [float(matches[0]), float(matches[1])]
             self.precision = self.get_float_biggest_precision(self.value[0], self.value[1])
-        elif self.attribute_value_type == DeclareModelAttributeType.INTEGER_RANGE:
+        elif self.attribute_value_type == DeclareModelAttr.INTEGER_RANGE:
             self.precision = 1
             match = pattern.findall(self.value_original)  # Extract the numeric
             self.value = [int(match[0]), int(match[1])]
-        elif self.attribute_value_type == DeclareModelAttributeType.ENUMERATION:
+        elif self.attribute_value_type == DeclareModelAttr.ENUMERATION:
             self.value = [DeclareModelToken(v.strip(), "attr_val") for v in self.value_original.split(',')]
         else:
             raise ValueError("Unable to parse the attribute value. Attribute values can be Enumeration separated"
@@ -716,14 +644,14 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
         """
         Returns the attribute value with precision applied, if it's a float range.
         If the value is type of range float or integer, it will return array of two integer values, precision applied.
-        if the value is type of enumeration, then the each element will be type of DeclareModelToken.
+        if the value is type of enumeration, then each element will be type of DeclareModelToken.
         Precision applied means that floats are converted into integer and scaled up based on decimal values.
         Returns
         -------
         Union[List[DeclareModelToken], List[int]]
             The attribute value with precision applied.
         """
-        if self.attribute_value_type == DeclareModelAttributeType.FLOAT_RANGE:
+        if self.attribute_value_type == DeclareModelAttr.FLOAT_RANGE:
             frm = int((10 ** self.precision) * self.value[0])
             to = int((10 ** self.precision) * self.value[1])
             return [frm, to]
@@ -757,17 +685,25 @@ class DeclareModelAttrValue(DeclareModelToken, ABC):
         }
 
 
+#ok
 class DeclareModelAttr:
     """A class representing the attribute of declare model, An attribute can be imagined as resources shared
      between events. Contains information about the name of attribute, values, events attached to it.
     """
+
+    INTEGER = "integer"
+    FLOAT = "float"
+    INTEGER_RANGE = "integer_range"
+    FLOAT_RANGE = "float_range"
+    ENUMERATION = "enumeration"
+
     def __init__(self, attr: str, value: str = None):
-        self.attr_name = DeclareModelAttrName(attr)
+        self.attr_name = DeclareModelToken(attr, "attr_name")
         if value is not None:
-            self.value_type: DeclareModelAttributeType = self.detect_declare_attr_value_type(value)
-            self.attr_value = DeclareModelAttrValue(value, self.value_type)
+            self.value_type: str = self.detect_declare_attr_value_type(value)
+            self.attr_value: typing.Union[None, DeclareModelAttrValue] = DeclareModelAttrValue(value, self.value_type)
         else:
-            self.attr_value: DeclareModelAttrValue = None
+            self.attr_value: typing.Union[None, DeclareModelAttrValue] = None
         self.attached_events: dict[str, DeclareModelEvent] = {}
 
     def get_name(self) -> str:
@@ -792,7 +728,7 @@ class DeclareModelAttr:
         self.attached_events[event.get_event_name()] = event
         event.set_bound_attribute(self)
 
-    def detect_declare_attr_value_type(self, value: str) -> DeclareModelAttributeType:
+    def detect_declare_attr_value_type(self, value: str) -> str:
         """
         Detect the type of value assigned to an attribute assigned
         Parameters
@@ -802,22 +738,22 @@ class DeclareModelAttr:
 
         Returns
         -------
-            DeclareModelAttributeType
+                DeclareModelAttr
         """
         value = value.strip()
         v2 = value.replace("  ", "")
         if re.search(r"^[+-]?\d+$", value, re.MULTILINE):
-            return DeclareModelAttributeType.INTEGER
+            return DeclareModelAttr.INTEGER
         elif re.search(r"^[+-]?\d+(?:\.\d+)?$", value, re.MULTILINE):
-            return DeclareModelAttributeType.FLOAT
+            return DeclareModelAttr.FLOAT
         elif v2 and v2.lower().startswith("integer between"):
             # ^integer * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.INTEGER_RANGE
+            return DeclareModelAttr.INTEGER_RANGE
         elif v2 and v2.lower().startswith("float between"):
             # ^float * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.FLOAT_RANGE
+            return DeclareModelAttr.FLOAT_RANGE
         else:
-            return DeclareModelAttributeType.ENUMERATION
+            return DeclareModelAttr.ENUMERATION
 
     def set_attr_value(self, value: str):
         self.value_type = self.detect_declare_attr_value_type(value)
@@ -839,6 +775,7 @@ class DeclareModelAttr:
         }
 
 
+#ok
 class DeclareModelConstraintTemplate:
     """
     A class representing a Declare Model Constraint Template.
@@ -847,6 +784,7 @@ class DeclareModelConstraintTemplate:
     I.E Existence and Absence case where Existence1 and Absence1 doesn't exist but other unary does.
     Another case is for the reverseConditions of some constraints.
     """
+
     def __init__(self, template_line: str, template_number_id: int):
         """
         Initializes a DeclareModelConstraintTemplate instance with the provided template line and template number ID.
@@ -861,14 +799,14 @@ class DeclareModelConstraintTemplate:
         self.line = template_line
         self.events_activities: [DeclareModelEvent] = []
         self.cardinality: int = 0  # cardinality is only for unary and 0 means template doesn't have
-        self.template: DeclareModelTemplate = None
+        self.template: typing.Union[DeclareModelTemplate, None] = None
         self.template_index: int = template_number_id
         self.violate: bool = False
-        self._template_name: str = None
-        self._conditions_line: str = None
+        self._template_name: typing.Union[str, None] = None
+        self._conditions_line: typing.Union[str, None] = None
         self._conditions: [str] = []  # conditions: activation, target, time
 
-    def get_template_name(self) -> str:
+    def get_template_name(self) -> typing.Union[str, None]:
         """
         Returns the template name, considering the cardinality if supported by the template.
 
@@ -905,7 +843,7 @@ class DeclareModelConstraintTemplate:
         """
         Parses the constraint conditions in the template line.
         """
-        compiler = re.compile(r"^(.*)\[(.*)\]\s*(.*)$")
+        compiler = re.compile(r"^(.*)\[(.*)]\s*(.*)$")
         al = compiler.fullmatch(self.line)
         if len(al.group()) >= 3:
             conditions = al.group(3).strip()
@@ -1023,12 +961,7 @@ class DeclareModelConstraintTemplate:
         }
 
 
-
-"""
-A data model class which contains information about a parsed template constraint.
-"""
-
-
+#ok
 class DeclareParsedDataModel:
     """
     DeclareParsedDataModel holds the parsed data from the Declare Model, including events, attributes, and templates.
@@ -1044,6 +977,7 @@ class DeclareParsedDataModel:
     total_templates : int
         The total number of constraint templates in the Declare Model.
     """
+
     def __init__(self):
         super().__init__()
         self.events: dict[str, dict[str, DeclareModelEvent]] = {}
@@ -1089,7 +1023,7 @@ class DeclareParsedDataModel:
         attr_name : str
             The name of the attribute.
         """
-        event_model: DeclareModelEvent = None
+        event_model: typing.Union[None, DeclareModelEvent] = None
         for i in self.events:
             if event_name not in self.events[i]:
                 raise ValueError(f"Unable to find the event or activity {event_name}")
@@ -1146,7 +1080,7 @@ class DeclareParsedDataModel:
             tmplt.cardinality = int(cardinality)
         else:
             tmplt.cardinality = 0
-        compiler = re.compile(r"^(.*)\[(.*)\]\s*(.*)$")
+        compiler = re.compile(r"^(.*)\[(.*)]\s*(.*)$")
         al = compiler.fullmatch(line)
         if len(al.group()) >= 1:
             template_name = al.group(1).strip()
@@ -1198,7 +1132,7 @@ class DeclareParsedDataModel:
             The decoded value.
         """
         if is_encoded:
-            val = DeclareModelCoderSingleton().decode_value(val)
+            val = DeclareModelEncoder().decode_value(val)
         return val
 
     def to_dict(self):
@@ -1217,8 +1151,8 @@ class DeclareParsedDataModel:
         }
 
 
+#ok
 class DeclareModel(LTLModel):
-
     CONSTRAINTS_TEMPLATES_PATTERN = r"^(.*)\[(.*)\]\s*(.*)$"  # Regex pattern for parsing constraint templates.
     """
     The DeclareModel class is a subclass of LTLModel that is used to represent and manipulate Declare models.
@@ -1231,6 +1165,7 @@ class DeclareModel(LTLModel):
         parsed_model: An instance of DeclareParsedDataModel representing the parsed Declare model.
         declare_model_lines: A list of strings representing the lines of the Declare model.
     """
+
     def __init__(self):
         super().__init__()
         # self.activities = []
@@ -1397,7 +1332,7 @@ class DeclareModel(LTLModel):
         return x is not None
 
     @staticmethod
-    def detect_declare_attr_value_type(value: str) -> DeclareModelAttributeType:
+    def detect_declare_attr_value_type(value: str) -> str:
         """
         Detect the type of value assigned to an attribute assigned
         Parameters
@@ -1409,17 +1344,17 @@ class DeclareModel(LTLModel):
         value = value.strip()
         v2 = value.replace("  ", "")
         if re.search(r"^[+-]?\d+$", value, re.MULTILINE):
-            return DeclareModelAttributeType.INTEGER
+            return DeclareModelAttr.INTEGER
         elif re.search(r"^[+-]?\d+(?:\.\d+)?$", value, re.MULTILINE):
-            return DeclareModelAttributeType.FLOAT
+            return DeclareModelAttr.FLOAT
         elif v2 and v2.lower().startswith("integer between"):
             # ^integer * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.INTEGER_RANGE
+            return DeclareModelAttr.INTEGER_RANGE
         elif v2 and v2.lower().startswith("float between"):
             # ^float * between *[+-]?\d+(?:\.\d+)? *and [+-]?\d+(?:\.\d+)?$
-            return DeclareModelAttributeType.FLOAT_RANGE
+            return DeclareModelAttr.FLOAT_RANGE
         else:
-            return DeclareModelAttributeType.ENUMERATION
+            return DeclareModelAttr.ENUMERATION
 
     def __str__(self):
         st = f"""{{"activities": {self.activities}, "serialized_constraints": {self.serialized_constraints},\
