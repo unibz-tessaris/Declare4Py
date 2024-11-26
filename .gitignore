@@ -139,3 +139,6 @@ dmypy.json
 *.asp
 
 docs/source/tutorials/Log_Results/*
+# pixi environments
+.pixi
+*.egg-info
