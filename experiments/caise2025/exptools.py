@@ -2,6 +2,8 @@ from contextlib import contextmanager
 import dataclasses
 from dataclasses import dataclass
 import itertools
+import json
+import logging
 import random
 import statistics
 from typing import Any, Callable, Hashable, Iterable, Optional, Sequence, Union
@@ -39,14 +41,12 @@ class Experiment(object):
     def get_results(self, gen: Optional[PositionalBasedLogGenerator]=None, normalise: bool=True, columns: Sequence[str]=[]) -> dict:
         if gen is None:
             gen = self.run_generator()
-        norm_value = None
-        if normalise and self.parameters is not None and 'events' in self.parameters:
-            norm_value = self.parameters['events']
+        num_cases = gen.get_results_as_dataframe()['case:concept:name'].nunique()
         results = {
             'id': self.id_,
             'generator': type(gen).__name__,
-            'control_flow': average_distance(gen, normalise=norm_value).asdict(),
-            'stats': {},
+            'cases': num_cases,
+            'control_flow': average_distance(gen, normalise=normalise).asdict(),
             'params': self.parameters if self.parameters is not None else {}
         }
         try:
@@ -54,7 +54,7 @@ class Experiment(object):
         except:
             pass
         if len(columns) > 0:
-            results['data_flow'] = average_distance(gen, columns=['concept:name', *columns], normalise=norm_value).asdict()
+            results['data_flow'] = average_distance(gen, columns=['concept:name', *columns], normalise=normalise).asdict()
         return results
     
     def check_reproducibility(self, seed=None, ignore: list[str]=['time:timestamp', 'concept:name:time'], only: list[str] = []) -> pd.DataFrame:
@@ -68,6 +68,17 @@ class Experiment(object):
             g2 = self.run_generator()
         
         return compare_results(g1, g2, ignore=ignore, only=only)
+
+
+def experiments_dump(experiments: dict[str, Experiment], fp,**kwargs) -> None:
+    def custom_json(obj):
+        if isinstance(obj, type):
+            return obj.__name__
+        elif isinstance(obj, object):
+            return f'obj({type(obj).__name__})'
+        raise TypeError(f'Cannot serialize object of {type(obj)}')
+    
+    json.dump(experiments, fp, default=custom_json, **kwargs)
 
 ###############################################################
 ## Trace distances
@@ -94,20 +105,24 @@ class Distances(object):
 
 def average_distances_seq(traces: Iterable[Sequence[Hashable]], aggr: Callable=statistics.mean, normalise: Optional[int]=None) -> Distances:
     t1, t2 = itertools.tee(itertools.combinations(traces,2))
-    def norm_val(v: int) -> Union[int, float]:
-        return v if normalise is None else v/normalise
     try:
-        levenshtein = aggr(map(norm_val, (Levenshtein.distance(s1,s2) for s1,s2 in t1)))
-    except statistics.StatisticsError:
+        levenshtein = aggr(Levenshtein.distance(s1,s2) for s1,s2 in t1)
+    except statistics.StatisticsError as e:
+        logging.warning(f'error averaging distance: {e}')
         levenshtein = float('nan')
     try:
-        hamming = aggr(map(norm_val, (Levenshtein.hamming(s1,s2) for s1,s2 in t2)))
-    except statistics.StatisticsError:
+        hamming = aggr(Levenshtein.hamming(s1,s2) for s1,s2 in t2)
+    except statistics.StatisticsError as e:
+        logging.warning(f'error averaging distance: {e}')
         hamming = float('nan')
-    return Distances(levenshtein=levenshtein, hamming=hamming)
+    if normalise is not None and normalise > 0:
+        return Distances(levenshtein=levenshtein/normalise, hamming=hamming/normalise)
+    else:
+        return Distances(levenshtein=levenshtein, hamming=hamming)
 
-def average_distance(generator: PositionalBasedLogGenerator, columns: Sequence[str] = ["concept:name"], normalise: Optional[int]=None) -> Distances:
-    return average_distances_seq(results_to_seq(generator, columns=columns), normalise=normalise)
+def average_distance(generator: PositionalBasedLogGenerator, columns: Sequence[str] = ["concept:name"], normalise: bool=True) -> Distances:
+    norm_val = generator.get_results_as_dataframe()['concept:name:order'].nunique() if normalise else None
+    return average_distances_seq(results_to_seq(generator, columns=columns), normalise=norm_val)
 
 
 ###############################################################
