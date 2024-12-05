@@ -4,6 +4,9 @@ from dataclasses import dataclass
 import itertools
 import json
 import logging
+import logging.handlers
+import os
+from pathlib import Path
 import random
 import statistics
 from typing import Any, Callable, Hashable, Iterable, Optional, Sequence, Union
@@ -26,6 +29,9 @@ class Experiment(object):
     model: PositionalBasedModel
     parameters: Optional[dict[str, Any]]=None
     description: Optional[str]=None
+
+    def as_dict(self) -> dict:
+        return dataclasses.asdict(self)
 
     def new_generator(self) -> PositionalBasedLogGenerator:
         return self.class_(**self.args.get('init',{}))
@@ -77,8 +83,8 @@ def experiments_dump(experiments: dict[str, Experiment], fp,**kwargs) -> None:
         elif isinstance(obj, object):
             return f'obj({type(obj).__name__})'
         raise TypeError(f'Cannot serialize object of {type(obj)}')
-    
-    json.dump(experiments, fp, default=custom_json, **kwargs)
+
+    json.dump([e.as_dict() for e in experiments.values()], fp, default=custom_json, **kwargs)
 
 ###############################################################
 ## Trace distances
@@ -166,3 +172,66 @@ def check_reproducibility(exp: dict, seed=None, ignore: list[str]=['time:timesta
         g2 = run_generator(exp)
     
     return compare_results(g1, g2, ignore=ignore, only=only)
+
+###############################################################
+## Dealing with logging
+
+class JsonFormatter(logging.Formatter):
+    """Formatter to dump error message into JSON"""
+
+    def format(self, record: logging.LogRecord) -> str:
+        if isinstance(record.args, tuple):
+            args = [str(a) for a in record.args]
+        elif isinstance(record.args, dict):
+            args = {k: str(v) for k, v in record.args.items()}
+        else:
+            args = str(record.args)
+        record_dict = {
+            "level": record.levelname,
+            "date": self.formatTime(record),
+            "message": record.getMessage(),
+            "msg": record.msg,
+            "args": args,
+            "module": record.module,
+            "file": record.filename,
+            "function": record.funcName,
+            "lineno": record.lineno,
+        }
+        return json.dumps(record_dict)
+
+@contextmanager
+def log_to_file(filename: Union[str, bytes, os.PathLike, Path], level: Optional[int]=None, fmt: Union[str, logging.Formatter, None]=None, logger: Optional[logging.Logger]=None):
+    if fmt is None:
+        fmt = JsonFormatter()
+        # fmt = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s')
+    elif isinstance(fmt, str):
+        fmt = logging.Formatter(fmt)
+    assert isinstance(fmt, logging.Formatter)
+    if logger is None:
+        logger = logging.getLogger()
+    hdlr = logging.FileHandler(filename)
+    hdlr.setFormatter(fmt)
+    with changelogger([hdlr], level=level, logger_=logger):
+        yield
+
+@contextmanager
+def changelogger(hdlrs: Iterable[logging.Handler], level: Optional[int]=None, logger_: Optional[logging.Logger]=None):
+    if logger_ is None:
+        logger_ = logging.getLogger()
+    current_hdlrs = list(logger_.handlers)
+    current_lvl = logger_.level
+    if level is None:
+        level = current_lvl
+    for hdlr in logger_.handlers:
+        logger_.removeHandler(hdlr)
+    for hdlr in hdlrs:
+        logger_.addHandler(hdlr)
+    logger_.setLevel(level)
+    try:
+        yield
+    finally:
+        for hdlr in logger_.handlers:
+            logger_.removeHandler(hdlr)
+        for hdlr in current_hdlrs:
+            logger_.addHandler(hdlr)
+        logger_.setLevel(current_lvl)
