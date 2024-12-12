@@ -145,7 +145,7 @@ class PBLGwrapper(PositionalBasedLogGenerator):
         else:
             self.__current_asp_rule += "?"
 
-    def _clingo_model_handler(self, model: clingo.Model) -> None:
+    def _clingo_model_handler(self, index: int, model: clingo.Model) -> None:
         self.__handle_clingo_result(model)
 
     def _get_timed_events(self, model: clingo.Model) -> typing.Iterable[tuple[str, int, int]]:
@@ -179,10 +179,13 @@ class PBLogGeneratorOrig(PBLGwrapper):
     ):
         super().__init__(total_traces, min_event, max_event, process_model, verbose=verbose)
 
-        self._logger: logging.Logger = logging.getLogger('PBLogGeneratorOrig')
+        logger_name = type(self).__name__
+        self._logger: logging.Logger = logging.getLogger(logger_name)
         self._logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
         self._random: random.Random = seed if isinstance(seed, random.Random) else random.Random(seed)
+
+        self._monitor_predicates: set[str] = set([ASPFunctions.ASP_TIMED_EVENT])
 
         self._clingo_prog: list[list[tuple[tuple, str]]] = [[]]
         self.__clingo_stats: typing.Sequence[dict] = []
@@ -226,6 +229,11 @@ class PBLogGeneratorOrig(PBLGwrapper):
         # parses ASP generated models
         self._parse_results(generate_negatives, noise_percentage)
 
+    def _clingo_model_handler(self, index: int, model: clingo.Model) -> None:
+        super()._clingo_model_handler(index, model)
+        if self._logger.isEnabledFor(logging.DEBUG):
+            self._logger.debug('clingo model %(index)s: %(model)s', {'index': index, 'model': list(str(p) for p in self._clingo_get_model_atoms(model, self._monitor_predicates))})
+
     def _clingo_control(self, arguments: typing.Sequence[str], *programs: str) -> clingo.Control:
         """Create a new [`clingo.Control`](https://potassco.org/clingo/python-api/current/clingo/control.html#clingo.control.Control) using the given arguments, and add the provided programs
 
@@ -236,7 +244,7 @@ class PBLogGeneratorOrig(PBLGwrapper):
         Returns:
             clingo.Control: a new clingo controller
         """
-        self._logger.debug(f'Clingo arguments: {arguments}')
+        self._logger.debug('New clingo control: %(clingo_args)s', {'clingo_args': arguments})
         self._clingo_prog.append([])
         ctl = clingo.Control(arguments, logger=self._logger)
         asp = "\n".join(programs)
@@ -245,12 +253,12 @@ class PBLogGeneratorOrig(PBLGwrapper):
         return ctl
     
     def _clingo_add(self, ctl: clingo.Control, name: str, parameters: typing.Sequence[str], program: str) -> None:
-        self._logger.debug(f'clingo: adding {name}{parameters}: {program}')
+        self._logger.debug('clingo: adding %(part)s: %(asp)s', {'part': (name, parameters), 'asp': program})
         self._clingo_prog[-1].append(((name, parameters), program))
         ctl.add(name, parameters, program)
 
     def _clingo_ground(self, ctl: clingo.Control, parts: typing.Sequence[tuple[str, typing.Sequence[clingo.Symbol]]] = (("base", ()), ), context: typing.Any = None):
-        self._logger.debug(f'clingo: grounding {parts}' + (f' with context {context}' if context else ''))
+        self._logger.debug('clingo: grounding %(parts)s', {'parts': parts, 'context': context})
         ctl.ground(parts=parts, context=context)
 
     @property
@@ -312,12 +320,11 @@ class PBLogGeneratorOrig(PBLGwrapper):
             'call': {'models': models, 'timeout': timeout},
             'models': generates_models
         }
+        self._logger.debug('clingo statistics: %(stats)s', {'stats': stat})
         self._clingo_stat_add(stat)
 
     def _clingo_get_model_atoms(self, model: clingo.Model, names: typing.Iterable[str]=[]) -> typing.Iterable[clingo.Symbol]:
-        names_set = set(names)
-        names_set.add(ASPFunctions.ASP_TIMED_EVENT)
-        return (t for t in model.symbols(atoms=True) if t.name in names_set)
+        return (t for t in model.symbols(atoms=True) if t.name in set(names))
 
     def _clingo_generate_traces(self, program: str, traces: int, events: int):
         """use clingo to generate the given number of traces of a specific length using the provided ASP program
@@ -339,8 +346,8 @@ class PBLogGeneratorOrig(PBLGwrapper):
         ctl = self._clingo_control(clingo_args, program)
         self._clingo_ground(ctl)
 
-        for m in self._clingo_solve(ctl, models=traces, timeout=self._clingo_time_limit):
-            self._clingo_model_handler(m)
+        for i, m in enumerate(self._clingo_solve(ctl, models=traces, timeout=self._clingo_time_limit)):
+            self._clingo_model_handler(i, m)
 
 class PBLogGeneratorBaseline(PBLogGeneratorOrig):
     """Generates positional based logs given a positional based model using clingo.
@@ -356,8 +363,6 @@ class PBLogGeneratorBaseline(PBLogGeneratorOrig):
         seed: typing.Union[int, float, str, bytes, bytearray, None, random.Random] = None
     ):
         super().__init__(total_traces, min_event, max_event, process_model, log=log, verbose=verbose, seed=seed)
-        self._logger: logging.Logger = logging.getLogger('PBLogGeneratorBaseline')
-        self._logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
     def _clingo_generate_traces(self, program: str, traces: int, events: int):
         """use clingo to generate the given number of traces of a specific length using the provided ASP program
@@ -374,8 +379,8 @@ class PBLogGeneratorBaseline(PBLogGeneratorOrig):
         ctl = self._clingo_control(clingo_args, program)
         self._clingo_ground(ctl)
 
-        for m in self._clingo_solve(ctl, models=traces, timeout=self._clingo_time_limit):
-            self._clingo_model_handler(m)
+        for i, m in enumerate(self._clingo_solve(ctl, models=traces, timeout=self._clingo_time_limit)):
+            self._clingo_model_handler(i, m)
 
 class PBLogGeneratorRandom(PBLogGeneratorOrig):
     """Generates positional based logs given a positional based model using clingo.
@@ -391,8 +396,6 @@ class PBLogGeneratorRandom(PBLogGeneratorOrig):
         seed: typing.Union[int, float, str, bytes, bytearray, None, random.Random] = None
     ):
         super().__init__(total_traces, min_event, max_event, process_model, log=log, verbose=verbose, seed=seed)
-        self._logger: logging.Logger = logging.getLogger('PBLogGeneratorRandom')
-        self._logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
     def _clingo_generate_traces(self, program: str, traces: int, events: int):
         """use clingo to generate the given number of traces of a specific length using the provided ASP program
@@ -419,7 +422,7 @@ class PBLogGeneratorRandom(PBLogGeneratorOrig):
             # set a new seed before each `Control.solve` call
             ctl.configuration.solver.seed = self._random.randint(2, 2^32)
             for m in self._clingo_solve(ctl, models=1, timeout=self._clingo_time_limit):
-                self._clingo_model_handler(m)
+                self._clingo_model_handler(i, m)
                 model_found = True
             if not model_found:
                 self._logger.info(f'clingo cannot find more models, stopped at {i}')
@@ -452,8 +455,6 @@ hamm_dist(${tid_arg}, D) :- D = #count { ${timed_event_pred}(A,P,T) : ${timed_ev
         randomise: bool = False
     ):
         super().__init__(total_traces, min_event, max_event, process_model, log=log, verbose=verbose, seed=seed)
-        self._logger: logging.Logger = logging.getLogger('PBLogGeneratorHamming')
-        self._logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
         self._threshold = threshold
         self._randomise_clingo = randomise
@@ -492,8 +493,7 @@ hamm_dist(${tid_arg}, D) :- D = #count { ${timed_event_pred}(A,P,T) : ${timed_ev
                 self._ground_tabu_asp_program(ctl, i, last_tabu_trace)
                 last_tabu_trace = []
             for m in self._clingo_solve(ctl, models=1, timeout=self._clingo_time_limit):
-                self._logger.debug(f'clingo: found model {list(str(t) for t in self._clingo_get_model_atoms(m, (self._tabu_pred, 'hamm_dist', 'failed_tabu')))}')
-                self._clingo_model_handler(m)
+                self._clingo_model_handler(i, m)
                 last_tabu_trace = list(self._get_timed_events(m))
                 model_found = True
             if not model_found:
@@ -558,5 +558,3 @@ hamm_dist(${tid_arg}, D) :- D = #count { (A,P) : ${timed_event_pred}(A,P,_), ${t
         randomise: bool = False
     ):
         super().__init__(total_traces, min_event, max_event, process_model, log=log, verbose=verbose, seed=seed, threshold=threshold, randomise=randomise)
-        self._logger: logging.Logger = logging.getLogger('PBLogGeneratorLevenshtein')
-        self._logger.setLevel(logging.DEBUG if verbose else logging.INFO)

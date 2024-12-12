@@ -115,12 +115,12 @@ def average_distances_seq(traces: Iterable[Sequence[Hashable]], aggr: Callable=s
         levenshtein = aggr(Levenshtein.distance(s1,s2) for s1,s2 in t1)
     except statistics.StatisticsError as e:
         logging.warning(f'error averaging distance: {e}')
-        levenshtein = float('nan')
+        levenshtein = None
     try:
         hamming = aggr(Levenshtein.hamming(s1,s2) for s1,s2 in t2)
     except statistics.StatisticsError as e:
         logging.warning(f'error averaging distance: {e}')
-        hamming = float('nan')
+        hamming = None
     if normalise is not None and normalise > 0:
         return Distances(levenshtein=levenshtein/normalise, hamming=hamming/normalise)
     else:
@@ -179,25 +179,28 @@ def check_reproducibility(exp: dict, seed=None, ignore: list[str]=['time:timesta
 class JsonFormatter(logging.Formatter):
     """Formatter to dump error message into JSON"""
 
+    @staticmethod
+    def _custom_json(obj: Any) -> Any:
+        if isinstance(obj, type):
+            return obj.__name__
+        elif isinstance(obj, object):
+            return repr(obj)
+        raise TypeError(f'Cannot serialize object of {type(obj)}')
+
     def format(self, record: logging.LogRecord) -> str:
-        if isinstance(record.args, tuple):
-            args = [str(a) for a in record.args]
-        elif isinstance(record.args, dict):
-            args = {k: str(v) for k, v in record.args.items()}
-        else:
-            args = str(record.args)
         record_dict = {
+            "name": record.name,
             "level": record.levelname,
             "date": self.formatTime(record),
             "message": record.getMessage(),
             "msg": record.msg,
-            "args": args,
+            "args": record.args,
             "module": record.module,
             "file": record.filename,
             "function": record.funcName,
             "lineno": record.lineno,
         }
-        return json.dumps(record_dict)
+        return json.dumps(record_dict, default=self._custom_json)
 
 @contextmanager
 def log_to_file(filename: Union[str, bytes, os.PathLike, Path], level: Optional[int]=None, fmt: Union[str, logging.Formatter, None]=None, logger: Optional[logging.Logger]=None):
