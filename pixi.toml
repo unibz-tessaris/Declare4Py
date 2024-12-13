@@ -12,6 +12,7 @@ nbconvert = {description = "convert the provided notebook to html in the './outp
     "cd", "$INIT_CWD", ";",
     "jupyter", "nbconvert", "--to=html",
     "--ExecutePreprocessor.timeout=-1", "--execute",
+    "--output='{notebook_name}_'$(date -u +'%Y-%m-%dT%H%M%SZ_')$(git describe --dirty 2>/dev/null)",
     "--output-dir=$INIT_CWD/output"] }
 
 [dependencies]
