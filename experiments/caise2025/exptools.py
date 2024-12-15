@@ -66,28 +66,6 @@ class Experiment(object):
                 args['init'][k] = model
         return Experiment(id_=id_, class_=class_, args=args, model=model, parameters=parameters, description=description)
 
-    @deprecated("Use Experiment.runner method")
-    def new_generator(self) -> PositionalBasedLogGenerator:
-        return self.class_(**self.args.get('init',{}))
-
-    @deprecated("Use the Runner class")
-    def run_generator(self, gen: Optional[PositionalBasedLogGenerator]=None) -> PositionalBasedLogGenerator:
-        if gen is None:
-            gen = self.class_(**self.args.get('init',{}))
-        runner = Runner(id=self.id_, experiment=self, generator=gen, args=self.args.get('run',{}))
-        return runner.run()
-
-    @deprecated("Use Runner.stats method")
-    def get_results(self, gen: Optional[PositionalBasedLogGenerator]=None, normalise: bool=True, columns: Sequence[str]=[]) -> dict:
-        run_gen = False
-        if gen is None:
-            gen = self.class_(**self.args.get('init',{}))
-            run_gen = True
-        runner = Runner(id=self.id_, experiment=self, generator=gen, args=self.args.get('run',{}))
-        if run_gen:
-            runner.run()
-        return runner.stats()
-
     def check_reproducibility(self, seed=None, ignore: list[str]=['time:timestamp', 'concept:name:time'], only: list[str] = []) -> pd.DataFrame:
         g1 = self.runner(id_= self.id_ + '_1').run(seed=seed)
         g2 = self.runner(id_= self.id_ + '_2').run(seed=seed)
@@ -140,17 +118,6 @@ class Runner(object):
     def average_distance(self, columns: Sequence[str] = ["concept:name"], normalise: bool=True, aggr: Callable=statistics.mean) -> 'Distances':
         norm_val = self.generator.get_results_as_dataframe()['concept:name:order'].nunique() if normalise else None
         return average_distances_seq(self.results_as_seq(columns=columns), normalise=norm_val, aggr=aggr)
-
-
-def experiments_dump(experiments: dict[str, Experiment], fp,**kwargs) -> None:
-    def custom_json(obj):
-        if isinstance(obj, type):
-            return obj.__name__
-        elif isinstance(obj, object):
-            return f'obj({type(obj).__name__})'
-        raise TypeError(f'Cannot serialize object of {type(obj)}')
-
-    json.dump([e.as_dict() for e in experiments.values()], fp, default=custom_json, **kwargs)
 
 
 def import_string(dotted_path: str) -> Any:
