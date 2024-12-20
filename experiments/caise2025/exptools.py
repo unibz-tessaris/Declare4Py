@@ -160,9 +160,9 @@ def average_distances_seq(traces: Iterable[Sequence[Hashable]], aggr: Callable=s
         logging.warning(f'error averaging distance: {e}')
         hamming = None
     if normalise is not None and normalise > 0:
-        return Distances(levenshtein=levenshtein/normalise, hamming=hamming/normalise)
-    else:
-        return Distances(levenshtein=levenshtein, hamming=hamming)
+        levenshtein = levenshtein/normalise if levenshtein is not None else None
+        hamming = hamming/normalise if hamming is not None else None
+    return Distances(levenshtein=levenshtein, hamming=hamming)
 
 ###############################################################
 ## Evaluation of reproducibility
