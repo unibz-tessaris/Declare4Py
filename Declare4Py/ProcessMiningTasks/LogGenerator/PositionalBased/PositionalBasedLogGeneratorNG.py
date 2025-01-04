@@ -286,7 +286,7 @@ class PBLogGeneratorOrig(PBLGwrapper):
         for stat in self.clingo_statistics:
             times_ = stat.get('solver', {}).get('times', {})
             for a in times_.keys():
-                glob_stat['times'][a] = times_[a] + glob_stat['times'][a] if a in glob_stat['times'] else 0
+                glob_stat['times'][a] = times_[a] + glob_stat['times'].get(a, 0)
             if not glob_stat['timedout'] and stat['timedout']:
                 glob_stat['timedout'] = True
             glob_stat['models'] += stat['call']['models']
