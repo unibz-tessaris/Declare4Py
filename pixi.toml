@@ -18,14 +18,15 @@ nbconvert = {description = "convert the provided notebook to html in the './outp
 [dependencies]
 packaging = "*"
 mlxtend = ">=0.20.0"
-clingo = ">=5.6.2"
+clingo = ">=5.7.1,<6"
 "boolean.py" = "*"
 pandas = ">=1.3.4"
 
 cvxopt = "*"
-jupyterlab = ">=4.3.1,<5"
+jupyterlab = ">=4.3.3,<5"
 pixi-kernel = ">=0.5.1,<0.6"
 levenshtein = ">=0.26.1,<0.27"
+papermill = ">=2.6.0,<3"
 
 [pypi-dependencies]
 logaut = "*"
