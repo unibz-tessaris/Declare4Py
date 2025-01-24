@@ -101,7 +101,10 @@ class Runner(object):
         if distance:
             results['control_flow'] = self.average_distance(normalise=normalise).asdict()
             if len(columns) > 0:
-                results['data_flow'] = self.average_distance(columns=['concept:name', *columns], normalise=normalise).asdict()
+                try:
+                    results['data_flow'] = self.average_distance(columns=['concept:name', *columns], normalise=normalise).asdict()
+                except KeyError as e:
+                    logging.error(f'Cannot compute data flow distance: {e}')
         return results
 
     def results_as_seq(self, columns: Sequence[str] = ["concept:name"]) -> Iterable[Sequence[Hashable]]:
