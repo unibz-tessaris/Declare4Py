@@ -86,21 +86,22 @@ class Runner(object):
                 self.generator.run(**self.args)
         return self.generator
 
-    def stats(self,  normalise: bool=True, columns: Sequence[str]=[]) -> dict[str, Any]:
+    def stats(self, normalise: bool=True, columns: Sequence[str]=[], distance: bool=True) -> dict[str, Any]:
         num_cases = self.generator.get_results_as_dataframe()['case:concept:name'].nunique()
         results = {
             'id': self.id,
             'generator': type(self.generator).__name__,
             'cases': num_cases,
-            'control_flow': self.average_distance(normalise=normalise).asdict(),
             'params': self.experiment.parameters if self.experiment.parameters is not None else {}
         }
         try:
             results['stats'] = self.generator.get_running_stats()
         except:
             pass
-        if len(columns) > 0:
-            results['data_flow'] = self.average_distance(columns=['concept:name', *columns], normalise=normalise).asdict()
+        if distance:
+            results['control_flow'] = self.average_distance(normalise=normalise).asdict()
+            if len(columns) > 0:
+                results['data_flow'] = self.average_distance(columns=['concept:name', *columns], normalise=normalise).asdict()
         return results
 
     def results_as_seq(self, columns: Sequence[str] = ["concept:name"]) -> Iterable[Sequence[Hashable]]:
