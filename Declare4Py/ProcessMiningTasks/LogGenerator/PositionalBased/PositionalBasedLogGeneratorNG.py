@@ -234,6 +234,9 @@ class PBLogGeneratorOrig(PBLGwrapper):
         if self._logger.isEnabledFor(logging.DEBUG):
             self._logger.debug('clingo model %(index)s: %(model)s', {'index': index, 'model': list(str(p) for p in self._clingo_get_model_atoms(model, self._monitor_predicates))})
 
+    def _clingo_logger(self, code, msg: str) -> None:
+        self._logger.info('clingo error: %(code)s %(msg)s', {'code': str(code), 'msg': msg})
+
     def _clingo_control(self, arguments: typing.Sequence[str], *programs: str) -> clingo.Control:
         """Create a new [`clingo.Control`](https://potassco.org/clingo/python-api/current/clingo/control.html#clingo.control.Control) using the given arguments, and add the provided programs
 
@@ -246,7 +249,7 @@ class PBLogGeneratorOrig(PBLGwrapper):
         """
         self._logger.debug('New clingo control: %(clingo_args)s', {'clingo_args': arguments})
         self._clingo_prog.append([])
-        ctl = clingo.Control(arguments, logger=self._logger)
+        ctl = clingo.Control(arguments, logger=self._clingo_logger)
         asp = "\n".join(programs)
 
         self._clingo_add(ctl, 'base', [], asp)
