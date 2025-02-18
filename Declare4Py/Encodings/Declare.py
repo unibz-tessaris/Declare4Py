@@ -43,6 +43,7 @@ class Declare(BaseEstimator, TransformerMixin):
     
     def transform(self, X: Union[np.array, DataFrame], y=None) -> DataFrame:
         start = time()
+
         frequent_itemsets = self.event_log.compute_frequent_itemsets(self.itemset_support,
                                                                      case_id_col=self.event_log.case_id_key,
                                                                      categorical_attributes=[self.act_col],
@@ -70,6 +71,9 @@ class Declare(BaseEstimator, TransformerMixin):
                 constraint = {"template": binary_template, "activities": event_pair, "condition": ("", "")}
                 declare_model.constraints.append(constraint)
 
+        if isinstance(self.event_log.log, pd.DataFrame):
+            self.event_log.to_eventlog()
+
         declare_model.set_constraints()
 
         basic_checker = MPDeclareAnalyzer(log=self.event_log, declare_model=declare_model, consider_vacuity=False)
@@ -80,6 +84,7 @@ class Declare(BaseEstimator, TransformerMixin):
         df_transformed = df_state.combine(df_activations, self.combine_fulfillments_and_state)
         self.columns = df_state.columns
         self.transform_time = time() - start
+
         if self.boolean:
             return df_state
         else:
