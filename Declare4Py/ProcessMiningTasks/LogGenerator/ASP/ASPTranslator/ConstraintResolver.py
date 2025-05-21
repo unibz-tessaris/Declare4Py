@@ -1,13 +1,19 @@
 from __future__ import annotations
-
+import boolean
 import re
 import typing
 
-import boolean
+#TODO cambiare gli import
+# from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttr
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelEvent
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttrValue
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelToken
 
-from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelConstraintTemplate, \
-    DeclareModelAttr, DeclareModelEvent, DeclareModelAttrValue, DeclareModelToken
 
+
+# Tutto codice di Manpreet
 
 class DeclareModelConditionResolver2ASP:
 
@@ -114,7 +120,8 @@ class DeclareModelConditionResolver2ASP:
                 raise ValueError(f"Unable to find the attribute \"{attr}\" in condition \"{cond}\". name: \"{name}\"")
             attr_obj: DeclareModelAttrValue = attrs[attr].attr_value
             attr_nm = attrs[attr].attr_name.get_encoded_name() if self.is_encoded else attrs[attr].attr_name.get_name()
-            if attr_obj.attribute_value_type == DeclareModelAttributeType.ENUMERATION:
+            # cambiato DeclareModelAttributeType -> DeclareModelAttr
+            if attr_obj.attribute_value_type == DeclareModelAttr.ENUMERATION:
                 cond_type = cond.split(' ')[1]
                 if cond_type == 'is':
                     v = string.split(' ')[2]
@@ -138,8 +145,9 @@ class DeclareModelConditionResolver2ASP:
                         asp_cond = asp_cond + 'not assigned_value({},{},T),'.format(attr_nm, attr_val)
                     asp_cond = asp_cond[:-1]
                     ls.append('{} :- {}.'.format(name, asp_cond))
-            elif attr_obj.attribute_value_type == DeclareModelAttributeType.INTEGER_RANGE or\
-                    attr_obj.attribute_value_type == DeclareModelAttributeType.FLOAT_RANGE:
+                    # cambiato DeclareModelAttributeType -> DeclareModelAttr
+            elif attr_obj.attribute_value_type == DeclareModelAttr.INTEGER_RANGE or\
+                    attr_obj.attribute_value_type == DeclareModelAttr.FLOAT_RANGE:
                 relations = ['<=', '>=', '=', '<', '>']
                 for rel in relations:
                     if rel in cond:

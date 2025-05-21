@@ -22,11 +22,8 @@ class ProcessModel(Generic[T]):
     def to_file(self, model_path: str, **kwargs):
         pass
 
-    def get_model_activities(self):
-        return self.activities
-
-    #
-    # @abstractmethod
-    # def parse_model(self) -> T:
-    #     pass
-
+    """
+    @abstractmethod
+    def parse_model(self) -> T:
+        pass
+    """

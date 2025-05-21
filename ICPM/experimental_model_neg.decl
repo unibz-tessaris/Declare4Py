@@ -1,0 +1,52 @@
+bind terapia_A, terapia_B: resource, qt, age
+bind controllo: resource, age
+bind analisi_sangue: resource, valore, age
+# Cambiato 5 per problemi nel constraints
+valore: float between 5.0 and 70.0
+age: integer between 20 and 90
+qt: float between 0.2 and 14.9
+resource: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y
+
+
+
+
+
+
+
+# ok
+# terapia, primo blocco, età = 60
+absolute_pos(terapia_A, 2, 2), absolute_pos(terapia_B, 5, 5),  pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), absolute_payload(age, 60), payload_range(valore, 37.0, 42.0, 1), payload_range(valore, 57.0, 62.0, 3), payload_range(valore, 57.0, 62.0, 6), payload_range(valore, 47.0, 52.0, 9), payload_range(valore, 5.0, 10.0, 11), payload_range(valore, 5.0, 10.0, 15), payload_range(valore, 5.0, 10.0, 17), payload_range(valore, 5.0, 10.0, 19)
+# no terapia, primo blocco, età = 30
+!pos(terapia_A, _, _), !pos(terapia_B, _, _),  pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), absolute_payload(age, 30), payload_range(valore, 37.0, 42.0, 1), payload_range(valore, 57.0, 62.0, 3), payload_range(valore, 57.0, 62.0, 6), payload_range(valore, 47.0, 52.0, 9), payload_range(valore, 5.0, 10.0, 11), payload_range(valore, 5.0, 10.0, 15), payload_range(valore, 5.0, 10.0, 17), payload_range(valore, 5.0, 10.0, 19)
+# no terapia, primo blocco, età = 60
+!pos(terapia_A, _, _), !pos(terapia_B, _, _),  pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), absolute_payload(age, 60), payload_range(valore, 37.0, 42.0, 1), payload_range(valore, 57.0, 62.0, 3), payload_range(valore, 57.0, 62.0, 6), payload_range(valore, 47.0, 52.0, 9), payload_range(valore, 5.0, 10.0, 11), payload_range(valore, 5.0, 10.0, 15), payload_range(valore, 5.0, 10.0, 17), payload_range(valore, 5.0, 10.0, 19)
+# no terapia, secondo blocco, età = 30
+!pos(terapia_A, _, _), !pos(terapia_B, _, _), pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), payload_range(valore, 5.0, 10.0, 1), payload_range(valore, 5.0, 10.0, 3), payload_range(valore, 5.0, 10.0, 6), payload_range(valore, 5.0, 10.0, 9), payload_range(valore, 22.0, 27.0, 11), payload_range(valore, 47.0, 52.0, 15), payload_range(valore, 27.0, 32.0, 17), payload_range(valore, 12.0, 17.0, 19)
+# terapia, secondo blocco, età = 60
+absolute_pos(terapia_A, 2, 2), absolute_pos(terapia_B, 5, 5), pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), payload_range(valore, 5.0, 10.0, 1), payload_range(valore, 5.0, 10.0, 3), payload_range(valore, 5.0, 10.0, 6), payload_range(valore, 5.0, 10.0, 9), payload_range(valore, 22.0, 27.0, 11), payload_range(valore, 47.0, 52.0, 15), payload_range(valore, 27.0, 32.0, 17), payload_range(valore, 12.0, 17.0, 19)
+# terapia, secondo blocco, età = 30
+absolute_pos(terapia_A, 2, 2), absolute_pos(terapia_B, 5, 5), pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), payload_range(valore, 5.0, 10.0, 1), payload_range(valore, 5.0, 10.0, 3), payload_range(valore, 5.0, 10.0, 6), payload_range(valore, 5.0, 10.0, 9), payload_range(valore, 22.0, 27.0, 11), payload_range(valore, 47.0, 52.0, 15), payload_range(valore, 27.0, 32.0, 17), payload_range(valore, 12.0, 17.0, 19)
+
+
+
+#primo
+#payload_range(valore, 37.0, 42.0, 1), payload_range(valore, 57.0, 62.0, 3), payload_range(valore, 57.0, 62.0, 6), payload_range(valore, 47.0, 52.0, 9), payload_range(valore, 5.0, 10.0, 11), payload_range(valore, 5.0, 10.0, 15), payload_range(valore, 5.0, 10.0, 17), payload_range(valore, 5.0, 10.0, 19)
+
+#secondo
+#payload_range(valore, 5.0, 10.0, 1), payload_range(valore, 5.0, 10.0, 3), payload_range(valore, 5.0, 10.0, 6), payload_range(valore, 5.0, 10.0, 9), payload_range(valore, 22.0, 27.0, 11), payload_range(valore, 47.0, 52.0, 15), payload_range(valore, 27.0, 32.0, 17), payload_range(valore, 12.0, 17.0, 19)
+
+
+
+
+# terapia, primo blocco, età = 60
+#absolute_pos(terapia_A, 2, 2), absolute_pos(terapia_B, 5, 5),  pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), absolute_payload(age, 60), payload_range(valore, 50.0, 60.0, 1), payload_range(valore, 50.0, 60.0, 3),  payload_range(valore, 50.0, 60.0, 6), payload_range(valore, 50.0, 60.0, 9), payload_range(valore, 5.0, 10.0, 11), payload_range(valore, 5.0, 10.0, 15), payload_range(valore, 5.0, 10.0, 17), payload_range(valore, 5.0, 10.0, 19)
+# no terapia, primo blocco, età = 30
+#!pos(terapia_A, _, _), !pos(terapia_B, _, _),  pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), absolute_payload(age, 30), payload_range(valore, 50.0, 60.0, 1), payload_range(valore, 50.0, 60.0, 3),  payload_range(valore, 50.0, 60.0, 6), payload_range(valore, 50.0, 60.0, 9), payload_range(valore, 5.0, 10.0, 11), payload_range(valore, 5.0, 10.0, 15), payload_range(valore, 5.0, 10.0, 17), payload_range(valore, 5.0, 10.0, 19)
+# no terapia, primo blocco, età = 60
+#!pos(terapia_A, _, _), !pos(terapia_B, _, _),  pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), absolute_payload(age, 60), payload_range(valore, 50.0, 60.0, 1), payload_range(valore, 50.0, 60.0, 3),  payload_range(valore, 50.0, 60.0, 6), payload_range(valore, 50.0, 60.0, 9), payload_range(valore, 5.0, 10.0, 11), payload_range(valore, 5.0, 10.0, 15), payload_range(valore, 5.0, 10.0, 17), payload_range(valore, 5.0, 10.0, 19)
+# no terapia, secondo blocco, età = 30
+#!pos(terapia_A, _, _), !pos(terapia_B, _, _), pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), payload_range(valore, 5.0, 10.0, 1) payload_range(valore, 5.0, 10.0, 3), payload_range(valore, 5.0, 10.0, 6), payload_range(valore, 5.0, 10.0, 9), payload_range(valore, 50.0, 60.0, 11), payload_range(valore, 50.0, 60.0, 15), payload_range(valore, 50.0, 60.0, 17), payload_range(valore, 50.0, 60.0, 19), absolute_payload(age, 30)
+# terapia, secondo blocco, età = 60
+#absolute_pos(terapia_A, 2, 2), absolute_pos(terapia_B, 5, 5), pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), payload_range(valore, 5.0, 10.0, 1) payload_range(valore, 5.0, 10.0, 3), payload_range(valore, 5.0, 10.0, 6), payload_range(valore, 5.0, 10.0, 9), payload_range(valore, 50.0, 60.0, 11), payload_range(valore, 50.0, 60.0, 15), payload_range(valore, 50.0, 60.0, 17), payload_range(valore, 50.0, 60.0, 19), absolute_payload(age, 60)
+# terapia, secondo blocco, età = 30
+#absolute_pos(terapia_A, 2, 2), absolute_pos(terapia_B, 5, 5), pos(analisi_sangue, 1, _), pos(analisi_sangue, 3, _), pos(analisi_sangue, 6, _), pos(analisi_sangue, 9, _), pos(analisi_sangue, 11, _), pos(analisi_sangue, 15, _), pos(analisi_sangue, 17, _), pos(analisi_sangue, 19, _), payload_range(valore, 5.0, 10.0, 1) payload_range(valore, 5.0, 10.0, 3), payload_range(valore, 5.0, 10.0, 6), payload_range(valore, 5.0, 10.0, 9), payload_range(valore, 50.0, 60.0, 11), payload_range(valore, 50.0, 60.0, 15), payload_range(valore, 50.0, 60.0, 17), payload_range(valore, 50.0, 60.0, 19), absolute_payload(age, 30)

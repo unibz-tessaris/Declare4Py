@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-import typing
+from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPTranslator.ConstraintResolver import DeclareModelConditionResolver2ASP
 
-from Declare4Py.ProcessMiningTasks.ASPLogGeneration.ASPTranslator.declare_constraint_resolver import \
-    DeclareModelConditionResolver2ASP
-from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType, DeclareModelEvent, DeclareModelAttr
+#TODO change imports
+# from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttributeType
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelEvent
+from Declare4Py.ProcessModels.DeclareModel import DeclareModelAttr
 from Declare4Py.ProcessModels.DeclareModel import DeclareModel
 from Declare4Py.ProcessModels.DeclareModel import DeclareModelConstraintTemplate
 
+# Tutto codice di Manpreet
 
 class ASPModel:
     """
@@ -69,7 +71,8 @@ class ASPModel:
         """
         attr_name = attr.attr_name.get_encoded_name() if self.encode_decl_model_values else attr.attr_name.get_name()
         attr_val_typ = attr.attr_value.attribute_value_type
-        if attr_val_typ is not DeclareModelAttributeType.ENUMERATION:
+        # cambiato DeclareModelAttributeType -> DeclareModelAttr
+        if attr_val_typ is not DeclareModelAttr.ENUMERATION:
             frm, til = attr.attr_value.get_precisioned_value()
             self.add_attribute_value_to_list(f'value({attr_name}, {frm}..{til}).')
         else:
@@ -206,4 +209,3 @@ class ASPModel:
     def __repr__(self):
         return f"{{ \"total_facts\": \"{len(self.lines) - len(self.values_assignment)}\"," \
                f" \"values_assignment\": \"{len(self.values_assignment)}\" }}"
-

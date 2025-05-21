@@ -1,0 +1,137 @@
+bind terapia_A, terapia_B: resource, qt, age
+bind controllo: resource, age
+bind analisi_sangue: resource, valore, age
+# Cambiato 5 per problemi nel constraints
+valore: float between 5.0 and 70.0
+age: integer between 20 and 90
+qt: float between 0.2 and 14.9
+resource: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y
+
+# ------------ PAYLOAD RANGE WITH INTEGERS ----------------
+
+# payload_range(valore, _, _, 1)
+# Expected: rule :- assigned_value(valore, @range(50,700), 1).
+
+# payload_range(valore, 14, _, 2)
+# Expected: rule :- assigned_value(valore, @range(140,700), 2).
+
+# payload_range(valore, _, 56, 3)
+# Expected: rule :- assigned_value(valore, @range(50,560), 3).
+
+# payload_range(valore, 1, _, 4)
+# Expected: rule :- assigned_value(valore, @range(50,700), 4).
+
+# payload_range(valore, _, 77, 5)
+# Expected: rule :- assigned_value(valore, @range(50,700), 5).
+
+# payload_range(valore, 1,77, 6)
+# Expected: rule :- assigned_value(valore, @range(50,700), 6).
+
+# payload_range(valore, 14, 56, 7)
+# Expected: rule :- assigned_value(valore, @range(140,560), 7).
+
+# payload_range(valore, 1, 56, 8)
+# Expected: rule :- assigned_value(valore, @range(50,560), 8).
+
+# payload_range(valore, 14, 563, 9)
+# Expected: rule :- assigned_value(valore, @range(140,700), 9)
+
+# payload_range(valore, 55, 34, 10)
+# Expected: rule :- assigned_value(valore, @range(340,550), 10)
+
+payload_range(valore, 223, 12, _)
+# Expected: rule :- assigned_value(valore, @range(120,700), _).
+
+# ------------ PAYLOAD RANGE WITH FLOATS ----------------
+
+# payload_range(valore, _, _, 1)
+# Expected: rule :- assigned_value(valore, @range(50,700), 1).
+
+# payload_range(valore, 14.0, _, 2)
+# Expected: rule :- assigned_value(valore, @range(140,700), 2).
+
+# payload_range(valore, _, 56.0, 3)
+# Expected: rule :- assigned_value(valore, @range(50,560), 3).
+
+# payload_range(valore, 1.0, _, 4)
+# Expected: rule :- assigned_value(valore, @range(50,700), 4).
+
+# payload_range(valore, _, 77.0, 5)
+# Expected: rule :- assigned_value(valore, @range(50,700), 5).
+
+# payload_range(valore, 1.0,77.0, 6)
+# Expected: rule :- assigned_value(valore, @range(50,700), 6).
+
+# payload_range(valore, 14.0, 56.0, 7)
+# Expected: rule :- assigned_value(valore, @range(140,560), 7).
+
+# payload_range(valore, 1.0, 56.0, 8)
+# Expected: rule :- assigned_value(valore, @range(50,560), 8).
+
+# payload_range(valore, 14.0, 563.0, 9)
+# Expected: rule :- assigned_value(valore, @range(140,700), 9)
+
+payload_range(valore, 223, 12, >2)
+# values are inverted > 12, 223
+# max is 70 which is less than 223 -> value 223 becomes 70
+# since they are float with 1 digit, precision is applied and both values at the end becomes 120 and 700
+# Expected: rule :- assigned_value(valore, @range(120,700), C2V1), C2V1 > 2.
+
+# -------- The following function will raise and error --------
+
+# payload_range(>=valore, 223, 12, 2)
+# Problem: Argument Attribute has value >=valore and cannot have the operator >= in front or at the end
+
+# payload_range(valore, >223, 12, 2)
+# Problem: Argument Min_value has value >223 and cannot have the operator > in front or at the end
+
+# payload_range(valore, 223, <12, 2)
+# Problem: Argument Max_value has value <12 and cannot have the operator < in front or at the end
+
+# payload_range(resource, 223, 12, 2)
+# Problem: resource is an enumeration and not a range
+
+# payload_range(valore, :VAR2 , 12, 2), :VAR == valore
+# Problem: :VAR2 cannot exist here
+
+# payload_range(valore, 234 , :VAR2, 2), :VAR1 == valore
+# Problem: :VAR2 cannot exist here
+
+# payload_range(valore, sdfsdfsd , 12, 2), :VAR == valore
+# Problem: sdfsdfsd is not a numeric value
+
+
+# ------------ PAYLOAD RANGE WITH VARIABLES ----------------
+
+# WARNING: USING VARIABLE IN THE RANGE FUNCTION IS DISCURAGED SINCE RANGES CANNOT BE CHECKED.
+# THIS COULD LEAD CLINGO TO BEING UNABLE TO RESOLVE SOME PROBLEMS
+
+# payload_range(:VAR, 14.0, 563, 1), :VAR == valore
+# Expected: rule :- assigned_value(VAR, @range(140,563), 1), VAR == valore.
+
+# -------- The following function will raise and error --------
+
+# payload_range(:VAR, 14.0, _, 2), :VAR == valore
+# Problem: _ cannot exist here
+
+# payload_range(:VAR, 14.0, asdasd, 2), :VAR == valore
+# Problem: asdasd is not a numeric value
+
+# payload_range(:VAR, _, 12, 2), :VAR == valore
+# Problem: _ cannot exist here
+
+# payload_range(:VAR, _, _, 2), :VAR == valore
+# Problem: _ cannot exist here
+
+# payload_range(:VAR, sdfsdfsd , 12, 2), :VAR == valore
+# Problem: sdfsdfsd is not a numeric value
+
+# payload_range(_, sdfsdfsd , 12, 2), :VAR == valore
+# Problem: _ cannot exist here,  sdfsdfsd is not a numeric value
+
+# payload_range(:VAR1, :VAR2 , 12, 2), :VAR == valore
+# Problem: :VAR2 cannot exist here
+
+# payload_range(:VAR2, 234 , :VAR2, 2), :VAR1 == valore
+# Problem: :VAR2 cannot exist here
+

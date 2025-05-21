@@ -3,6 +3,7 @@ import warnings
 import clingo
 from clingo import SymbolType
 
+# Tutto codice di Manpreet
 
 class ASPResultEventModel:
     """

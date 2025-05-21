@@ -5,7 +5,7 @@ import cProfile
 import logging
 import math
 
-from Declare4Py.ProcessMiningTasks.ASPLogGeneration.asp_generator import AspGenerator
+from Declare4Py.ProcessMiningTasks.LogGenerator.ASP.ASPLogGenerator import AspGenerator
 from Declare4Py.ProcessModels.DeclareModel import DeclareModel
 import time
 from datetime import datetime

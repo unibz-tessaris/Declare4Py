@@ -1,0 +1,33 @@
+
+# definitions of activities and attributes
+
+bind ER Registration: InfectionSuspected, org:group, DiagnosticBlood, DisfuncOrg, SIRSCritTachypnea, Hypotensie, SIRSCritHeartRate, Infusion, DiagnosticArtAstrup, Age, DiagnosticIC, DiagnosticSputum, DiagnosticLiquor, DiagnosticOther, SIRSCriteria2OrMore, DiagnosticXthorax, SIRSCritTemperature, DiagnosticUrinaryCulture, SIRSCritLeucos, Oligurie, DiagnosticLacticAcid, Diagnose, Hypoxie, DiagnosticUrinarySediment, DiagnosticECG
+bind ER Sepsis Triage: org:group, Diagnose, Age
+bind Leucocytes: Leucocytes
+bind CRP: CRP
+bind LacticAcid: org:group, LacticAcid
+bind Leucocytes, CRP, ER Triage, IV Liquid, ER Sepsis Triage: org:group, Diagnose, Age
+bind IV Antibiotics, Admission NC, Release B, Release A, Admission IC, Return ER: org:group
+
+# Integers and floats
+
+CRP: float between 5.0 and 573.0
+Leucocytes: float between 0.2 and 381.3
+LacticAcid: float between 0.2 and 14.9
+Age: integer between 20 and 90
+
+# true and false attributes
+
+InfectionSuspected, DiagnosticBlood, DisfuncOrg, SIRSCritTachypnea, Hypotensie, SIRSCritHeartRate, Infusion, DiagnosticArtAstrup, DiagnosticIC, DiagnosticSputum, DiagnosticLiquor, DiagnosticOther, SIRSCriteria2OrMore, DiagnosticXthorax, SIRSCritTemperature, DiagnosticUrinaryCulture, SIRSCritLeucos, Oligurie, DiagnosticLacticAcid, Hypoxie, DiagnosticUrinarySediment, DiagnosticECG: true, false
+
+# enumerations
+
+org:group: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, ?
+Diagnose: YA, YB, YC, YD, QA, QB, QC, QD, QE, IA, IB, IC, ID, IE, AA, AB, AC, AD, AE, ZA, ZB, ZC, ZD, RA, RB, RC, RD, JA, JB, JC, JD, JE, BA, BB, A, BC, B, BD, C, BE, D, E, F, G, H, I, J, K, L, M, N, SA, O, SB, P, SC, Q, SD, R, S, T, U, V, KA, W, KB, X, KC, Y, KD, Z, KE, CA, CB, CC, CD, CE, TA, TB, TC, TD, LA, LB, LC, LD, LE, DA, DB, DC, DD, DE, UA, UB, UC, UD, MA, MB, MC, MD, ME, EA, EB, EC, ED, EE, VA, VB, VC, VD, NA, NB, NC, ND, FA, FB, FC, FD, FE, WA, WB, WC, WD, OA, OB, OC, OD, OE, GA, GB, GC, GD, GE, XA, XB, XC, XD, PA, PB, PC, PD, PE, HA, HB, HC, HD, HE
+
+# constraints
+
+!pos(ER Triage, 1, 1),pos(org:group, 1, -, !A),pos(Leucocytes, 2, >3, >=34)
+pos(Act_name, pos, tempo),payload_pos(org:group, pos, tempo, valore),pos(org:group, 1, 1, A)
+pos(ER Triage, 1, 1),pos(org:group, 1, 1, A),pos(org:group, 1, 1, A)
+!pos(ER Triage, p1 t1),pos(org:group, p1, t2, v2),pos(Leucocytes, 2, t3, v3), t1=t2,t3>t2+10,v3<v2
