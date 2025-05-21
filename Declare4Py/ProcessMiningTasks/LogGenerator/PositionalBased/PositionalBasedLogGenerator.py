@@ -558,7 +558,7 @@ class PositionalBasedLogGenerator(AbstractLogGenerator):
             self.__PB_Logger.debug(str(msg))
 
 
-if __name__ == '__main__':
+"""if __name__ == '__main__':
     model_name = "experimental_model"
 
     model1 = PositionalBasedModel(positional_time_end=20, verbose=True).parse_from_file(f"DeclareFiles/{model_name}.decl")
@@ -567,4 +567,4 @@ if __name__ == '__main__':
     generator = PositionalBasedLogGenerator(20, 20, 20, model1, True)
     generator.run(generate_negatives_traces=False, positive_noise_percentage=10, negative_noise_percentage=10)
     generator.to_csv(f"LogResults/{model_name}.csv")
-    generator.to_xes(f"LogResults/{model_name}.xes")
+    generator.to_xes(f"LogResults/{model_name}.xes")"""
