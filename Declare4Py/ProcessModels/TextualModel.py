@@ -1,19 +1,10 @@
 # Implementation of AI extraction process
 from abc import ABC
-
 from Declare4Py.ProcessModels import DeclareModel
 from Declare4Py.Utils.Declare import DeclarePrompts
-from logaut import ltl2dfa
-
 from Declare4Py.ProcessModels.AbstractModel import ProcessModel
-from pylogics.parsers import parse_ltl
-from Declare4Py.Utils.utils import Utils
 from typing import List
-
-# My imports
 from groq import Groq
-
-
 
 # Support method to parse results from AI
 def parse_ai_result (response: str) -> str:
