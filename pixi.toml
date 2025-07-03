@@ -3,7 +3,7 @@ authors = ["Ivan Donadello <ivan.donadello@unibz.it>", "Francesco Riva <francesc
 channels = ["conda-forge"]
 description = "Python library to perform discovery, conformance checking and query checking of DECLARE constraints."
 name = "ASP-based log generation"
-platforms = ["osx-64", "linux-64"]
+platforms = ["osx-64", "osx-arm64", "linux-64", "linux-64", "win-64"]
 version = "0.1.0"
 
 [tasks]
@@ -14,6 +14,9 @@ nbconvert = {description = "convert the provided notebook to html in the './outp
     "--ExecutePreprocessor.timeout=-1", "--execute",
     "--output={notebook_name}_$(date -u +'%Y-%m-%dT%H%M%SZ_')$(git describe --dirty 2>/dev/null)",
     "--output-dir=$INIT_CWD/output"] }
+experiments = { description = "runs the experiments defined in the justfile", cmd = [
+    "cd", "$INIT_CWD", ";",
+    "just", "experiments"] }
 
 [dependencies]
 packaging = "*"
@@ -27,6 +30,7 @@ jupyterlab = ">=4.3.3,<5"
 pixi-kernel = ">=0.5.1,<0.6"
 levenshtein = ">=0.26.1,<0.27"
 papermill = ">=2.6.0,<3"
+just = ">=1.41.0,<2"
 
 [pypi-dependencies]
 logaut = "*"
