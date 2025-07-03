@@ -1,0 +1,45 @@
+
+now := datetime("%Y-%m-%dT%H%M%SZ")
+out_dir := justfile_directory() / "output"
+
+export DEBUG := "0"
+
+# Show the available tasks
+default:
+    @just --list --justfile "{{justfile()}}"
+
+test:
+    @echo "now: {{now}}"
+
+# Run the notebook using papermill and convert to HTML
+papermill notebook:
+    papermill "{{notebook}}" "{{out_dir / file_stem(notebook) + '_' + now + '.ipynb'}}" \
+        -r EXPORT_TAG "{{now}}" \
+        -r EXPORT_PREFIX "{{file_stem(notebook)}}" \
+        -p DEBUG "{{ if DEBUG == "0" { 'False' } else { 'True' } }}"
+    jupyter nbconvert --to html "{{out_dir / file_stem(notebook) + '_' + now + '.ipynb'}}"
+
+# Run the default set of experiments
+experiments: exp_base exp_nomodel exp_tabu && analysis
+
+
+# Remove all results from the output directory
+[confirm('Clearing results directory, are you sure?')]
+clean:
+    @echo "Cleaning output directory: {{out_dir}}"
+    for file in "{{out_dir}}"/*; do [ "$file" == ".gitkeep" ] || rm -rf "$file"; done
+
+# Analyse the results of the experiments
+analysis: (papermill "analysis.ipynb")
+
+[group('experiments')]
+exp_base: (papermill "variability_base.ipynb")
+
+[group('experiments')]
+exp_nomodel: (papermill "variability_nomodel.ipynb")
+
+[group('experiments')]
+exp_tabu: (papermill "variability_tabu.ipynb")
+
+[group('experiments')]
+exp_tests: (papermill "tests.ipynb")
