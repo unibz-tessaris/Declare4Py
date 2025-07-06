@@ -11,11 +11,12 @@ default:
 test:
     @echo "now: {{now}}"
 
-# Run the notebook using papermill and convert to HTML
+# Run the notebook using papermill and convert it to HTML
 papermill notebook:
     papermill "{{notebook}}" "{{out_dir / file_stem(notebook) + '_' + now + '.ipynb'}}" \
         -r EXPORT_TAG "{{now}}" \
         -r EXPORT_PREFIX "{{file_stem(notebook)}}" \
+        -r OUTPUT_DIR "{{out_dir}}" \
         -p DEBUG "{{ if DEBUG == "0" { 'False' } else { 'True' } }}"
     jupyter nbconvert --to html "{{out_dir / file_stem(notebook) + '_' + now + '.ipynb'}}"
 

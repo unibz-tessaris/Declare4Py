@@ -1,4 +1,4 @@
-# CAiSE 2025 experiments
+# Variability experiments
 
 This directory includes the code for the experiments for the CAiSE 2025 submission.
 
