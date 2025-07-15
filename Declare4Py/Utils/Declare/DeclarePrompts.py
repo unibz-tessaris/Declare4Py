@@ -317,10 +317,10 @@ Here follows all the implications:
 """
 
     # Formatting instructions and process description
-    DESCRIPTION_AND_FORMATTING_INFORMATION = """The activities should not be shortened as letter but included in the final constraind in a simplified version such as executed_payment, approval_request, confirmation, ...
-In our final interaction the constraint should be defined as "Final Formal Declarative Constraints: " (this line MUST appear only once in your reply, if you have any intermidate interpretations you can use "Temporary Declarative Constraints" or similar phrases) followed by one constraint per line defined using the template provided in the previous instruction.
-Furthermore, in a line you have to summarize all the activities present in the constraints, writing it as "Activities: " and the on the same line all the activities divided by comas, you can not put a dot at the end of the line
-Be succint and do not allucinate.
+    DESCRIPTION_AND_FORMATTING_INFORMATION = """The activities should not be shortened to a letter but included in the final constraint in a simplified version, such as executed_payment, approval_request, confirmation, ...
+In our final interaction the constraint should be defined as "Final Formal Declarative Constraints: " (this line MUST appear only once in your reply, if you have any intermediate interpretations you can use "Temporary Declarative Constraints" or similar phrases) followed by one constraint per line defined using the template provided in the previous instruction.
+Furthermore, in a line, you have to summarize all the activities present in the constraints, writing it as "Activities: " and on the same line, all the activities divided by commas, you cannot put a dot at the end of the line
+Be succinct and do not hallucinate.
 {interaction_status}
 
 Here is the process description:
