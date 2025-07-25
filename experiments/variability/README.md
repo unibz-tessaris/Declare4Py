@@ -1,6 +1,6 @@
 # Variability experiments
 
-This directory includes the code for the experiments for the CAiSE 2025 submission.
+This directory includes the code for the experiments for the evaluation of the ASP based techniques to generate diverse logs.
 
 ## Prerequisites
 

@@ -2249,8 +2249,8 @@ packages:
   timestamp: 1744321801176
 - pypi: ./
   name: declare4py
-  version: 3.0.0+caise2025
-  sha256: 99915bc378ee100b8f7ce287901676ba1fec7e7eeb57d42e383e9bcd1a1abefe
+  version: 3.0.0+variability
+  sha256: f252aa8861cf03abe4e2ba75ad598e10994038539685ab5b53b6d051f075fcc6
   requires_dist:
   - logaut
   - packaging
