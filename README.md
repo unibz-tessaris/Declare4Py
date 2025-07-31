@@ -52,8 +52,8 @@ The `docs/source/tutorials/` folder contains a walk-through of Declare4Py. In or
 The tutorials are Jupyter notebooks and consider the [Sepsis cases log](https://data.4tu.nl/articles/dataset/Sepsis_Cases_-_Event_Log/12707639).
 
 ## Repository Structure
-- `src/declare4py/ProcessModels` -- the implementation of the supported process models.
-- `src/declare4py/ProcessMiningTasks/` -- the implementation of the supported Process Mining tasks.
+- `Declare4Py/ProcessModels` -- the implementation of the supported process models.
+- `Declare4Py/ProcessMiningTasks/` -- the implementation of the supported Process Mining tasks.
 - `tests/` -- a collection of tests for computing the Declare4Py performance.
 - `docs/source/tutorials/` -- tutorials to start with Declare4Py,
 
