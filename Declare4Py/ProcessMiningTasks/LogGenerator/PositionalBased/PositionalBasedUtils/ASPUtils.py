@@ -20,6 +20,7 @@ class ASPFunctions:
     ASP_BOUNDED_EVENT = "bounded_event_rule"
     ASP_BOUNDED_TIME_EVENT = "bounded_timed_event_rule"
     ASP_FIXED_PAYLOAD = "fixed_payload_rule"
+    ASP_ACTIVITY_LIMIT = "activity_limit_rule"
 
     # Defines Clingo Script information
     ASP_PYTHON_SCRIPT_NAME = "clingo_python_range_script"
@@ -82,6 +83,15 @@ def range(min_val, max_val):
 
     # fixed_payload_rule :- assigned_value({}, ATTR_VALUE, _), ATTR_VALUE != {}
     ASP_FIXED_PAYLOAD_FORMAT = ASP_FIXED_PAYLOAD + " :- " + ASP_ASSIGNED_VALUE + "({}, ATTR_VALUE, _), ATTR_VALUE != {}"
+
+    # activity_limit_rule :- #count{POS : timed_event({}, POS, _)} != {}
+    ASP_ACTIVITY_LIMIT_FORMAT = ASP_ACTIVITY_LIMIT + " :- #count{{ POS : " + ASP_TIMED_EVENT + "({}, POS, _)}} != {}"
+
+    # activity_limit_rule :- #count{POS : timed_event({}, POS, _)} <= {}
+    ASP_ACTIVITY_LIMIT_BOUNDED_ABOVE_FORMAT = ASP_ACTIVITY_LIMIT + " :- #count{{ POS : " + ASP_TIMED_EVENT + "({}, POS, _)}} >= {}"
+
+    # activity_limit_rule :- #count{POS : timed_event({}, POS, _)} >= {}
+    ASP_ACTIVITY_LIMIT_BOUNDED_BELOW_FORMAT = ASP_ACTIVITY_LIMIT + " :- #count{{ POS : " + ASP_TIMED_EVENT + "({}, POS, _)}} <= {}"
 
     # File extension
     ASP_FILE_EXTENSION = ".lp"

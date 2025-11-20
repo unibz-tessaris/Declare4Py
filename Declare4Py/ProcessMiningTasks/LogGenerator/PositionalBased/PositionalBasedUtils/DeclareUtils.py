@@ -40,6 +40,9 @@ class DeclareFunctions:
     DECL_CONDITIONAL = "conditional"
     DECL_BOUND_POS_ABOVE = "pos_not_greater_than"
     DECL_BOUND_POS_BELOW = "pos_not_lower_than"
+    DECL_ACTIVITY_LIMIT = "act_limit"
+    DECL_ACTIVITY_LIMIT_ABOVE = "act_limit_not_greater_than"
+    DECL_ACTIVITY_LIMIT_BELOW = "act_limit_not_lower_than"
 
     # Defining the order of importance for the constraint function search during parsing
     DECL_CONSTRAINT_FUNCTIONS = [
@@ -50,7 +53,10 @@ class DeclareFunctions:
         DECL_ABSOLUTE_PAYLOAD,
         DECL_PAYLOAD_RANGE,
         DECL_PAYLOAD,
-        DECL_CONDITIONAL
+        DECL_CONDITIONAL,
+        DECL_ACTIVITY_LIMIT,
+        DECL_ACTIVITY_LIMIT_ABOVE,
+        DECL_ACTIVITY_LIMIT_BELOW
     ]
 
     # Defining the attribute type characteristics
@@ -140,6 +146,11 @@ class DeclareFunctions:
         DeclAttributeType("Position", DECL_INT_ARG, can_have_op=False, can_be_empty=False),
         DeclAttributeType("Time", DECL_INT_ARG, can_have_op=False)
     ]
+    # Function activity_limit; Arguments type information:
+    DECL_ACTIVITY_LIMIT_ARGS_TYPE = [
+        DeclAttributeType("Activity", DECL_ENCODE_ARG, can_have_op=False, can_be_empty=False),
+        DeclAttributeType("Value", DECL_ANY_ARG, can_be_empty=False)
+    ]
 
     # Defining constraint regex pattern
     DECL_POSITION_PATTERN = r"!?pos[(][^,]+,[^,]+,[^,]+[)]"
@@ -149,11 +160,17 @@ class DeclareFunctions:
     DECL_ABSOLUTE_PAYLOAD_PATTERN = r"absolute_payload[(][^,]+,[^,]+[)]"
     DECL_POSITION_BOUNDED_ABOVE_PATTERN = r"pos_not_greater_than[(][^,]+,[^,]+,[^,]+[)]"
     DECL_POSITION_BOUNDED_BELOW_PATTERN = r"pos_not_lower_than[(][^,]+,[^,]+,[^,]+[)]"
+    DECL_ACTIVITY_LIMIT_PATTERN = r"act_limit[(][^,]+,[^,]+[)]"
+    DECL_ACTIVITY_LIMIT_BOUNDED_ABOVE_PATTERN = r"act_limit_not_greater_than[(][^,]+,[^,]+[)]"
+    DECL_ACTIVITY_LIMIT_BOUNDED_BELOW_PATTERN = r"act_limit_not_lower_than[(][^,]+,[^,]+[)]"
     DECL_CONDITIONAL_VARIABLE_PATTERN = r"(\w[\w.]+|:?\w+)\s*(([+]|-)\s*(\w[\w.]+|:?\w+))?\s*(==|!=|>=|<=|>|<)\s*(\w[\w.]+|:?\w+)\s*(([+]|-)\s*(\w[\w.]+|:?\w+))?"
     DECL_INTEGER_OR_FLOAT_PATTERN = r"\d+(.\d+)?"
 
     # Defining the order of importance for the constraint pattern, Otherwise some pattern might find themselves in other patterns
     DECL_CONSTRAINT_PATTERNS = [
+        DECL_ACTIVITY_LIMIT_BOUNDED_BELOW_PATTERN,
+        DECL_ACTIVITY_LIMIT_BOUNDED_ABOVE_PATTERN,
+        DECL_ACTIVITY_LIMIT_PATTERN,
         DECL_POSITION_BOUNDED_ABOVE_PATTERN,
         DECL_POSITION_BOUNDED_BELOW_PATTERN,
         DECL_ABSOLUTE_POSITION_PATTERN,
@@ -269,6 +286,42 @@ class DeclareFunctions:
             "AbsoluteRule": False,
             "ASPRule": None,
             "ASPRuleFormat": None
+        },
+        # Function activity_limit
+        DECL_ACTIVITY_LIMIT: {
+            "Type": DECL_ACTIVITY_LIMIT,
+            "Negated": False,
+            "ArgsType": DECL_ACTIVITY_LIMIT_ARGS_TYPE.copy(),
+            "Pattern": DECL_ACTIVITY_LIMIT_PATTERN,
+            "ASPFunction": None,
+            "ASPFormat": None,
+            "AbsoluteRule": True,
+            "ASPRule": ASPFunctions.ASP_ACTIVITY_LIMIT,
+            "ASPRuleFormat": ASPFunctions.ASP_ACTIVITY_LIMIT_FORMAT
+        },
+        # Function activity_limit_not_greater_than
+        DECL_ACTIVITY_LIMIT_ABOVE: {
+            "Type": DECL_ACTIVITY_LIMIT_ABOVE,
+            "Negated": False,
+            "ArgsType": DECL_ACTIVITY_LIMIT_ARGS_TYPE.copy(),
+            "Pattern": DECL_ACTIVITY_LIMIT_BOUNDED_ABOVE_PATTERN,
+            "ASPFunction": None,
+            "ASPFormat": None,
+            "AbsoluteRule": True,
+            "ASPRule": ASPFunctions.ASP_ACTIVITY_LIMIT,
+            "ASPRuleFormat": ASPFunctions.ASP_ACTIVITY_LIMIT_BOUNDED_ABOVE_FORMAT
+        },
+        # Function activity_limit_not_lower_than
+        DECL_ACTIVITY_LIMIT_BELOW: {
+            "Type": DECL_ACTIVITY_LIMIT_BELOW,
+            "Negated": False,
+            "ArgsType": DECL_ACTIVITY_LIMIT_ARGS_TYPE.copy(),
+            "Pattern": DECL_ACTIVITY_LIMIT_BOUNDED_BELOW_PATTERN,
+            "ASPFunction": None,
+            "ASPFormat": None,
+            "AbsoluteRule": True,
+            "ASPRule": ASPFunctions.ASP_ACTIVITY_LIMIT,
+            "ASPRuleFormat": ASPFunctions.ASP_ACTIVITY_LIMIT_BOUNDED_BELOW_FORMAT
         },
         # constraint conditional
         DECL_CONDITIONAL: {
@@ -687,15 +740,17 @@ class DeclareFunctions:
         return list(filter(lambda el: len(el) > 0, map(lambda el: el.strip(), elements)))
 
 
-"""
-if __name__ == "__main__":
+
+#if __name__ == "__main__":
     # print(DeclareFunctions.is_activation_line("activity ER Registration, Er triage, org:group:,,  ,"))
     # print(DeclareFunctions.parse_activation_line("activity ER Registration, Er activity triage, org:group:,,  ,"))
     # print(DeclareFunctions.has_constraints_in_line("pos(1,2,3), payload(1,2,3)"))
-    # import pprint as p
+    #import pprint as p
+    #p.pprint(DeclareFunctions.parse_constraint_line("activity_limit(ER Registration, <=1)"))
+
+
 
     # p.pprint(DeclareFunctions.parse_constraint_line("absolute_pos(Er Triage, 2, _), absolute_payload(org:group, 1), !payload(org:group, 1, :V1), pos(ER Sepsis Triage, 2, _), :V2 + 1< :V2, 1==:V2 + 10, :V1 + 10 == 30 + :V2, 1-:V1 ==:V2"))
     # print(DeclareFunctions.parse_constraint_line("pos(ER Registration, 1, 1), payload(org:group, 1, :V1), pos(ER Sepsis Triage, 2, 3), payload(org:group, 2, :V2), :V1 == :V2"))
 
-    pass
-"""
+    #pass
