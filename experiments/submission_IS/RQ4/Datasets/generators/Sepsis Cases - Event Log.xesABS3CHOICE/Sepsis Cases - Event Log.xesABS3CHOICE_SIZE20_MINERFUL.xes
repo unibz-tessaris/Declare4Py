@@ -1,0 +1,1991 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- This file has been generated with the OpenXES library. It conforms -->
+<!-- to the XML serialization of the XES standard for log storage and -->
+<!-- management. -->
+<!-- XES standard version: 1.0 -->
+<!-- OpenXES library version: 1.0RC7 -->
+<!-- OpenXES is available from http://www.openxes.org/ -->
+<log xes.version="1.0" xes.features="nested-attributes" openxes.version="1.0RC7">
+	<extension name="Time" prefix="time" uri="http://www.xes-standard.org/time.xesext"/>
+	<extension name="Lifecycle" prefix="lifecycle" uri="http://www.xes-standard.org/lifecycle.xesext"/>
+	<extension name="Concept" prefix="concept" uri="http://www.xes-standard.org/concept.xesext"/>
+	<classifier name="Event Name" keys="concept:name"/>
+	<string key="concept:name" value="Synthetic log for process: Discovered model"/>
+	<string key="lifecycle:model" value="standard"/>
+	<trace>
+		<string key="concept:name" value="Case No. 01 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-11T14:40:22.702+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-11T17:48:14.324+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-12T00:00:35.874+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-12T13:44:09.870+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-12T19:36:10.374+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-13T18:10:51.187+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-14T17:59:33.722+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-15T00:55:26.829+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-15T21:56:37.570+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-15T22:19:07.663+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-16T08:01:00.743+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-16T16:18:35.589+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-17T02:41:04.421+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-17T19:40:26.967+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-18T04:53:33.363+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-18T05:34:44.480+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-18T11:22:58.866+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-18T19:11:12.316+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-19T03:18:09.752+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-19T13:11:59.550+01:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 02 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-20T12:23:13.475+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-21T08:45:38.113+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-21T15:02:49.089+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-22T02:05:33.011+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-22T15:01:43.141+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-22T18:03:57.151+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-22T19:29:59.726+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-23T16:11:00.230+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-24T07:16:40.227+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-25T04:19:57.001+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-25T22:26:01.379+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-26T05:31:49.520+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-26T21:02:11.637+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-27T00:33:33.066+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-27T06:44:36.189+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-27T18:18:11.329+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-28T16:08:01.167+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-28T17:26:21.144+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-28T21:32:46.688+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-29T19:23:20.382+01:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 03 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-30T12:50:02.401+01:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-31T13:39:06.016+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-03-31T18:58:56.396+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-01T07:32:18.587+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-01T13:24:19.432+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-02T08:56:41.081+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-03T04:12:23.399+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-03T14:55:43.720+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-04T10:49:18.497+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-04T17:58:13.139+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-04T23:23:53.555+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-05T19:59:35.076+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-06T08:41:10.154+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-06T20:41:43.636+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-07T15:54:30.954+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-08T13:04:47.090+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-08T22:37:38.878+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-09T12:13:05.691+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-09T18:44:08.723+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-10T03:44:11.405+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 04 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-11T03:31:15.512+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-11T06:14:48.555+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-12T00:49:50.525+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-12T22:31:49.760+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-13T11:59:26.384+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-14T06:22:25.349+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-14T15:35:39.765+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-15T12:29:44.080+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-16T08:00:35.727+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-16T09:10:32.166+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-17T06:57:11.200+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-18T05:31:43.784+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-19T00:44:52.432+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-19T16:34:21.371+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-20T01:59:27.469+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-20T12:51:19.251+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-21T09:36:44.395+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-22T00:42:58.148+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-22T07:01:14.442+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-22T19:42:50.987+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 05 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-23T10:06:56.763+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-23T14:39:38.080+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-23T15:53:02.069+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-24T12:21:10.144+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-24T17:29:55.666+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-25T04:03:07.688+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-26T01:39:24.742+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-26T13:46:56.678+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-27T04:55:03.051+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-28T00:42:58.562+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-28T07:04:53.884+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-28T21:38:57.555+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-29T16:23:14.560+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-30T11:07:52.306+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-04-30T18:44:26.593+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-01T12:19:10.301+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-01T15:16:56.270+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-02T03:40:03.306+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-02T05:58:19.707+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-02T12:38:50.876+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 06 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-02T17:45:04.676+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-03T04:55:51.136+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-04T00:08:40.015+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-04T13:51:45.307+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-04T18:06:56.231+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-04T21:30:34.213+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-05T12:22:30.001+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-06T02:44:19.362+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-06T14:35:57.769+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-07T06:07:52.494+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-07T10:45:47.419+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-08T09:35:28.760+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-09T07:47:30.233+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-09T09:01:20.066+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-09T16:55:49.688+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-09T17:09:09.782+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-09T22:57:32.606+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-10T08:43:53.371+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-10T11:17:15.999+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-11T05:21:51.736+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 07 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-12T03:15:00.956+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-12T18:16:07.645+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-13T01:05:06.201+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-13T22:26:37.916+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-14T08:51:30.648+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-15T07:59:41.324+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-15T15:56:56.298+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-15T19:18:41.376+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-16T16:39:47.599+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-16T16:43:09.856+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-17T00:11:21.878+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-17T12:06:21.202+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-18T08:54:38.690+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-18T12:48:56.103+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-19T05:56:28.181+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-19T11:07:48.232+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-20T02:43:33.468+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-20T22:57:52.451+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-20T23:34:45.795+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-21T06:31:45.830+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 08 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-22T03:05:24.186+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-22T23:46:24.177+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-23T20:32:07.691+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-24T16:46:31.324+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-25T14:53:05.227+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-25T19:38:16.419+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-26T05:09:02.203+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-27T04:44:52.391+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-28T00:37:11.658+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-28T03:54:23.288+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-28T04:15:14.869+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-28T21:53:51.801+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-29T12:46:46.632+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-29T19:15:46.481+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-29T20:23:36.876+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-30T17:13:12.159+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-30T19:34:58.662+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-30T23:00:49.853+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-30T23:02:49.788+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-05-31T21:59:53.979+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 09 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-01T07:58:47.095+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-01T20:30:23.919+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-02T08:02:50.343+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-03T02:49:37.183+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-03T12:19:45.684+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-04T08:13:58.094+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-04T10:05:09.522+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-04T11:26:41.364+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-05T10:06:38.192+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-06T09:55:43.144+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-06T18:49:14.404+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-07T18:16:49.919+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-08T17:15:00.781+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-09T05:06:27.054+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-10T02:01:23.702+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-10T11:43:38.722+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-11T06:38:29.922+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-11T13:58:49.673+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-12T09:28:26.587+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-12T13:57:26.773+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 10 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-13T07:31:34.905+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-13T18:44:18.794+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-14T15:58:51.785+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-15T06:08:00.522+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-16T02:33:30.729+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-16T16:03:19.729+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-17T07:57:37.591+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-18T01:52:03.477+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-18T14:28:44.210+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-19T00:44:05.363+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-19T17:01:42.895+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-20T02:15:01.303+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-20T23:12:32.829+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-21T20:51:16.015+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-22T07:53:59.889+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-22T11:34:15.694+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-22T23:40:09.124+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-23T12:31:14.581+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-24T00:44:05.701+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-24T13:01:13.987+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 11 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-24T17:44:28.079+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-25T01:52:06.686+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-25T11:16:20.356+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-26T09:22:06.772+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-26T21:56:06.580+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-27T09:10:44.404+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-28T06:42:08.064+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-28T12:22:28.845+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-29T11:30:02.921+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-06-30T10:30:16.633+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-01T01:31:43.881+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-01T09:34:59.135+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-02T05:06:40.735+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-02T06:36:21.886+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-02T17:39:15.923+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-03T08:22:42.437+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-03T22:09:35.394+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-04T09:25:36.517+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-05T02:12:39.423+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-05T13:03:34.186+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 12 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-06T10:24:40.337+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-07T09:43:57.419+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-07T15:16:50.235+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-07T15:49:08.993+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-08T07:46:30.078+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-09T05:53:58.986+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-09T17:35:19.612+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-09T23:09:42.523+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-10T02:38:09.603+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-10T23:39:40.078+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-11T20:03:14.216+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-11T23:46:31.345+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-12T10:53:07.806+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-13T09:39:42.084+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-13T20:44:47.098+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-14T13:44:56.197+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-14T16:09:06.928+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-15T08:11:16.784+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-15T18:58:03.560+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-16T02:14:50.173+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 13 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-16T10:54:21.769+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-16T19:21:33.816+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-17T03:57:51.196+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-18T03:05:20.414+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-18T19:45:54.187+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-19T03:56:35.466+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-19T15:25:20.807+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-20T15:03:21.816+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-21T05:23:18.603+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-21T08:15:43.218+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-22T05:48:45.700+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-22T19:31:41.938+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-23T11:07:11.573+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-23T12:17:15.582+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-24T04:47:36.399+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-24T17:03:07.050+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-25T10:16:38.054+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-25T23:04:38.967+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-26T20:08:02.621+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-27T16:17:10.165+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 14 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-28T04:47:15.307+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-28T06:33:12.937+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-29T06:08:42.793+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-29T16:06:00.189+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-30T12:32:45.105+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-07-31T06:56:48.603+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-01T05:45:34.673+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-01T12:55:59.318+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-01T20:39:03.722+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-01T23:39:20.457+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-02T22:20:41.339+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-03T12:41:07.178+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-03T14:57:12.511+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-04T03:53:45.690+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-04T19:23:44.291+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-05T08:32:49.848+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-05T11:09:50.854+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-06T03:59:19.863+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-06T12:24:14.403+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-07T00:00:32.238+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 15 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-07T20:11:52.581+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-08T06:53:09.997+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-08T18:50:46.103+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-09T16:07:34.860+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-10T15:42:21.290+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-11T12:09:32.254+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-12T06:11:10.282+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-12T16:13:46.701+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-13T13:34:30.311+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-13T19:57:59.514+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-14T11:37:05.179+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-15T03:00:24.399+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-16T01:19:16.447+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-16T17:37:16.121+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-17T13:01:49.952+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-18T10:08:20.501+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-18T16:09:55.719+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-19T10:08:15.808+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-20T05:21:20.566+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-20T15:19:06.245+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 16 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-21T08:05:16.993+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-21T15:23:58.922+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-21T15:33:02.252+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-22T07:50:14.049+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-22T15:13:41.189+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-23T14:59:48.625+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-24T03:25:16.545+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-24T14:17:39.911+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-24T16:26:44.381+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-25T07:36:48.984+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-25T09:22:17.829+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-26T04:55:44.571+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-26T07:27:52.765+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-27T04:54:45.346+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-28T04:41:04.476+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-28T13:04:00.358+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-28T21:16:00.304+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-29T15:52:07.568+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-30T12:59:47.899+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-30T13:01:09.462+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 17 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-31T09:16:18.571+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-08-31T16:38:02.353+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-01T07:53:14.958+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-02T02:10:49.225+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-02T18:44:13.801+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-03T15:59:40.071+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-04T14:19:08.554+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-05T01:03:17.901+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-05T21:05:45.735+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-06T09:14:40.329+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-06T15:37:36.278+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-06T21:41:05.728+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-07T00:23:08.810+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-07T23:37:01.291+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-08T07:42:52.310+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-09T01:33:37.777+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-09T22:26:32.434+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-10T00:47:51.968+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-10T05:36:51.454+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-10T10:05:02.792+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 18 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-11T02:28:17.464+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-11T11:16:26.085+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-12T03:17:33.591+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-12T09:20:26.553+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-13T01:28:59.699+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-13T11:10:27.496+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-13T21:44:45.784+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-14T18:01:04.845+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-15T12:04:15.883+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-16T09:26:22.569+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-16T21:05:56.862+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-17T02:03:07.328+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-17T05:11:46.332+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-17T19:48:31.898+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-18T12:13:07.354+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-19T05:48:07.847+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-19T13:19:32.864+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-19T23:30:57.526+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-20T10:14:36.761+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="LacticAcid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-21T03:56:03.892+02:00"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="Case No. 19 [positive]"/>
+		<string key="trace:type" value="positive"/>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-21T08:15:49.232+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-21T20:47:42.596+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Registration"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-22T09:28:04.782+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Release A"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-23T09:02:39.108+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Return ER"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-24T07:29:30.516+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-24T23:24:30.940+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-25T10:47:49.563+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Antibiotics"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-26T03:52:44.614+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission IC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-27T03:29:51.026+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="IV Liquid"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-27T12:16:11.184+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-28T07:15:19.204+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-28T16:03:26.908+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-29T06:15:55.675+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Sepsis Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-29T13:19:45.740+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-29T19:10:05.743+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="ER Triage"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-29T23:42:22.149+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="CRP"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-09-30T07:58:51.974+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-10-01T04:56:23.399+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Leucocytes"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-10-01T20:55:57.507+02:00"/>
+		</event>
+		<event>
+			<string key="concept:name" value="Admission NC"/>
+			<string key="lifecycle:transition" value="complete"/>
+			<date key="time:timestamp" value="2024-10-02T19:00:59.740+02:00"/>
+		</event>
+	</trace>
+</log>

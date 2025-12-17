@@ -1,0 +1,96 @@
+activity A_PARTLYSUBMITTED
+bind A_PARTLYSUBMITTED: org:resource
+activity A_SUBMITTED
+bind A_SUBMITTED: org:resource
+activity A_DECLINED
+bind A_DECLINED: org:resource
+activity W_Completeren aanvraag
+bind W_Completeren aanvraag: org:resource
+activity A_PREACCEPTED
+bind A_PREACCEPTED: org:resource
+activity A_ACCEPTED
+bind A_ACCEPTED: org:resource
+activity A_FINALIZED
+bind A_FINALIZED: org:resource
+activity W_Nabellen offertes
+bind W_Nabellen offertes: org:resource
+activity O_SELECTED
+bind O_SELECTED: org:resource
+activity O_SENT
+bind O_SENT: org:resource
+activity O_CREATED
+bind O_CREATED: org:resource
+activity W_Afhandelen leads
+bind W_Afhandelen leads: org:resource
+activity O_SENT_BACK
+bind O_SENT_BACK: org:resource
+activity W_Valideren aanvraag
+bind W_Valideren aanvraag: org:resource
+activity A_CANCELLED
+bind A_CANCELLED: org:resource
+activity O_CANCELLED
+bind O_CANCELLED: org:resource
+activity A_APPROVED
+bind A_APPROVED: org:resource
+activity A_ACTIVATED
+bind A_ACTIVATED: org:resource
+activity A_REGISTERED
+bind A_REGISTERED: org:resource
+activity O_ACCEPTED
+bind O_ACCEPTED: org:resource
+activity W_Nabellen incomplete dossiers
+bind W_Nabellen incomplete dossiers: org:resource
+org:resource: 11180, 11181, 10929, 10609, 10809, 10899, 10932, 10931, 112, 10779, 10933, 10859, 10935, 11309, 11300, 11189, 10972, 11269, 11302, 10971, 10138, 11029, 11304, 10939, 11119, 10228, 10789, 10821, 11319, 10629, 11111, 10188, 11079, 10862, 10861, 10982, 10863, 11120, 10909, 11009, 10910, 10912, 10914, 10913, 11122, 11001, 11121, 11000, 11201, 11003, 11289, 11002, 11200, 11049, 11203, 11169, 11202, 11339, 11019, 10889, 10880, 11254, 11179, 10881, 11299, 10125, 10124, 11259
+Choice[A_SUBMITTED, W_Valideren aanvraag] | | |
+Choice[A_PARTLYSUBMITTED, O_CREATED] | | |
+Choice[A_PARTLYSUBMITTED, W_Nabellen offertes] | | |
+Choice[A_SUBMITTED, O_SENT_BACK] | | |
+Choice[A_PARTLYSUBMITTED, A_REGISTERED] | | |
+Choice[A_PARTLYSUBMITTED, O_SELECTED] | | |
+Choice[A_APPROVED, A_PARTLYSUBMITTED] | | |
+Choice[A_APPROVED, A_SUBMITTED] | | |
+Choice[A_SUBMITTED, W_Nabellen incomplete dossiers] | | |
+Choice[A_PARTLYSUBMITTED, A_PREACCEPTED] | | |
+Choice[A_PARTLYSUBMITTED, W_Valideren aanvraag] | | |
+Choice[A_REGISTERED, A_SUBMITTED] | | |
+Choice[A_SUBMITTED, O_CANCELLED] | | |
+Choice[A_PARTLYSUBMITTED, O_SENT] | | |
+Choice[A_PARTLYSUBMITTED, W_Completeren aanvraag] | | |
+Choice[A_ACTIVATED, A_SUBMITTED] | | |
+Choice[A_PARTLYSUBMITTED, W_Afhandelen leads] | | |
+Choice[A_FINALIZED, A_SUBMITTED] | | |
+Choice[A_ACTIVATED, A_PARTLYSUBMITTED] | | |
+Choice[A_SUBMITTED, O_SELECTED] | | |
+Choice[A_FINALIZED, A_PARTLYSUBMITTED] | | |
+Choice[A_PARTLYSUBMITTED, O_CANCELLED] | | |
+Choice[A_SUBMITTED, W_Completeren aanvraag] | | |
+Choice[A_SUBMITTED, O_SENT] | | |
+Choice[A_PARTLYSUBMITTED, A_SUBMITTED] | | |
+Choice[A_DECLINED, A_SUBMITTED] | | |
+Choice[A_SUBMITTED, W_Afhandelen leads] | | |
+Choice[A_SUBMITTED, O_ACCEPTED] | | |
+Choice[A_PREACCEPTED, A_SUBMITTED] | | |
+Choice[A_SUBMITTED, O_CREATED] | | |
+Choice[A_CANCELLED, A_SUBMITTED] | | |
+Choice[A_PARTLYSUBMITTED, O_SENT_BACK] | | |
+Choice[A_CANCELLED, A_PARTLYSUBMITTED] | | |
+Choice[A_PARTLYSUBMITTED, W_Nabellen incomplete dossiers] | | |
+Choice[A_PARTLYSUBMITTED, O_ACCEPTED] | | |
+Choice[A_ACCEPTED, A_PARTLYSUBMITTED] | | |
+Choice[A_DECLINED, A_PARTLYSUBMITTED] | | |
+Choice[A_ACCEPTED, A_SUBMITTED] | | |
+Choice[A_SUBMITTED, W_Nabellen offertes] | | |
+Absence2[A_REGISTERED] | |
+Absence2[A_FINALIZED] | |
+Absence2[A_DECLINED] | |
+Absence2[A_ACTIVATED] | |
+Absence2[A_CANCELLED] | |
+Absence2[A_APPROVED] | |
+Absence2[A_ACCEPTED] | |
+Absence2[A_PREACCEPTED] | |
+Absence2[O_ACCEPTED] | |
+Not Succession[A_PARTLYSUBMITTED, A_SUBMITTED] | | |
+Init[A_SUBMITTED] | |
+Chain Succession[A_SUBMITTED, A_PARTLYSUBMITTED] | | |
+Exactly1[A_PARTLYSUBMITTED] | |
+Exactly1[A_SUBMITTED] | |

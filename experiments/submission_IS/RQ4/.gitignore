@@ -1,0 +1,20 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# output from the experiments
+results/*
+!results/.gitkeep
+# Include experiment results included in submission
+!results/asp_generator_2025-12/
+!results/asp_generator_2025-12/**
+!results/asp_generator_2025-12.html
+!results/asp_generator_2025-12_analysis.html
+
+# exclude marimo runtimes
+__marimo__/
+
+# Include logs in the datasets
+!Datasets/**/*.xes
+!Datasets/**/*.xes.gz
+

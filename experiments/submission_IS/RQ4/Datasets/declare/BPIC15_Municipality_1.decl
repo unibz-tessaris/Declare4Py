@@ -1,0 +1,245 @@
+activity 01_HOOFD_010
+bind 01_HOOFD_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, dueDate, action_code, activityNameEN, planned
+activity 01_HOOFD_015
+bind 01_HOOFD_015: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_020
+bind 01_HOOFD_020: monitoringResource, org:resource, activityNameNL, question, dateFinished, dueDate, action_code, activityNameEN, planned
+activity 01_HOOFD_030_1
+bind 01_HOOFD_030_1: monitoringResource, org:resource, activityNameNL, question, dateFinished, dueDate, action_code, activityNameEN, planned
+activity 01_HOOFD_030_2
+bind 01_HOOFD_030_2: monitoringResource, org:resource, activityNameNL, question, dateFinished, dueDate, action_code, activityNameEN, planned
+activity 01_HOOFD_200
+bind 01_HOOFD_200: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_375
+bind 01_HOOFD_375: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 09_AH_I_010
+bind 09_AH_I_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_380
+bind 01_HOOFD_380: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_490_1
+bind 01_HOOFD_490_1: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_510_2
+bind 01_HOOFD_510_2: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_510_1
+bind 01_HOOFD_510_1: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_490_2
+bind 01_HOOFD_490_2: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_480
+bind 01_HOOFD_480: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_430
+bind 01_HOOFD_430: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_101
+bind 01_HOOFD_101: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_330
+bind 01_HOOFD_330: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 04_BPT_005
+bind 04_BPT_005: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_370
+bind 01_HOOFD_370: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_011
+bind 01_HOOFD_011: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_195
+bind 01_HOOFD_195: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 02_DRZ_010
+bind 02_DRZ_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, dueDate, action_code, activityNameEN, planned
+activity 01_HOOFD_495
+bind 01_HOOFD_495: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 11_AH_II_010
+bind 11_AH_II_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_065_2
+bind 01_HOOFD_065_2: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_065_1
+bind 01_HOOFD_065_1: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_061
+bind 01_HOOFD_061: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_500
+bind 01_HOOFD_500: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_491
+bind 01_HOOFD_491: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_490_4
+bind 01_HOOFD_490_4: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_065_0
+bind 01_HOOFD_065_0: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_510_3
+bind 01_HOOFD_510_3: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_515
+bind 01_HOOFD_515: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 05_EIND_010
+bind 05_EIND_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_510_4
+bind 01_HOOFD_510_4: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_050
+bind 01_HOOFD_050: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_110_0
+bind 01_HOOFD_110_0: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_250_1
+bind 01_HOOFD_250_1: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_250_2
+bind 01_HOOFD_250_2: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_490_5
+bind 01_HOOFD_490_5: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_520
+bind 01_HOOFD_520: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_100_0
+bind 01_HOOFD_100_0: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_530
+bind 01_HOOFD_530: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_490_1a
+bind 01_HOOFD_490_1a: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 06_VD_010
+bind 06_VD_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_510_0
+bind 01_HOOFD_510_0: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_040
+bind 01_HOOFD_040: monitoringResource, org:resource, activityNameNL, question, dateFinished, dueDate, action_code, activityNameEN, planned
+activity 01_HOOFD_250
+bind 01_HOOFD_250: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_510_2a
+bind 01_HOOFD_510_2a: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_260
+bind 01_HOOFD_260: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_060
+bind 01_HOOFD_060: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 13_CRD_010
+bind 13_CRD_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_490_3
+bind 01_HOOFD_490_3: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_494a
+bind 01_HOOFD_494a: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_490_5a
+bind 01_HOOFD_490_5a: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_196
+bind 01_HOOFD_196: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 08_AWB45_010
+bind 08_AWB45_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 08_AWB45_020_1
+bind 08_AWB45_020_1: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 08_AWB45_020_2
+bind 08_AWB45_020_2: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 08_AWB45_030
+bind 08_AWB45_030: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_090
+bind 01_HOOFD_090: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_470
+bind 01_HOOFD_470: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 08_AWB45_040
+bind 08_AWB45_040: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_130
+bind 01_HOOFD_130: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_519
+bind 01_HOOFD_519: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_100
+bind 01_HOOFD_100: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_110_2
+bind 01_HOOFD_110_2: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_270
+bind 01_HOOFD_270: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 08_AWB45_025
+bind 08_AWB45_025: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_110_1
+bind 01_HOOFD_110_1: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_055
+bind 01_HOOFD_055: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, dateStop, planned
+activity 03_GBH_005
+bind 03_GBH_005: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_BB_770
+bind 01_BB_770: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_205
+bind 01_HOOFD_205: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN
+activity 08_AWB45_045
+bind 08_AWB45_045: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 14_VRIJ_010
+bind 14_VRIJ_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_810
+bind 01_HOOFD_810: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 09_AWB45_005
+bind 09_AWB45_005: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 08_AWB45_051_0
+bind 08_AWB45_051_0: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_BB_540
+bind 01_BB_540: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 07_OPS_010
+bind 07_OPS_010: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 08_AWB45_020_0
+bind 08_AWB45_020_0: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_250_0
+bind 01_HOOFD_250_0: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_516
+bind 01_HOOFD_516: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 06_VD_030_2
+bind 06_VD_030_2: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 06_VD_030_1
+bind 06_VD_030_1: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 06_VD_020
+bind 06_VD_020: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_193
+bind 01_HOOFD_193: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_190_2
+bind 01_HOOFD_190_2: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_820
+bind 01_HOOFD_820: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+activity 01_HOOFD_190_1
+bind 01_HOOFD_190_1: monitoringResource, org:resource, activityNameNL, question, dateFinished, action_code, activityNameEN, planned
+monitoringResource: 1, 2, 3
+org:resource: 1, 2, 3
+activityNameNL: 1, 2, 3
+question: 1, 2, 3
+dateFinished: 1, 2, 3
+dueDate: 1, 2, 3
+action_code: 1, 2, 3
+activityNameEN: 1, 2, 3
+dateStop: 1, 2, 3
+planned: 1, 2, 3
+Absence2[01_HOOFD_491] | |
+Absence2[01_HOOFD_030_1] | |
+Absence2[01_HOOFD_030_2] | |
+Absence2[08_AWB45_010] | |
+Absence2[04_BPT_005] | |
+Absence2[01_HOOFD_260] | |
+Absence2[08_AWB45_051_0] | |
+Absence2[01_HOOFD_100_0] | |
+Absence2[07_OPS_010] | |
+Absence2[06_VD_030_2] | |
+Absence2[01_HOOFD_065_0] | |
+Absence2[08_AWB45_030] | |
+Absence2[01_HOOFD_193] | |
+Absence2[01_HOOFD_510_4] | |
+Absence2[08_AWB45_025] | |
+Absence2[08_AWB45_040] | |
+Absence2[01_HOOFD_055] | |
+Absence2[01_BB_540] | |
+Absence2[01_HOOFD_480] | |
+Absence2[01_HOOFD_101] | |
+Absence2[01_BB_770] | |
+Absence2[01_HOOFD_090] | |
+Absence2[14_VRIJ_010] | |
+Absence2[01_HOOFD_470] | |
+Absence2[08_AWB45_045] | |
+Absence2[01_HOOFD_820] | |
+Absence2[03_GBH_005] | |
+Absence2[06_VD_020] | |
+Absence2[01_HOOFD_050] | |
+Absence2[01_HOOFD_430] | |
+Absence2[05_EIND_010] | |
+Absence2[01_HOOFD_110_1] | |
+Absence2[01_HOOFD_110_2] | |
+Absence2[01_HOOFD_810] | |
+Absence2[06_VD_010] | |
+Absence2[01_HOOFD_061] | |
+Absence2[01_HOOFD_060] | |
+Absence2[06_VD_030_1] | |
+Absence2[01_HOOFD_516] | |
+Absence2[13_CRD_010] | |
+Absence2[01_HOOFD_490_5] | |
+Absence2[01_HOOFD_020] | |
+Absence2[01_HOOFD_494a] | |
+Absence2[01_HOOFD_011] | |
+Absence2[01_HOOFD_040] | |
+Absence2[08_AWB45_020_0] | |
+Absence2[01_HOOFD_110_0] | |
+Absence2[02_DRZ_010] | |
+Absence2[08_AWB45_020_2] | |
+Absence2[01_HOOFD_490_5a] | |
+Co-Existence[01_HOOFD_010, 01_HOOFD_015] | | |
+Exactly1[01_HOOFD_010] | |
+Exactly1[01_HOOFD_015] | |
